@@ -93,8 +93,10 @@
       <button data-speed="8" aria-pressed="false">8×</button>
       <button data-speed="16" aria-pressed="false">16×</button>
       <button data-speed="32" aria-pressed="false">32×</button>
+      <button id="speedCycle" class="m-only" aria-label="배속 바꾸기">1×</button>
       <span class="sp"></span>
       <button id="skipBtn">마지막까지</button>
+      <div class="mini m-only" id="miniStat" aria-hidden="true"></div>
     </div>
     <div class="choice sheet" id="choice" hidden></div>
     <div class="ending sheet" id="ending" hidden></div>
@@ -109,7 +111,7 @@
     <div class="row memtools" id="memTools" hidden><button type="button" class="btn ghost" id="memMore">모두 보기</button><button type="button" class="btn ghost" id="memClear">모두 지우기</button></div>
   </section>
 
-  <p class="foot">물고기 이야기 속 사건과 확률은 실제 통계(공공 수족관의 연간 폐사율, 운송·판매 중 폐사 조사, 선물로 받은 금붕어의 생존 등)에 맞춰 조정한 추정치이고, 화면에 사실로 나오는 수치는 모두 출처가 있습니다. 출처 목록은 저장소의 docs/DATA_SOURCES.md에 있습니다. 남긴 생과 닉네임은 이 브라우저(localStorage)에만 저장되고 어디로도 보내지지 않습니다.<span class="ver">베타 v0.9.25 · 관상어 데이 · PARK, SEHO</span></p>
+  <p class="foot">물고기 이야기 속 사건과 확률은 실제 통계(공공 수족관의 연간 폐사율, 운송·판매 중 폐사 조사, 선물로 받은 금붕어의 생존 등)에 맞춰 조정한 추정치이고, 화면에 사실로 나오는 수치는 모두 출처가 있습니다. 출처 목록은 저장소의 docs/DATA_SOURCES.md에 있습니다. 남긴 생과 닉네임은 이 브라우저(localStorage)에만 저장되고 어디로도 보내지지 않습니다.<span class="ver">베타 v0.9.26 · 관상어 데이 · PARK, SEHO</span></p>
 </div>
 
 <!-- load order matters: later files use what earlier files declare -->

@@ -1,6 +1,6 @@
 {
   "name": "petsim",
-  "version": "0.9.25-beta",
+  "version": "0.9.26-beta",
   "description": "키워주세요 — 끝까지: a pet-life simulator about responsibility (beta: ornamental fish)",
   "private": true,
   "type": "module",

@@ -80,6 +80,8 @@ function render(){
   const sk=$('mSkill');if(sk){sk.hidden=!F||wild||pre;if(!sk.hidden){meter(sk,S.r*100);sk.querySelector('.v').textContent=fRank(S.r)+' '+Math.round(S.r*100)}}
   const wq=$('mWq');if(wq){wq.hidden=!(F&&!pre&&!wild);if(!wq.hidden)meter(wq,F.wq)}
   const tp=$('mTemp');if(tp){tp.hidden=!(F&&!pre&&typeof fTempNow==='function');if(!tp.hidden){const t=fTempNow();meter(tp,t.fit);tp.querySelector('.v').textContent=t.c.toFixed(0)+'℃';tp.title='알맞은 수온 '+t.lo+'~'+t.hi+'℃'}}
+  const ms=$('miniStat');if(ms){const f=S.f,parts=[ageLabel(S.ageM),'건강 '+Math.round(S.health)];if(f&&!S.preOwner&&!S.wild)parts.push('수질 '+Math.round(f.wq),'보살핌 '+Math.round(S.interest*100));ms.textContent=parts.join(' · ');ms.classList.toggle('low',S.health<30)}
+  if(document.body&&document.body.classList)document.body.classList.toggle('ingame',!S.done&&!$('game').hidden);
   fields();drawStage();
 }
 
@@ -91,7 +93,7 @@ const LAST={
   plate:'',cage:'철창 너머에서 누군가 내 이름을 불러 주길 바랐다.',truck:'멀어지는 마당을 끝까지 돌아보았다.',bottle:'숲 냄새가 그리웠다.',gone:'',
 };
 function showEnd(cat,fact,calm){
-  S.done=true;stop();
+  S.done=true;stop();if(document.body&&document.body.classList)document.body.classList.remove('ingame');
   if(!calm)S.health=0;
   stageKey='';render();
   const sm=document.createElement('div');sm.className='stamp'+(calm?' calm':'');sm.textContent=cat;$('card').appendChild(sm);
@@ -248,7 +250,9 @@ function spin(){
 $('startBtn').onclick=()=>spin();
 $('playBtn').onclick=()=>{paused=false;setPlay();run()};
 $('stopBtn').onclick=()=>{paused=true;setPlay();stop();stepText()};
-document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{speed=+b.dataset.speed;document.querySelectorAll('[data-speed]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));if(S&&!S.done&&paused){paused=false;setPlay()}run()});
+/* phones: one button cycles the six speeds; the bar with it stays at the bottom of the screen */
+$('speedCycle').onclick=()=>{const L=[1,2,4,8,16,32],nx=L[(L.indexOf(speed)+1)%L.length],b=document.querySelector('[data-speed="'+nx+'"]');if(b)b.click()};
+document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{speed=+b.dataset.speed;$('speedCycle').textContent=speed+'×';document.querySelectorAll('[data-speed]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));if(S&&!S.done&&paused){paused=false;setPlay()}run()});
 try{$('nick').value=localStorage.getItem('kiwojuseyo-nick')||''}catch(e){}
 $('skipBtn').onclick=()=>{if(!S||S.done)return;skipping=true;stop();if(S.pending)S.pending.resolve(pick(S.pending.opts));let n=0;while(!S.done&&n++<8000){if(S.pending)S.pending.resolve(pick(S.pending.opts));tick()}skipping=false;stageKey='';render();if($('ending').scrollIntoView)$('ending').scrollIntoView({behavior:'smooth',block:'start'})};
 
