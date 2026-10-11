@@ -36,9 +36,8 @@ By hand instead: **New → Static Site** → repository → Build command *(empt
 
 ## 3. After the first deploy
 
-- Put the live URL in the repository description and at the top of `README.md`.
-- Share preview: `og:image` is relative (`og.png`); most apps resolve it, but for KakaoTalk and
-  Slack set it to the absolute URL (`https://<site>/og.png`) and push again.
+- Live: https://keep-me-until-the-end.onrender.com — linked at the top of `README.md`; `og:url`, `og:image` and the canonical link use it.
+- If the address ever changes, update those three tags in `public/index.html` and the README.
 - Check on a phone (Safari and Chrome): start a life, finish it, keep it in 주마등, replay it.
 
 ## Checklist (beta)

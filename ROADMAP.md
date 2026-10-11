@@ -54,13 +54,13 @@ P0 Prototype ─► P1 Structure ─► P2 Content ─► P3 Art
   - P4.4 Unit-style checks in `tools/` for the particle fixer and ending reachability
     (every ending id reached at least once in 20,000 lives).
 
-## P5 · Release 🔄 (beta ready)
+## P5 · Release ✅ (public beta)
 - Gate: public URL loads in under 2 s on a phone, share preview shows title and image.
 - Done (v0.9.25): responsive layout checked at 320–1440 px and landscape phones, OG image,
   favicon set, privacy note (only localStorage), Render blueprint with headers, caching and a
   rewrite to the game for unknown paths, README and DEPLOY guide for the beta.
-- Left: create the GitHub repository and push, connect the blueprint on Render, put the URL in
-  the README, set `og:image` to the absolute URL. See `docs/DEPLOY.md`.
+- Live (2026-10-12): https://keep-me-until-the-end.onrender.com from GitHub `PSH020408/keep-me-until-the-end` via the Render blueprint;
+  every push to `main` redeploys.
 
 ## P6 · Portfolio ⬜
 - Gate: a Notion page that someone can read in five minutes and understand the problem,

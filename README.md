@@ -2,14 +2,21 @@
 
 A browser life-simulation about the promises we make to the animals we keep.
 
-![키워주세요 — 끝까지](public/og.png)
+<p align="center">
+  <a href="https://keep-me-until-the-end.onrender.com"><b>▶&nbsp;&nbsp;Play the beta — keep-me-until-the-end.onrender.com</b></a><br>
+  <sub>Free · no sign-up · works on phone, tablet and desktop · in Korean · about 5–10 minutes per life</sub>
+</p>
+
+[![Play the beta](https://img.shields.io/badge/%E2%96%B6%20Play%20the%20beta-keep--me--until--the--end.onrender.com-C4301F?style=for-the-badge)](https://keep-me-until-the-end.onrender.com)
+
+[![키워주세요 — 끝까지 — click to play](public/og.png)](https://keep-me-until-the-end.onrender.com)
 
 > One of 23 ornamental fish is born in a river or on a farm, survives (or doesn't) the net,
 > the sorting sieve, the shipping box and the shop tank, and goes home with an owner who has
 > signed six promises. You choose its temperament, make its choices when it matters, raise it
 > through the seasons — and watch which promises are struck out in red pen.
 
-**Status:** public beta (v0.9.26, *관상어 데이* — "ornamental fish day": fish only) · **Live:** _see the link in the repository description once Render is connected_ · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.9.26, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told as a cruel fairy tale: plain sentences, wounds that bleed in text, no gore in the
