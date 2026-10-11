@@ -1,0 +1,169 @@
+/* ---------- creature animation ----------
+   Origins are set inline (style="transform-origin:Xpx Ypx") in each part's own coordinates.
+   Durations differ on purpose so the idle loop never looks mechanical. */
+.stage g[class^="a-"],.stage g[class*=" a-"]{transform-box:view-box}
+.a-blink{transform:scaleY(0);animation:a-blink 5.4s infinite}
+@keyframes a-blink{0%,92%,100%{transform:scaleY(0)}94.5%{transform:scaleY(1)}97%{transform:scaleY(0)}}
+.a-breathe{animation:a-breathe 3.4s ease-in-out infinite}
+@keyframes a-breathe{50%{transform:scale(1.022,.985)}}
+.a-wag{animation:a-wag 1.1s ease-in-out infinite}
+.a-wagfast{animation:a-wag .32s ease-in-out infinite}
+.a-wagsmall{animation:a-wagsmall 2.4s ease-in-out infinite}
+@keyframes a-wag{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(14deg)}}
+@keyframes a-wagsmall{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+.a-swish{animation:a-swish 3.6s ease-in-out infinite}
+.a-swishfast{animation:a-swish 1s ease-in-out infinite}
+@keyframes a-swish{0%,100%{transform:rotate(-6deg)}40%{transform:rotate(8deg)}70%{transform:rotate(-2deg)}}
+.a-tilt{animation:a-tilt 8s ease-in-out infinite}
+@keyframes a-tilt{0%,30%,62%,100%{transform:rotate(0)}38%,54%{transform:rotate(7deg)}}
+.a-nod{animation:a-nod 3s ease-in-out infinite}
+@keyframes a-nod{0%,70%,100%{transform:rotate(0)}80%{transform:rotate(-4deg)}90%{transform:rotate(3deg)}}
+.a-earL{animation:a-earL 5.2s infinite}
+.a-earR{animation:a-earR 6.6s infinite}
+.a-earR2{animation:a-earR2 4.4s infinite}
+@keyframes a-earL{0%,84%,92%,100%{transform:rotate(0)}87%{transform:rotate(-14deg)}89%{transform:rotate(4deg)}}
+@keyframes a-earR{0%,60%,68%,100%{transform:rotate(0)}63%{transform:rotate(14deg)}65%{transform:rotate(-4deg)}}
+@keyframes a-earR2{0%,40%,58%,100%{transform:rotate(0)}46%,52%{transform:rotate(18deg)}}
+.a-flopL{animation:a-flopL 3.2s ease-in-out infinite}
+.a-flopR{animation:a-flopR 3.2s ease-in-out infinite}
+@keyframes a-flopL{0%,100%{transform:rotate(0)}50%{transform:rotate(-5deg)}}
+@keyframes a-flopR{0%,100%{transform:rotate(0)}50%{transform:rotate(5deg)}}
+.a-whisk{animation:a-whisk 2.8s ease-in-out infinite}
+@keyframes a-whisk{0%,70%,100%{transform:rotate(0)}78%{transform:rotate(-6deg)}86%{transform:rotate(4deg)}}
+.a-nose{animation:a-nose .9s infinite}
+@keyframes a-nose{0%,100%{transform:scaleY(1)}40%{transform:scaleY(.72)}}
+.a-sniff{animation:a-sniff 1.3s infinite}
+@keyframes a-sniff{0%,100%{transform:scale(1)}20%{transform:scale(1.2)}40%{transform:scale(1)}55%{transform:scale(1.18)}}
+.a-chew{animation:a-chew .55s ease-in-out infinite}
+@keyframes a-chew{50%{transform:scale(1.07,.95)}}
+.a-pant{animation:a-pant .42s ease-in-out infinite}
+@keyframes a-pant{50%{transform:scaleY(1.22)}}
+.a-drool{animation:a-drool 2.2s ease-in infinite}
+@keyframes a-drool{0%{transform:scaleY(.4)}70%{transform:scaleY(1.3)}100%{transform:scaleY(.4)}}
+.a-gulp{animation:a-gulp 1.4s ease-in-out infinite}
+@keyframes a-gulp{50%{transform:scale(1.5,1.7)}}
+.a-hop{animation:a-hop 5s ease-in-out infinite}
+@keyframes a-hop{0%,78%,92%,100%{transform:translateY(0)}84%{transform:translateY(-10px)}88%{transform:translateY(-3px)}}
+.a-look{animation:a-look 6s ease-in-out infinite}
+@keyframes a-look{0%,20%,90%,100%{transform:translateX(0) rotate(0)}30%,45%{transform:translateX(-2px) rotate(-6deg)}55%,75%{transform:translateX(2px) rotate(6deg)}}
+.a-wash{animation:a-wash .7s ease-in-out infinite}
+@keyframes a-wash{50%{transform:translateX(1.6px) rotate(6deg)}}
+.a-sway{animation:a-sway 5s ease-in-out infinite}
+@keyframes a-sway{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+.a-puff{animation:a-puff 3s ease-in-out infinite}
+@keyframes a-puff{50%{transform:scale(1.04)}}
+/* birds */
+.a-flapL{animation:a-flapL 7s infinite}
+.a-flapR{animation:a-flapR 7s infinite}
+@keyframes a-flapL{0%,86%,100%{transform:rotate(0)}88%,92%{transform:rotate(38deg)}90%,94%{transform:rotate(12deg)}}
+@keyframes a-flapR{0%,86%,100%{transform:rotate(0)}88%,92%{transform:rotate(-38deg)}90%,94%{transform:rotate(-12deg)}}
+.a-crest{animation:a-crest 3.4s ease-in-out infinite}
+@keyframes a-crest{0%,100%{transform:rotate(0)}50%{transform:rotate(-10deg)}}
+.a-peck{animation:a-peck 4.2s ease-in-out infinite}
+@keyframes a-peck{0%,62%,100%{transform:rotate(0)}70%{transform:rotate(-9deg) translateY(1px)}78%{transform:rotate(7deg)}86%{transform:rotate(0)}}
+.a-peep{animation:a-peep 1.6s infinite}
+@keyframes a-peep{0%,60%,100%{transform:scaleY(1)}70%,80%{transform:scaleY(1.6)}}
+/* water */
+.a-ftail{animation:a-ftail 1.3s ease-in-out infinite}
+@keyframes a-ftail{0%,100%{transform:skewY(-7deg) scaleX(.96)}50%{transform:skewY(7deg) scaleX(1.03)}}
+.a-fin{animation:a-fin 1.1s ease-in-out infinite}
+@keyframes a-fin{50%{transform:scaleY(.86) skewX(6deg)}}
+.a-pec{animation:a-pec .7s ease-in-out infinite}
+@keyframes a-pec{50%{transform:rotate(-22deg)}}
+.a-gillL{animation:a-gillL 1.9s ease-in-out infinite}
+.a-gillR{animation:a-gillR 1.9s ease-in-out infinite}
+@keyframes a-gillL{50%{transform:rotate(-9deg)}}
+@keyframes a-gillR{50%{transform:rotate(9deg)}}
+.a-bubble{animation:a-bubble 3s ease-in infinite}
+@keyframes a-bubble{0%{transform:translate(0,0);opacity:0}10%{opacity:.9}100%{transform:translate(3px,-46px);opacity:0}}
+/* reptiles, bugs */
+.a-tongue{animation:a-tongue 3.2s infinite}
+@keyframes a-tongue{0%,72%,90%,100%{transform:scaleY(0)}76%,86%{transform:scaleY(1)}80%{transform:scaleY(.7)}}
+.a-lick{animation:a-lick 7s infinite}
+@keyframes a-lick{0%,84%,96%,100%{transform:scale(0)}88%,92%{transform:scale(1)}}
+.a-headout{animation:a-headout 7s ease-in-out infinite}
+@keyframes a-headout{0%,66%,92%,100%{transform:translateY(0)}74%,84%{transform:translateY(5px) scale(.94)}}
+.a-chomp{animation:a-chomp 2.6s ease-in-out infinite}
+@keyframes a-chomp{0%,60%,100%{transform:translateY(0)}66%,78%{transform:translateY(1.4px)}72%,84%{transform:translateY(0)}}
+.a-ant{animation:a-ant 1.8s ease-in-out infinite}
+.a-ant2{animation:a-ant 2.3s ease-in-out infinite reverse}
+@keyframes a-ant{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(8deg)}}
+.a-snipL{animation:a-snipL 2.6s ease-in-out infinite}
+.a-snipR{animation:a-snipR 2.6s ease-in-out infinite}
+@keyframes a-snipL{0%,70%,100%{transform:rotate(0)}78%,84%{transform:rotate(12deg)}}
+@keyframes a-snipR{0%,70%,100%{transform:rotate(0)}78%,84%{transform:rotate(-12deg)}}
+.a-claw{animation:a-claw 2.2s ease-in-out infinite}
+@keyframes a-claw{0%,60%,100%{transform:rotate(0)}66%,74%{transform:rotate(-16deg)}70%{transform:rotate(-4deg)}}
+.a-stalk{animation:a-stalk 2.4s ease-in-out infinite}
+@keyframes a-stalk{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(6deg)}}
+.a-chirp{animation:a-chirp .22s linear infinite}
+@keyframes a-chirp{50%{transform:rotate(-5deg)}}
+.a-horn{animation:a-horn 3.4s ease-in-out infinite}
+@keyframes a-horn{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(4deg)}}
+/* moods and gags */
+.a-spin{animation:a-spin 1.1s linear infinite}
+@keyframes a-spin{to{transform:rotate(360deg)}}
+.a-jolt{animation:a-jolt .5s ease-in-out infinite}
+@keyframes a-jolt{0%,100%{transform:translateY(0)}30%{transform:translateY(-5px) scale(1.03,.97)}60%{transform:translateY(1px)}}
+.a-tear{animation:a-tear 1.5s ease-in infinite}
+@keyframes a-tear{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(14px);opacity:0}}
+.a-rain{animation:a-rain .7s linear infinite}
+@keyframes a-rain{0%{transform:translateY(-4px);opacity:0}30%{opacity:.9}100%{transform:translateY(12px);opacity:0}}
+.a-float{animation:a-float 2.4s ease-in-out infinite}
+@keyframes a-float{50%{transform:translateY(-3px)}}
+.a-steam{animation:a-steam 1.1s ease-out infinite}
+@keyframes a-steam{0%{transform:translate(0,0) scale(.4);opacity:.95}100%{transform:translate(0,-12px) scale(1.4);opacity:0}}
+.a-smoke{animation:a-smoke 2.6s ease-out infinite}
+@keyframes a-smoke{0%{transform:translate(0,0) scale(.5);opacity:.8}100%{transform:translate(4px,-26px) scale(1.6);opacity:0}}
+.a-flea{animation:a-flea .9s ease-in-out infinite}
+@keyframes a-flea{0%,100%{transform:translate(0,0)}25%{transform:translate(2px,-7px)}50%{transform:translate(4px,0)}75%{transform:translate(2px,-4px)}}
+.a-scratch{animation:a-scratch .25s ease-in-out infinite}
+@keyframes a-scratch{50%{transform:rotate(-18deg)}}
+.a-shake{animation:a-shake .12s linear infinite}
+@keyframes a-shake{25%{transform:translateX(-.8px)}75%{transform:translateX(.8px)}}
+.a-wobble{animation:a-wobble 1.6s ease-in-out infinite}
+@keyframes a-wobble{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg)}}
+.a-pulse{animation:a-pulse .9s ease-in-out infinite}
+@keyframes a-pulse{50%{transform:scale(1.18)}}
+.a-drip{animation:a-drip 1.2s ease-in infinite}
+@keyframes a-drip{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:1}100%{transform:translateY(10px) scale(1);opacity:0}}
+.a-thought{animation:a-thought 2.8s ease-in-out infinite}
+@keyframes a-thought{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-2px) scale(1.04)}}
+.a-xray{animation:a-xray .36s steps(1) infinite}
+.a-xray2{animation:a-xray2 .36s steps(1) infinite}
+@keyframes a-xray{0%{opacity:1}50%{opacity:0}}
+@keyframes a-xray2{0%{opacity:0}50%{opacity:1}}
+.a-buzz{animation:a-buzz .2s linear infinite}
+@keyframes a-buzz{50%{transform:translate(.6px,-.6px)}}
+.a-swim{animation:a-swim 9s ease-in-out infinite}
+@keyframes a-swim{0%{transform:translateX(-30px) scaleX(1)}44%{transform:translateX(30px) scaleX(1)}50%{transform:translateX(30px) scaleX(-1)}94%{transform:translateX(-30px) scaleX(-1)}100%{transform:translateX(-30px) scaleX(1)}}
+.a-flash{opacity:0;animation:a-flash 2.6s infinite}
+@keyframes a-flash{0%,4%{opacity:.75}9%,100%{opacity:0}}
+/* one-shot death sequences (forwards) */
+.d-flop{animation:d-flop .45s ease-in-out 7 alternate}
+@keyframes d-flop{0%{transform:translateY(0) rotate(0)}100%{transform:translateY(-14px) rotate(-26deg) scaleY(-1)}}
+.d-out{animation:d-out 3.6s ease-in forwards}
+@keyframes d-out{0%,72%{opacity:1}100%{opacity:0}}
+.d-in{opacity:0;animation:d-in 3.6s ease-in forwards}
+@keyframes d-in{0%,72%{opacity:0}100%{opacity:1}}
+.d-car{animation:d-car .9s cubic-bezier(.5,0,.9,.6) forwards}
+@keyframes d-car{0%{transform:translateX(-200px)}100%{transform:translateX(420px)}}
+.d-after{opacity:0;animation:d-in2 .1s .42s forwards}
+.d-before{animation:d-out2 .1s .42s forwards}
+@keyframes d-in2{to{opacity:1}}
+@keyframes d-out2{to{opacity:0}}
+.d-sink{animation:d-sink 6s ease-in forwards}
+@keyframes d-sink{to{transform:translate(-8px,46px) rotate(40deg)}}
+.d-leave{animation:d-leave 2.6s 1.2s ease-in forwards}
+@keyframes d-leave{to{transform:translateX(-260px)}}
+.d-drain{animation:d-drain 2.4s ease-in forwards}
+@keyframes d-drain{to{transform:scale(.05) rotate(720deg);opacity:.3}}
+.d-rise{animation:d-rise 5s ease-in-out infinite}
+@keyframes d-rise{0%{transform:translateY(6px);opacity:0}25%{opacity:.6}100%{transform:translateY(-34px);opacity:0}}
+.d-drive{animation:d-drive 2.8s 1.8s ease-in forwards}
+@keyframes d-drive{to{transform:translateX(-330px)}}
+.d-drown{animation:d-drown 4s ease-in forwards}
+@keyframes d-drown{from{transform:translateY(60px)}to{transform:translateY(0)}}
+.d-gulp{animation:d-gulp 1.4s ease-in forwards}
+@keyframes d-gulp{0%{transform:translate(0,0) scale(1)}100%{transform:translate(6px,4px) scale(.2);opacity:0}}
+@media (prefers-reduced-motion:reduce){.stage [class^="a-"],.stage [class*=" a-"],.stage [class^="d-"]{animation:none!important}.a-blink,.a-tongue,.a-lick{transform:scale(0)}.d-in,.d-after{opacity:1}.d-out,.d-before{opacity:0}}

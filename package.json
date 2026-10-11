@@ -1,0 +1,13 @@
+{
+  "name": "petsim",
+  "version": "0.9.25-beta",
+  "description": "키워주세요 — 끝까지: a pet-life simulator about responsibility (beta: ornamental fish)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "npx --yes serve public -l 5173",
+    "sim": "node tools/sim.mjs 3000"
+  },
+  "author": "PARK, SEHO",
+  "license": "MIT"
+}

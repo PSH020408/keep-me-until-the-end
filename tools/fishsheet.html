@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>PetSim fish sheet</title>
+<link rel="stylesheet" href="../public/css/creatures.css">
+<style>body{background:#EDE6DA;margin:0;padding:8px;font:11px/1.2 monospace}#g{display:grid;grid-template-columns:repeat(var(--cols,6),1fr);gap:6px}figure{margin:0;background:#fff;border:1px solid #ccc}figcaption{padding:2px 4px}svg{display:block;width:100%;height:auto}</style></head>
+<body><div id="g"></div>
+<!-- Fish contact sheet: ?mode=live|chain|death|ill&id=<species,...>&fx=<f-…>&own=<owner>&tank=<k> -->
+<script src="../public/js/core.js"></script>
+<script src="../public/js/data/species.js"></script>
+<script src="../public/js/data/facts.js"></script>
+<script src="../public/js/data/events.js"></script>
+<script src="../public/js/data/endings.js"></script>
+<script src="../public/js/data/choices.js"></script>
+<script src="../public/js/data/fish.js"></script>
+<script src="../public/js/data/fishchoice.js"></script>
+<script src="../public/js/engine.js"></script>
+<script src="../public/js/fish.js"></script>
+<script src="../public/js/data/fishgrow.js"></script>
+<script src="../public/js/art/paint.js"></script>
+<script src="../public/js/art/look.js"></script>
+<script src="../public/js/art/raster.js"></script>
+<script src="../public/js/art/mammals.js"></script>
+<script src="../public/js/art/others.js"></script>
+<script src="../public/js/art/gags.js"></script>
+<script src="../public/js/art/death.js"></script>
+<script src="../public/js/art/fish.js"></script>
+<script>
+FISH_BASE='../public/img/fish/';IMG_BASE='../public/img/pets/';
+const P=new URLSearchParams(location.search);
+const mode=P.get('mode')||'live',ids=(P.get('id')||'').split(',').filter(Boolean);
+const list=ids.length?ids:Object.keys(FX);
+const g=document.getElementById('g');if(P.get('cols'))g.style.setProperty('--cols',P.get('cols'));
+function life(id,own,tank){newLife(id);S.temper='curious';const f=S.f;f.shop='shop';setupOwner(own||'learner');if(tank){f.tank=tank}S.preOwner=0;S.env=f.tank==='pond'?'pond':'tank';S.ageM=S.sp.life*.4;f.len=FX[id].cm*.9;S.health=80;return f}
+function cell(label,svg){const fig=document.createElement('figure');fig.innerHTML=svg+`<figcaption>${label}</figcaption>`;g.appendChild(fig)}
+if(mode==='live') list.forEach(id=>{const f=life(id,P.get('own')||'expert',P.get('tank'));if(P.get('wq'))f.wq=+P.get('wq');cell(id+' '+f.tank+' '+f.own,fishStageSvg())});
+if(mode==='young') list.forEach(id=>{const f=life(id,'casual','t60');f.len=FX[id].cm*.25;S.ageM=S.sp.life*.05;cell(id+' young',fishStageSvg())});
+if(mode==='cramped') list.forEach(id=>{const f=life(id,'casual',P.get('tank')||'t60');f.wq=40;cell(id+' cramped '+f.tank,fishStageSvg())});
+if(mode==='chain'){const envs=(P.get('env')||'wildriver,catch,holding,box,bottles,farm,quarantine,shop').split(',');list.forEach(id=>envs.forEach(e=>{life(id);S.env=e;S.preOwner=1;S.f.len=FX[id].cm*.3;cell(id+' '+e,fishStageSvg())}))}
+if(mode==='ill'){const ovs=(P.get('dz')||Object.keys(DZ).join(',')).split(',');list.forEach(id=>ovs.forEach(d=>{const f=life(id,'learner','t90');f.len=Math.min(FX[id].cm,40);f.ill={id:d,sev:.7};S.health=30;cell(id+' '+d,fishStageSvg())}))}
+if(mode==='death'){const fxs=(P.get('fx')||'f-float,f-bottom,f-nipped,f-bent,f-thin,f-curl,f-cook,f-ice,f-intake,f-floor,f-escape,f-bag,f-box,f-net,f-bucket,f-shop,f-eaten,f-pond,f-toilet,f-trash,f-freezer,f-poison,f-hand,f-glass,f-euth,f-rest,f-aquarium,f-unsold,f-shopeaten,f-shopnip,freeze,eaten').split(',');
+  list.forEach(id=>fxs.forEach(fx=>{const f=life(id,'casual',id==='koi'&&fx==='f-pond'?'pond':'t60');f.mates=[{id:'oscar',n:1,cm:30},{id:'guppy',n:3,cm:5}];S.done=true;S.fx=fx;S.pred='oscar';f.endArg=fx==='f-poison'?'soap':null;if(fx==='freeze'||fx==='eaten'){S.wild=true;S.env='river';S.pred='heron'}if(fx==='f-bottom'){f.endKey='disease';f.ill={id:'ich',sev:1}}cell(id+' '+fx,fishStageSvg())}))}
+</script></body></html>

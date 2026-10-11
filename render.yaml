@@ -1,0 +1,31 @@
+# Render Blueprint: free static site served from ./public (no build step, no cold start).
+services:
+  - type: web
+    name: petsim
+    runtime: static
+    buildCommand: ""
+    staticPublishPath: ./public
+    autoDeploy: true
+    pullRequestPreviewsEnabled: false
+    headers:
+      - path: /*
+        name: X-Content-Type-Options
+        value: nosniff
+      - path: /*
+        name: Referrer-Policy
+        value: strict-origin-when-cross-origin
+      # sprites never change under the same name; scripts and styles are revalidated on every visit
+      - path: /img/*
+        name: Cache-Control
+        value: public, max-age=604800
+      - path: /js/*
+        name: Cache-Control
+        value: no-cache
+      - path: /css/*
+        name: Cache-Control
+        value: no-cache
+    routes:
+      # one page: any unknown path opens the game
+      - type: rewrite
+        source: /*
+        destination: /index.html

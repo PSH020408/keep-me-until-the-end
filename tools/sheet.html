@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>PetSim contact sheet</title>
+<link rel="stylesheet" href="../public/css/style.css">
+<link rel="stylesheet" href="../public/css/creatures.css">
+<style>
+body{background:#EDE6DA;margin:0;padding:10px;font:11px/1.2 monospace}
+#g{display:grid;grid-template-columns:repeat(var(--cols,7),1fr);gap:6px}
+figure{margin:0;background:#fff;border:1px solid #ccc}
+figcaption{padding:2px 4px}
+svg{display:block;width:100%;height:auto}
+</style></head>
+<body><div id="g"></div>
+<!-- Contact sheet for checking the art: ?mode=species|moods|gags|death|stage&id=<species>&mood=<m>&gag=<g>&fx=<fx>&paused=1 -->
+<script src="../public/js/core.js"></script>
+<script src="../public/js/data/species.js"></script>
+<script src="../public/js/art/paint.js"></script>
+<script src="../public/js/art/look.js"></script>
+<script src="../public/js/art/raster.js"></script>
+<script src="../public/js/art/mammals.js"></script>
+<script src="../public/js/art/others.js"></script>
+<script src="../public/js/art/gags.js"></script>
+<script src="../public/js/art/death.js"></script>
+<script>
+IMG_BASE='../public/img/pets/';
+var S={sp:SP[0],ageM:24,size:1,health:80,month:4,tick:0,flags:{},no:'1234',env:'home',wild:false,temper:'shy',interest:1};
+const P=new URLSearchParams(location.search);
+const mode=P.get('mode')||'species', ids=(P.get('id')||'').split(',').filter(Boolean);
+const list=ids.length?SP.filter(s=>ids.includes(s.id)):SP;
+const g=document.getElementById('g');
+if(P.get('cols')) g.style.setProperty('--cols',P.get('cols'));
+function cell(label,inner,vb){
+  const f=document.createElement('figure');
+  f.innerHTML=`<svg viewBox="${vb||'-60 -62 120 104'}">${inner}</svg><figcaption>${label}</figcaption>`;
+  g.appendChild(f);
+}
+function pet(sp,m,o){S.sp=sp;Pt.reset();const body=creature(m,o||{});let ov='';if(typeof gagLayer==='function')ov=gagLayer(m,o||{});return Pt.out()+`<rect x="-60" y="34" width="120" height="10" fill="#E2D2B8"/>`+body+ov}
+const moods=(P.get('mood')||'normal').split(',');
+if(mode==='species') list.forEach(sp=>moods.forEach(m=>cell(sp.id+' '+m,pet(sp,m))));
+if(mode==='moods'){const M=['normal','happy','sad','scared','sick','hungry','angry','grumpy','dizzy','dead','peace'];list.forEach(sp=>M.forEach(m=>cell(sp.id+' '+m,pet(sp,m))))}
+if(mode==='gags'){const G=(P.get('gag')||'bump,cast,band,soot,cold,hot,wet,itch,queasy,cone,fever,angry,stuffed').split(',');list.forEach(sp=>G.forEach(k=>{S.gag={k,t:5};cell(sp.id+' '+k,pet(sp,gagMood(k,'normal'),{gag:k}))}))}
+if(mode==='thin') list.forEach(sp=>[0,.5,1].forEach(t=>cell(sp.id+' thin '+t,pet(sp,t>.9?'dead':'sick',{thin:t,dull:t>.5}))));
+if(mode==='death'){const FX=(P.get('fx')||'starve,jump,flat,bite,eaten,freeze,heat,burn,flush,fall,poison,drown,sickdead,bellyup,plate,cage,truck,bottle,zap,gone,ghost').split(',');
+  list.forEach(sp=>FX.forEach(fx=>{S.sp=sp;S.fx=fx;S.done=true;S.calm=fx==='ghost';S.pred=P.get('pred')||'catfish';S.env=WATER.includes(sp.g)?'tank':'home';Pt.reset();const d=deathScene(130,124,1.25);cell(sp.id+' '+fx,Pt.out()+'<rect width="260" height="200" fill="#F3E7D3"/><rect y="160" width="260" height="40" fill="#D2AE82"/>'+d,'0 0 260 200')}))}
+if(P.get('paused')) document.querySelectorAll('svg').forEach(s=>s.pauseAnimations&&s.pauseAnimations());
+</script></body></html>

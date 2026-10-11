@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>키워주세요 — 끝까지</title>
+<meta name="description" content="관상어 23종 중 한 마리가 강이나 양식장에서 태어나 누군가의 수조에 닿고, 서약서를 쓴 주인 곁에서 한 생을 사는 잔혹동화풍 웹 시뮬레이션 (베타).">
+<meta property="og:title" content="키워주세요 — 끝까지">
+<meta property="og:description" content="살아남아, 물고기야. 서약서 여섯 줄과 빨간 펜으로 보는 반려생물의 한 생 — 관상어 데이 베타">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="ko_KR">
+<meta property="og:image" content="og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#E8EBEF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1218" media="(prefers-color-scheme: dark)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&family=Nanum+Pen+Script&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/creatures.css">
+</head>
+<body>
+<div class="wrap">
+  <section id="intro" class="sheet">
+    <div class="title"><span class="label">반려생물 입양 서약서<span class="beta">BETA</span></span><h1>키워주세요</h1><span class="sub">— 끝까지</span></div>
+    <p class="lede">오늘은 관상어 데이입니다. 물고기 23종 중 한 마리가 강이나 양식장에서 태어나 누군가의 수조에 닿기까지, 그리고 그 뒤의 생을 따라갑니다. 어떤 물고기가 어떤 집으로 갈지는 무작위로 정해집니다. 서약인은 아래 여섯 가지를 약속하고 생물을 데려갑니다. 당신은 그 생물의 기질을 정하고, 때때로 그 생물이 되어 선택합니다.</p>
+    <ol class="pledges" id="introPledges"></ol>
+    <div class="sign"><span class="who"><label for="nick">서약인</label><input id="nick" maxlength="12" placeholder="닉네임을 적어 주세요" autocomplete="off"></span><span>입양 동물<b>무작위 · 관상어 23종</b></span></div>
+    <p class="warn">유기, 방치, 학대, 밀렵·밀수, 번식장, 식용, 잡아먹히는 장면이 잔혹동화처럼 그려집니다. 15세 이상 권장.</p>
+    <div class="row"><button class="btn" id="startBtn">서약서 받고 보내기</button></div>
+  </section>
+
+  <div id="slot" class="slot" hidden aria-live="polite">
+    <div class="slot-card">
+      <span class="label">무작위 · 관상어 23종</span>
+      <div class="reel"><div class="strip" id="slotStrip"></div><span class="mark l">▶</span><span class="mark r">◀</span></div>
+      <p class="slot-name" id="slotName">&nbsp;</p>
+      <span class="slot-hint">누르면 바로 넘어갑니다</span>
+    </div>
+  </div>
+
+  <div id="lantern" class="lantern" hidden role="dialog" aria-label="주마등">
+    <div class="lan-card">
+      <div class="lan-head"><img id="lanImg" alt=""><div><p class="lan-name" id="lanName"></p><span class="label" id="lanMeta"></span></div></div>
+      <div class="lan-film" id="lanFilm" title="누르면 멈춥니다"></div>
+      <div class="lan-ctl" id="lanCtl"><button type="button" id="lanPrev">◀ 이전</button><button type="button" id="lanHold">❚❚ 멈춤</button><button type="button" id="lanNext">다음 ▶</button><span class="pos" id="lanPos"></span><button type="button" id="lanSkip">정리 보기</button></div>
+      <div class="lan-sum" id="lanSum" hidden></div>
+      <div class="row"><button class="btn ghost" id="lanAgain">다시 보기</button><button class="btn" id="lanClose">닫기</button></div>
+    </div>
+  </div>
+
+  <section id="game" hidden>
+    <div style="display:flex;flex-direction:column;gap:16px">
+    <div class="sheet" id="card">
+      <div class="row" style="justify-content:space-between"><span class="label" id="cardNo"></span><span class="label" id="cardSex"></span></div>
+      <div class="head">
+        <div class="info">
+          <h2 class="species" id="spName"></h2>
+          <div class="sci" id="spSci"></div>
+          <div class="mrow" id="fishRow"><span class="mhead">물고기</span><div class="meters">
+            <div class="meter" id="mHealth"><div class="top"><span>건강</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
+            <div class="meter" id="mPow" hidden><div class="top"><span>힘</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
+            <div class="meter" id="mGuts" hidden><div class="top"><span>근성</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
+            <div class="meter" id="mWits" hidden><div class="top"><span>지능</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
+            <div class="meter" id="mCharm" hidden><div class="top"><span>매력</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
+          </div></div>
+          <div class="mrow" id="ownRow"><span class="mhead" id="ownHead">주인 몫</span><div class="meters">
+            <div class="meter" id="mSkill" hidden><div class="top"><span>주인 실력</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
+            <div class="meter" id="mTemp" hidden><div class="top"><span>수온</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
+            <div class="meter" id="mWq" hidden><div class="top"><span>수질</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
+            <div class="meter" id="mCare"><div class="top"><span id="careLabel">보살핌</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
+          </div></div>
+          <dl class="fields" id="fields"></dl>
+        </div>
+        <div class="stagewrap"><div id="stage"></div><div class="chips" id="chips"></div></div>
+      </div>
+      <div class="life"><div class="top"><span id="ageNow"></span><span id="ageMax"></span></div><div class="track"><div class="fill" id="ageFill"></div></div>
+        <div class="tick"><span id="stepLabel"></span><div class="track"><div class="fill" id="tickFill"></div></div></div></div>
+      <!-- the pledges are kept here for the record; they are shown on the ending, with the broken ones struck out -->
+      <ol class="pledges" id="gamePledges" hidden></ol>
+    </div>
+    <div class="controls">
+      <button id="playBtn" aria-pressed="true">▶ 플레이</button>
+      <button id="stopBtn" aria-pressed="false">■ 정지</button>
+      <button data-speed="1" aria-pressed="true">1×</button>
+      <button data-speed="2" aria-pressed="false">2×</button>
+      <button data-speed="4" aria-pressed="false">4×</button>
+      <button data-speed="8" aria-pressed="false">8×</button>
+      <button data-speed="16" aria-pressed="false">16×</button>
+      <button data-speed="32" aria-pressed="false">32×</button>
+      <span class="sp"></span>
+      <button id="skipBtn">마지막까지</button>
+    </div>
+    <div class="choice sheet" id="choice" hidden></div>
+    <div class="ending sheet" id="ending" hidden></div>
+    <ul class="log" id="log"></ul>
+    </div>
+  </section>
+
+  <section class="memorial">
+    <h3>주마등</h3>
+    <p class="summary" id="memSummary"></p>
+    <ul class="mem" id="memList"></ul>
+    <div class="row memtools" id="memTools" hidden><button type="button" class="btn ghost" id="memMore">모두 보기</button><button type="button" class="btn ghost" id="memClear">모두 지우기</button></div>
+  </section>
+
+  <p class="foot">물고기 이야기 속 사건과 확률은 실제 통계(공공 수족관의 연간 폐사율, 운송·판매 중 폐사 조사, 선물로 받은 금붕어의 생존 등)에 맞춰 조정한 추정치이고, 화면에 사실로 나오는 수치는 모두 출처가 있습니다. 출처 목록은 저장소의 docs/DATA_SOURCES.md에 있습니다. 남긴 생과 닉네임은 이 브라우저(localStorage)에만 저장되고 어디로도 보내지지 않습니다.<span class="ver">베타 v0.9.25 · 관상어 데이 · PARK, SEHO</span></p>
+</div>
+
+<!-- load order matters: later files use what earlier files declare -->
+<script src="js/core.js"></script>
+<script src="js/data/species.js"></script>
+<script src="js/data/facts.js"></script>
+<script src="js/data/events.js"></script>
+<script src="js/data/endings.js"></script>
+<script src="js/data/choices.js"></script>
+<script src="js/data/fish.js"></script>
+<script src="js/data/fishchoice.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/fish.js"></script>
+<script src="js/data/fishgrow.js"></script>
+<script src="js/art/paint.js"></script>
+<script src="js/art/look.js"></script>
+<script src="js/art/raster.js"></script>
+<script src="js/art/mammals.js"></script>
+<script src="js/art/others.js"></script>
+<script src="js/art/gags.js"></script>
+<script src="js/art/death.js"></script>
+<script src="js/art/fish.js"></script>
+<script src="js/art.js"></script>
+<script src="js/ui.js"></script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+.DS_Store
+node_modules/
+*.log
+.env
+__pycache__/
+# raw Gemini art sheets (the cut sprites in public/img are what the game uses)
+/Dogs/
+/Fish/
+# local screenshots
+/bt*.png
