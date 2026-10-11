@@ -13,23 +13,23 @@ git add .
 git commit -m "Keep Me — Until the End: public beta v0.9.25"
 ```
 
-Create an **empty** repository on github.com (no README, no .gitignore), for example `petsim`, then:
+Create an **empty** repository on github.com (no README, no .gitignore), `keep-me-until-the-end`, then:
 
 ```bash
-git remote add origin https://github.com/<your-id>/petsim.git
+git remote add origin https://github.com/PSH020408/keep-me-until-the-end.git
 git push -u origin main
 ```
 
-(With the GitHub CLI: `gh repo create petsim --public --source=. --remote=origin --push`.)
+(With the GitHub CLI: `gh repo create keep-me-until-the-end --public --source=. --remote=origin --push`.)
 
 `.gitignore` leaves out the raw art sheets (`Dogs/`, `Fish/`); the game only uses the cut sprites in `public/img`.
 
 ## 2. Render
 
 1. render.com → sign in with GitHub → **New** → **Blueprint** → pick the repository.
-2. Render reads `render.yaml`: static site `petsim`, publish directory `public`, no build command,
+2. Render reads `render.yaml`: static site `keep-me-until-the-end`, publish directory `public`, no build command,
    security headers, a week of caching for sprites, and every unknown path rewritten to the game.
-3. **Apply.** The site appears at `https://petsim.onrender.com` (or the name Render gives it).
+3. **Apply.** The site appears at `https://keep-me-until-the-end.onrender.com` (or the name Render gives it).
    Every push to `main` redeploys.
 
 By hand instead: **New → Static Site** → repository → Build command *(empty)* → Publish directory `public`.

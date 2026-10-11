@@ -1,7 +1,7 @@
 # Render Blueprint: free static site served from ./public (no build step, no cold start).
 services:
   - type: web
-    name: petsim
+    name: keep-me-until-the-end
     runtime: static
     buildCommand: ""
     staticPublishPath: ./public
