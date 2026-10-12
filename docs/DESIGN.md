@@ -143,7 +143,8 @@ see the tank. During play the page is now a fixed layout and only the log scroll
 | Screen | Layout |
 |---|---|
 | desktop, landscape tablet, landscape phone | card (tank, gauges, details) and controls on the left, the log in its own panel on the right |
-| portrait tablet, phone | card on top (details folded behind "정보"), log in the middle, controls at the bottom |
+| portrait tablet | card on top (details folded behind "정보"), log in the middle, controls at the bottom |
+| phone held upright (v0.9.32) | a compact status panel on top — the tank beside the nine gauges — so the log gets about 60% of the screen; controls at the bottom |
 | any | every choice is a dialog over the screen; on phones a bottom sheet |
 
 At the ending the page returns to normal scrolling so the ending, the promises and the memorial can be

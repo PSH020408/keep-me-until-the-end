@@ -108,7 +108,7 @@ function aloneChoice(){
 }
 function endLife(lines,cat,fact,pl,calm,fx,pred){
   S.ending=true;
-  lines.forEach((l,i)=>q(l,i===lines.length-1?'end':(i===0?'bad':'sub'),i===0&&pl?()=>pl.forEach(p=>breakP(p[0],p[1])):null));
+  lines.forEach((l,i)=>q(l,i===lines.length-1?'end':(i===0?(calm?'sub':'bad'):'sub'),i===0&&pl?()=>pl.forEach(p=>breakP(p[0],p[1])):null));
   q(null,null,()=>{S.fx=fx||(calm?'ghost':'sickdead');S.endCat=cat;S.gag=null;S.pred=pred||null;S.calm=!!calm;showEnd(cat,typeof fact==='function'?fact():fact,calm)});
 }
 function fireEnd(e,bonus){

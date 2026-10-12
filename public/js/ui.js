@@ -103,7 +103,7 @@ function showEnd(cat,fact,calm){
   const al=ageLabel(lived);
   h.textContent=calm?T('{n}은 '+josa(al,'을')+' 살았습니다.'):T('{n}은 '+al+' 만에 생을 마쳤습니다.');
   E.appendChild(h);
-  if(!S.noPledge){const sc=document.createElement('div');sc.className='score'+(kept===S.pl.length||S.flags.fac?' calm':'');sc.textContent=S.preOwner?'서약서를 쓸 주인을 만나기도 전이었습니다':S.flags.fac?'서약서 대신 보호시설이 끝까지 돌봤습니다':(S.f&&S.f.place?josa(S.o.name,'이'):S.o.name+' 님이')+' 지킨 서약 '+kept+' / '+S.pl.length;E.appendChild(sc);
+  if(!S.noPledge){const sc=document.createElement('div');sc.className='score'+(kept===S.pl.length||S.flags.fac?' calm':'');sc.textContent=S.f&&S.f.free?'서약서도 주인도 필요 없는 생이었습니다':S.preOwner?'서약서를 쓸 주인을 만나기도 전이었습니다':S.flags.fac?'서약서 대신 보호시설이 끝까지 돌봤습니다':(S.f&&S.f.place?josa(S.o.name,'이'):S.o.name+' 님이')+' 지킨 서약 '+kept+' / '+S.pl.length;E.appendChild(sc);
     if(!S.preOwner&&!S.flags.fac){const ol=document.createElement('ol');ol.className='pledges endpl';drawPledges(ol,true);E.appendChild(ol)}}
   const c=document.createElement('div');c.className='compare';
   c.innerHTML='<div class="cbar"><span>살아낸 시간</span><div class="track"><div class="fill"></div></div><span class="mono a"></span></div><div class="cbar"><span>살 수 있던 시간</span><div class="track"><div class="fill pot" style="width:100%"></div></div><span class="mono b"></span></div>';
@@ -130,8 +130,8 @@ function showEnd(cat,fact,calm){
   // last words: what the animal would say to its person
   if(!S.noPledge){
     const lw=document.createElement('div');lw.className='lastwords';
-    const lab=document.createElement('label');lab.htmlFor='lastWords';lab.textContent=S.disp+(S.wild?'이 세상에':'이 주인에게')+' 남기는 마지막 한마디';
-    if(!hb(S.disp)) lab.textContent=S.disp+(S.wild?'가 세상에':'가 주인에게')+' 남기는 마지막 한마디';
+    const lab=document.createElement('label');lab.htmlFor='lastWords';const noOwner=S.wild||S.preOwner;lab.textContent=S.disp+(noOwner?'이 세상에':'이 주인에게')+' 남기는 마지막 한마디';
+    if(!hb(S.disp)) lab.textContent=S.disp+(noOwner?'가 세상에':'가 주인에게')+' 남기는 마지막 한마디';
     const ta=document.createElement('textarea');ta.id='lastWords';ta.rows=2;ta.maxLength=80;ta.placeholder=calm?'예) 고마웠어. 먼저 가서 기다릴게.':'예) 왜 그랬어?';
     const b=document.createElement('button');b.className='btn ghost';b.textContent='남기기';
     const out=document.createElement('p');out.className='last';out.hidden=true;
@@ -141,6 +141,7 @@ function showEnd(cat,fact,calm){
   const f=document.createElement('div');f.className='fact';f.innerHTML='<span class="label">실제로는</span><span class="tx"></span>';f.querySelector('.tx').textContent=fact;E.appendChild(f);
   const a=document.createElement('p');a.className='ask';
   a.textContent=S.noPledge?'먹이로 태어난 생명도 하나의 생명이었습니다. 무언가를 키우기로 하면, 그 생물이 먹는 생명까지 함께 책임지게 됩니다.':
+    S.f&&S.f.free?'이 물고기는 그물을 피해 태어난 물에서 끝까지 살았습니다. 같은 그물에 걸린 형제들은 그날 밤 상자에 담겼습니다. 사는 사람이 없으면, 잡는 사람도 없습니다.':
     S.preOwner?'이 물고기는 누군가의 수조에 닿기도 전에 죽었습니다. 가게 수조에서 헤엄치는 한 마리 뒤에는, 상자 안에서 먼저 죽은 물고기들이 있습니다. 사는 사람이 있어서 잡고, 기르고, 고릅니다.':
     S.f&&S.f.wild&&!calm?'이 물고기는 강에서 태어났습니다. 그 강에서 수조까지 오는 길, 그리고 수조 안의 시간 모두 사람이 정한 것이었습니다.':
     S.smuggled?'이 생물이 집에 오기까지 몇 마리가 길 위에서 죽었는지 아무도 세지 않습니다. 사는 사람이 없으면 밀렵도 없습니다.':

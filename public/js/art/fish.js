@@ -352,6 +352,8 @@ function fishDeath(){
   const inTank=(fn)=>{const {s,g,bottom}=tankScene();const inner=fn(g,bottom);return s+(vClip(g)?`<g clip-path="url(#${g.cid})">${inner}</g>`:inner)+tankFront(g)};
   const da=FISHART[id].dead,pxT=g=>Math.min(clamp(g.w*f.len/g.len*FZ,22,g.w*.95),g.h*.6*da[0]/da[1]),fh=px=>px*da[1]/da[0];
   switch(fx){
+  /* got away from the net: the river it was born in, as it was */
+  case 'f-home': return fishChainScene('wildriver');
   case 'f-float': case 'bellyup':
     if(!f.tank||S.wild) return riverDead('float');
     return inTank((g)=>{const px=pxT(g);let s=`<rect x="${g.x}" y="${g.y}" width="${g.w}" height="4" fill="#C9C29A" opacity=".8"/>`;

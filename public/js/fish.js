@@ -63,9 +63,14 @@ function fishPrologue(){
   if(f.wild){
     step(()=>{q(T(x.region+'. 그곳의 물에서 {n}이 태어났습니다.'),'neutral',()=>{S.env='wildriver'});q(null,null,next)});
     step(()=>{q(null,null,()=>{S.ageM=f.capAge;S.month+=f.capAge;f.len=x.cm*clamp(f.capAge/(S.sp.life*.2),.08,.8)});q(T(f.capAge>=1?'{n}은 그 물에서 '+josa(ageLabel(f.capAge),'을')+' 자랐습니다.':'{n}은 아직 손가락만 했습니다.'),'sub');
-      q(T(x.catch||'{n}은 '+x.region+'에서 채집꾼의 그물에 걸렸습니다.'),'bad',()=>{S.env='catch';S.status='포획됨';S.scaredT=3;f.path.push('포획')});
+      /* the net comes first, the choice second; only a fish that did not get away is caught */
+      q(T('채집꾼들이 그물을 들고 '+x.region+'에 들어왔습니다.'),'bad',()=>{S.status='채집 중';S.scaredT=3});
       ask(pSit('net'));
-      q(null,null,()=>{if(f.escape){fEnd('free');return}if(!die(.03+.07*(1-x.hardy),'capture'))next()})});
+      q(null,null,()=>{
+        if(f.escape){q(T('그물이 올라갔을 때, {n}은 거기 없었습니다.'),'good',()=>{S.status='강에서 삶';remember('그물이 지나갈 때까지 숨어 있었다. 그 물을 끝내 떠나지 않았다.',1.6)});
+          q(T('같은 날 같은 물에서 태어난 형제들은 그날 밤 비행기에 실렸습니다.'),'sub');q(null,null,()=>fEnd('free'));return}
+        q(T(x.catch||'{n}은 '+x.region+'에서 채집꾼의 그물에 걸렸습니다.'),'bad',()=>{S.env='catch';S.status='포획됨';f.path.push('포획')});
+        q(null,null,()=>{if(!die(.03+.07*(1-x.hardy),'capture'))next()})})});
     step(()=>{q(T('{n}은 채집꾼 마을의 대야에서 중간상인에게, 중간상인에게서 수출업자에게 넘겨졌습니다. 주인이 바뀔 때마다 물도 바뀌었습니다.'),'sub',()=>{S.env='holding';S.status='중간 유통';grow(.6);f.path.push('중간상인')});
       q(T('출하 이틀 전부터 먹이가 끊겼습니다. 봉지 속 물을 덜 더럽히기 위해서입니다.'),'sub',()=>{S.health-=12});
       q(null,null,()=>{if(!die(.05+.13*(1-x.hardy),'holding'))next()})});
@@ -890,7 +895,8 @@ const FEND={
  bread:{cat:'사고',fx:'f-float',fact:'fBread',pl:[[2,'아이에게 먹이를 맡김']],l:()=>['아이가 "물고기도 배고프대"라며 식빵을 뜯어 넣었습니다. 매일, 한 장씩.','불어난 빵이 물을 하얗게 흐렸고, 그걸 받아먹은 {n}의 배는 풍선처럼 부풀었습니다.','{n}은 배를 위로 한 채 떠올랐습니다. 아이는 "물고기가 자고 있다"고 했습니다.']},
  classroom:{cat:'방치',fx:'f-float',fact:'fPlace',pl:[[2,'방학 동안 방치']],l:()=>['방학식 날, 담임은 "누가 물고기 밥 좀 챙겨 줘"라고 말했습니다. 대답한 아이는 없었습니다.','잠긴 교실에서 아무도 먹이를 주지 않았고, 아무도 물을 갈지 않았습니다.','개학날, 아이들이 수조 앞에 몰려들었습니다. 물 위에 하얗게 뜬 {n}을 보고 누군가는 울었고, 누군가는 웃었습니다.']},
  office:{cat:'방치',fx:'f-float',fact:'fPlace',pl:[[2,'연휴 동안 방치']],l:()=>['연휴 아흐레 동안 사무실에는 아무도 오지 않았습니다. 로비 수조의 조명 타이머만 켜졌다 꺼졌다를 반복했습니다.','출근한 직원이 수조를 보고 시설팀에 전화를 걸었습니다.','"물고기 다 죽었는데요. 새로 넣을까요?"']},
- free:{cat:'자유',fx:'f-rest',calm:1,fact:'fChain',l:()=>{const y=S.sp.life*(.55+R()*.4);S.ageM=y;S.f.wild=1;S.f.len=fx_().cm;return ['그물이 올라갔을 때, {n}은 거기 없었습니다.','{n}은 '+x_region()+'에서 '+josa(ageLabel(y),'을')+' 살았습니다. 그물과 상자와 유리벽을 끝내 몰랐습니다.','같은 날 같은 물에서 태어난 형제들은 그날 밤 비행기에 실렸습니다.']}},
+ free:{cat:'자유',fx:'f-home',calm:1,fact:'fChain',l:()=>{const y=S.sp.life*(.55+R()*.4);S.ageM=y;S.f.wild=1;S.f.free=1;S.f.len=fx_().cm;S.health=100;S.env='wildriver';S.status='강에서 삶';
+   return ['{n}은 '+x_region()+'에서 '+josa(ageLabel(y),'을')+' 살았습니다. 그물과 상자와 유리벽을 끝내 몰랐습니다.','어느 해, {n}은 태어난 물 바닥에 조용히 몸을 누이고 다시 움직이지 않았습니다.']}},
  millcull:{cat:'도태',fx:'f-shopeaten',fact:'fBreed',pl:[[4,'번식이 끝난 어미를 먹이로 줌']],l:p=>['알을 덜 낳기 시작한 어미들은 번식장에서 쓸모가 없었습니다.','주인은 뜰채로 {n}을 건져 '+fPredName(p)+'의 수조 위에서 기울였습니다. {n}은 몇 달 동안 수천 개의 알을 낳았습니다.','다음 날 아침, 그 수조에는 {n}의 흔적이 없었습니다.']},
  apex:{cat:'하천의 포식자',fx:'apex',calm:1,fact:'fApex',l:()=>['{n}은 발전소 온배수가 흘러드는 물목에서 겨울을 났습니다. 물은 한겨울에도 미지근했습니다.','이듬해 봄, 그 물목의 붕어와 피라미가 눈에 띄게 줄었습니다. 낚시꾼들이 "이상한 물고기"를 봤다는 글을 올렸습니다.','{n}은 '+josa(ageLabel(S.ageM),'을')+' 살았습니다. 수조에서는 먹이였던 것들이, 이 강에서는 {n}의 먹이였습니다.']},
  angler:{cat:'외래종 퇴치',fx:'f-angler',fact:'fRelease',l:()=>['{n}이 문 지렁이에는 바늘이 있었습니다.','"외래종이네." 낚시꾼은 {n}을 강둑 풀밭에 던져 두었습니다. 다시 물에 넣어 주는 사람은 없었습니다.','{n}은 해가 질 때까지 풀밭에서 아가미를 들썩였습니다.']},
@@ -906,7 +912,7 @@ function fEnd(key,arg){
   if(typeof factFix==='function')factKey=factFix(key,factKey,arg);
   const fact=F[factKey]||factKey;
   const pl=val(e.pl)||null;
-  if(S.preOwner) S.status='유통 중 사망';
+  if(S.preOwner&&key!=='free') S.status='유통 중 사망';
   const lines=e.l(arg).map(T);
   const rl=!e.calm&&typeof fRepeatLine==='function'&&fRepeatLine(key);if(rl)lines.push(T(rl));
   const sl=(e.calm||key==='natural')&&typeof fStatLine==='function'&&fStatLine();if(sl)lines.push(T(sl));

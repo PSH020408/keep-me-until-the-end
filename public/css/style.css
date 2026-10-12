@@ -437,6 +437,27 @@ body.ingame #choice:not([hidden]){position:fixed;inset:0;margin:auto;z-index:45;
   body.ingame .life .top{font-size:11px}
   body.ingame #card{max-height:60dvh}
 }
+/* phones held upright: a compact status panel (the tank beside the gauges) so the log gets most of the screen.
+   Everything that matters stays in view while the log scrolls under it; details fold behind "정보". */
+@media (max-width:620px) and (orientation:portrait){
+  body.ingame #card{max-height:46dvh;padding:8px 10px;gap:6px}
+  body.ingame .cardtop{font-size:10px}
+  body.ingame .head{grid-template-columns:minmax(0,45%) minmax(0,1fr);gap:10px;align-items:start}
+  body.ingame .stagewrap{order:-1}
+  body.ingame .stage{max-height:none;width:100%}
+  body.ingame .chips{margin-top:4px;gap:4px}
+  body.ingame .chips .chip{font-size:10.5px;padding:1px 7px}
+  body.ingame .species{font-size:21px;line-height:1.1;margin:0}
+  body.ingame .mrow{grid-template-columns:1fr;margin-top:3px;gap:1px}
+  body.ingame .mrow .mhead{display:none}
+  body.ingame #fishRow .meters,body.ingame #ownRow .meters{grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 8px}
+  body.ingame #fishRow #mHealth{grid-column:1/-1}
+  body.ingame .mrow .meter .track{height:4px}
+  body.ingame #card.showinfo .head{grid-template-columns:minmax(0,1fr)}
+  body.ingame .life{margin-top:2px}
+  body.ingame .life .tick{display:none}
+  body.ingame .log li{font-size:14.5px}
+}
 
 /* the signer's name is required */
 .sign input.need{border-bottom-color:var(--pen);border-bottom-width:2px}

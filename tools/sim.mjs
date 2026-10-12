@@ -17,7 +17,7 @@ const gr={},ann={},cc={},p3={},by={},fx={},cats={},sps={},owns={};let calm=0,wil
 for(let i=0;i<N;i++){
   const r=ctx.__run(ONLY);
   by[r.g]=by[r.g]||{n:0,calm:0};by[r.g].n++;if(r.calm){by[r.g].calm++;calm++}
-  fx[r.fx]=(fx[r.fx]||0)+1;if(r.wild)wild++;pct+=r.pct;ev+=r.events;cats[r.cat]=(cats[r.cat]||0)+1;if(r.pre)pre++;
+  fx[r.fx]=(fx[r.fx]||0)+1;if(r.wild)wild++;pct+=r.pct;ev+=r.events;cats[r.cat]=(cats[r.cat]||0)+1;if(r.pre&&r.cat!=='자유')pre++;
   sps[r.id]=sps[r.id]||{n:0,calm:0,pct:0};sps[r.id].n++;sps[r.id].pct+=r.pct;if(r.calm)sps[r.id].calm++;
   if(r.own){owns[r.own]=owns[r.own]||{n:0,calm:0,pct:0};owns[r.own].n++;owns[r.own].pct+=r.pct;if(r.calm)owns[r.own].calm++;if(r.kept!=null&&!r.pre){owns[r.own].kept=(owns[r.own].kept||0)+r.kept;owns[r.own].kn=(owns[r.own].kn||0)+1}}
   if(r.first&&!r.pre){const k=r.first+(r.grow?(r.lazy?' (lazy)':' (learns)'):'');const g=gr[k]=gr[k]||{n:0,c:0,p:0,l:0};g.n++;g.p+=r.pct;g.l+=r.lessons||0;if(r.calm)g.c++}
@@ -29,7 +29,7 @@ console.log(`lives ${N} · lived out their lifespan ${(calm/N*100).toFixed(1)}% 
 console.log('by group (lived out %):',Object.entries(by).map(([g,v])=>`${g} ${(v.calm/v.n*100).toFixed(0)}% (n=${v.n})`).join(' · '));
 console.log('death scene:',Object.entries(fx).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${v}`).join(' · '));
 console.log('ending:',Object.entries(cats).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${(v/N*100).toFixed(1)}%`).join(' · '));
-console.log(`died before any owner ${(pre/N*100).toFixed(1)}%`);
+console.log(`died before any owner ${(pre/N*100).toFixed(1)}% (fish that escaped the net and lived on are not counted)`);
 console.log('by owner (lived out % · mean life %):',Object.entries(owns).map(([k,v])=>`${k} ${(v.calm/v.n*100).toFixed(0)}% · ${(v.pct/v.n*100).toFixed(0)}% (n=${v.n})`).join(' · '));
 console.log('pledges kept of 6, mean by owner:',Object.entries(owns).map(([k,v])=>`${k} ${(v.kept/v.kn).toFixed(1)}`).join(' · '));
 console.log('pledge 03 reasons (lives):',Object.entries(p3).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`${k} ${v}`).join(' · '));
