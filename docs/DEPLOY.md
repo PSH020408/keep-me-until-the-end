@@ -34,7 +34,13 @@ git push -u origin main
 
 By hand instead: **New → Static Site** → repository → Build command *(empty)* → Publish directory `public`.
 
-## 3. After the first deploy
+## 3. Shared memorial (Supabase)
+
+The shared memorial needs one Supabase project (free tier, Seoul). Steps, SQL and moderation are in
+[SHARING.md](SHARING.md); the project URL and the publishable key live in `public/js/share.js`. Leaving
+them empty hides the feature.
+
+## 4. After the first deploy
 
 - Live: https://keep-me-until-the-end.onrender.com — linked at the top of `README.md`; `og:url`, `og:image` and the canonical link use it.
 - If the address ever changes, update those three tags in `public/index.html` and the README.

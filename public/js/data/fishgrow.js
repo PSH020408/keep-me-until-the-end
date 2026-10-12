@@ -399,6 +399,8 @@ const RANK_UP={초보:'주인은 이제 물을 갈 때 염소 중화제를 빼�
 function fRankTick(){const f=S.f;if(!f||S.preOwner||S.wild||!f.own)return;const r=fRank(S.r);
   if(!f.rank){f.rank=r;return}
   if(RANKS.findIndex(x=>x[1]===r)>RANKS.findIndex(x=>x[1]===f.rank)){f.rank=r;say(RANK_UP[r]||('주인이 '+r+'가 되었습니다.'),'good');
+    /* a keeper this good does not leave a tropical fish without a heater */
+    if((r==='중수'||r==='고수')&&fx_().temp==='trop'&&!f.heater&&f.tank!=='pond'){f.heater=1;f.coldShock=0;say('주인은 그날 바로 온도 조절기가 달린 히터를 사 와 수온을 26℃에 맞췄습니다.','good')}
     if(r==='고수'&&f.own==='learner'&&!f.lazy&&(f.lessons||0)>=3){f.own='expert';remember('주인의 손길이 달라졌다. 물이 늘 맑았다.',1.3)}}
   else f.rank=r}
 

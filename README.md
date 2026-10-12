@@ -14,15 +14,16 @@ A browser life-simulation about the promises we make to the animals we keep.
 > signed six promises. You choose its temperament, make its choices when it matters, raise it
 > through the seasons — and watch which promises are struck out in red pen.
 
-**Status:** public beta (v0.9.29, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.9.30, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told as a cruel fairy tale: plain sentences, wounds that bleed in text, no gore in the
 > drawings. Intended for ages 15+.
 
-| Desktop | Phone |
+| Desktop — one screen: tank and gauges left, log right | Phone — tank on top, log below, controls at the bottom |
 |---|---|
 | ![desktop](docs/img/beta-desktop.png) | ![phone](docs/img/beta-phone.png) |
+| ![a schedule card as a dialog](docs/img/beta-desktop-choice.png) | ![a choice as a bottom sheet](docs/img/beta-phone-choice.png) |
 
 ## What happens in a life
 
@@ -48,6 +49,27 @@ The player signs the pledge with a nickname and is the fish's first owner under 
 keeper they turn out to be (expert, learner, casual…) is drawn. While a life plays, everything is on one
 screen: the tank and gauges, a scrolling log, and choices that open as dialogs.
 
+## Shared memorial (모두의 주마등)
+
+Finished lives can be shared between players. When a life is kept, a ticked box also posts it to a
+shared table; every visitor sees the latest lives at the bottom of the page and can replay any of them
+line by line, with its broken promises and last words.
+
+```
+browser (static site on Render)                 Supabase (Postgres, Seoul)
+  share.js ── POST /rest/v1/lives ───────────►  lives: nick, species, cause, kept, rec (jsonb)
+           ◄─ GET  /rest/v1/lives, life_stats ─  row-level security: read + insert only
+```
+
+- **No accounts, opt-in.** Only the nickname, the fish, the ending and the life record are stored, and
+  only when the player leaves the box ticked. The footer says so.
+- **Safe by construction.** The page holds only the publishable key; row-level security allows reading
+  and inserting and nothing else, so no visitor can edit or delete a row. A trigger caps posts at 20 a
+  minute, text columns have length checks, and a life record is limited to 24 KB.
+- **Untrusted on the way back.** Every row read from the table is rebuilt field by field with known
+  types and lengths, slurs are masked, and all text is inserted as text, never as HTML.
+- Setup, SQL and moderation: [docs/SHARING.md](docs/SHARING.md).
+
 ## Balance — anchored to real numbers
 
 `node tools/sim.mjs 6000` plays thousands of lives with random choices. The beta is tuned to:
@@ -72,8 +94,13 @@ decisions, in short:
 - **Only sourced numbers are shown as fact.** Estimates stay inside the mechanics; any figure
   on screen has a source in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md). A fact that was too vague to
   mean anything ("2% to over 70%") was replaced by a concrete case.
-- **The player is the fish, not the owner.** Choices are written in the fish's first person and
-  depend on its temperament and species; most are gambles with weighted outcomes.
+- **The player signs, the fish chooses.** The player is the owner by name — the pledge cannot be sent
+  without one — but what kind of keeper they turn out to be is drawn, and the choices belong to the
+  fish, written in its first person and shaped by its temperament and species. You make the promise;
+  you do not get to decide how well you keep it.
+- **One screen while a life plays.** Playtesters on phones kept scrolling between the log, the tank and
+  the speed buttons. The play view is now a fixed layout where only the log scrolls and choices open as
+  dialogs (bottom sheets on phones), checked from 360×640 to 1440×900.
 - **Crises are choices.** Accidents that used to kill outright became survival decisions, with
   their frequency raised so the overall death rate stays realistic.
 - **People differ.** Some owners learn from a mistake for good, some know the fix and put it off,
@@ -82,8 +109,25 @@ decisions, in short:
 - **Context is checked automatically.** Scripts play hundreds of lives in a pond, a bowl or a
   heated tank and flag any line that does not fit (a lid on a pond, a heater burn without a
   heater, tankmates for a fish living alone).
+- **Facts must match the fish.** `tools/check_facts.mjs` plays every species and lists which
+  real-world fact each ending showed; it caught a pea puffer being shown the betta fact and a dozen
+  similar mismatches.
 - **Responsive by test, not by eye.** The layout is rendered at 320–1440 px and on a landscape
   phone in headless Chromium and checked for overflow on every screen of a life.
+
+## Milestones
+
+| Version | Date | What changed |
+|---|---|---|
+| v0.1–v0.6 | 2026-10-10 | single-file prototype → modules; 42 species, pledge sheet and red pen, wild-survival model |
+| v0.7–v0.8 | 2026-10-10 | painted characters, cartoon gags, painted dog breeds |
+| v0.9 | 2026-10-11 | 관상어 데이: 23 painted fish, a full supply chain before any owner, tanks drawn to scale |
+| v0.9.12–0.9.20 | 2026-10-11 | balance against published anchors (easing reverted), crises as choices, owner types, layouts |
+| v0.9.21–0.9.24 | 2026-10-11 | raising the fish (stats, schedule), breeding modes, learning vs. lazy owners, context checks |
+| v0.9.25–0.9.26 | 2026-10-12 | public beta: responsive layout, OG image, GitHub → Render deploy |
+| v0.9.27–0.9.30 | 2026-10-12 | one-screen play, the player as owner, facts checked per species, shared memorial on Supabase |
+
+Every row is expanded in [LOG.md](LOG.md).
 
 ## Run it
 
@@ -119,6 +163,7 @@ render.yaml        Render blueprint
 | 키워주세요 — 끝까지 | "Please keep me — until the end" |
 | 서약서 | adoption pledge sheet |
 | 주마등 | revolving lantern; one's life flashing before one's eyes — the replay gallery |
+| 모두의 주마등 | "everyone's lantern" — the shared memorial of lives other players posted |
 | 육성 | raising / training (the schedule card) |
 | 고비 — 살아남기 | crisis — survive |
 | 왕초보 · 초보 · 중수 · 고수 | owner ranks: novice · beginner · intermediate · expert |

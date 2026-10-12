@@ -61,6 +61,10 @@ P0 Prototype ─► P1 Structure ─► P2 Content ─► P3 Art
   rewrite to the game for unknown paths, README and DEPLOY guide for the beta.
 - Live (2026-10-12): https://keep-me-until-the-end.onrender.com from GitHub `PSH020408/keep-me-until-the-end` via the Render blueprint;
   every push to `main` redeploys.
+- Same day, from playtest feedback: one-screen play on every screen size, the player as the named
+  owner, per-species fact checks, and the shared memorial on Supabase (`docs/SHARING.md`).
+- Next: watch the shared memorial for abuse in the first weeks; add a report button if needed; consider
+  a weekly summary of shared lives (most common causes of death) on the page.
 
 ## P6 · Portfolio ⬜
 - Gate: a Notion page that someone can read in five minutes and understand the problem,

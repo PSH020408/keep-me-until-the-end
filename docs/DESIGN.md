@@ -127,6 +127,41 @@ Each of those endings carries an ecological fact.
 unflinching; from v0.9.22 wounds may bleed in text (a deliberate change), and the fish's own
 voice ("아가미가 뜨거워" — "my gills are burning") follows what happens to it.
 
+## The signer is the player (v0.9.27)
+
+The pledge cannot be sent without the player's name, and the sheet carries it as it is typed
+("세호 님의 반려생물 입양 서약서"). The first owner of every fish is the player under that name;
+what kind of keeper they turn out to be — expert, learner, casual, gift — is drawn, as it is in life:
+people sign the same promise and keep it very differently. Owners after a rehoming are other people.
+The choices still belong to the fish. The player makes the promise and watches how it is kept.
+
+## One screen while a life plays (v0.9.27)
+
+Playtesting on phones showed constant scrolling: down to a choice, up to the speed buttons, up again to
+see the tank. During play the page is now a fixed layout and only the log scrolls:
+
+| Screen | Layout |
+|---|---|
+| desktop, landscape tablet, landscape phone | card (tank, gauges, details) and controls on the left, the log in its own panel on the right |
+| portrait tablet, phone | card on top (details folded behind "정보"), log in the middle, controls at the bottom |
+| any | every choice is a dialog over the screen; on phones a bottom sheet |
+
+At the ending the page returns to normal scrolling so the ending, the promises and the memorial can be
+read in full.
+
+## Shared memorial (v0.9.29)
+
+A kept life can be posted for other players to replay. The design choices:
+
+- **Opt-in and minimal.** A ticked box, with the consequence stated under it: the nickname, the fish,
+  the ending and the last words become public. No accounts and no tracking.
+- **The browser can only read and add.** The table (Supabase, Postgres) has row-level security with a
+  read policy and an insert policy and nothing else; a trigger limits posts to 20 a minute.
+- **What comes back is untrusted.** Each row is rebuilt with known types and lengths before it is shown,
+  slurs are masked, and all text goes in as text.
+- **The replay is the same for everyone.** A shared life opens in the same 주마등 view as one's own,
+  line by line, then the summary of broken promises and the last words.
+
 ## Writing rules for the game text
 
 - Short, plain sentences in the past tense. No exclamation marks in narration.
