@@ -58,7 +58,7 @@ function fishPrologue(){
   const die=(p,key)=>R()<p*(f.odds&&f.odds[key]||1)&&(fEnd(key),true);
   /* the fish's own moments on the way: a choice, then the step's odds */
   const ask=c=>q(null,null,()=>askChoice(c,()=>{}));
-  f.odds={};
+  f.odds={};f.preShop=wpick(x.shops);
   const grow=m=>{S.ageM+=m;S.month+=m;f.len=Math.max(f.len,x.cm*clamp(.05+S.ageM/(S.sp.life*.2),.05,x.start||.4))};
   if(f.wild){
     step(()=>{q(T(x.region+'. 그곳의 물에서 {n}이 태어났습니다.'),'neutral',()=>{S.env='wildriver'});q(null,null,next)});
@@ -76,25 +76,33 @@ function fishPrologue(){
         if(R()<.6) f.carrier=S.sp.id==='clownloach'&&R()<.6?'skinny':'worms'});
       q(null,null,()=>{if(!die(.03+.08*(1-x.hardy)+(x.scaleless?.08:0),'quarantine'))next()})});
   } else {
-    step(()=>{q(T(S.sp.id==='betta'?'{n}은 태국의 한 베타 농장에서 태어났습니다. 바닥에는 물이 담긴 유리병 수천 개가 줄지어 있었고, 다 자라면 {n}도 그중 한 병에 담길 차례였습니다.'
+    /* where it will be sold decides where it was born: fry shared by an acquaintance never saw a farm,
+       a domestic breeder's fish is selected by the breeder and never goes through a wholesaler */
+    const home=f.preShop==='friend'?'friend':f.preShop==='breeder'?'breeder':null;
+    if(home==='friend'){
+      step(()=>{q(T('{n}은 지인 집 수조에서 수십 마리 형제와 함께 태어났습니다. 어미는 그 집 주인이 몇 달 전 마트에서 사 온 한 쌍이었습니다.'),'neutral',()=>{S.env='farm';S.origin='지인 집 수조'});q(null,null,()=>{grow(clamp(S.sp.life*.04,1,4));next()})});
+    } else {
+    step(()=>{q(T(home==='breeder'?'{n}은 국내 한 브리더의 수조에서 태어났습니다. 어미와 아비는 브리더가 혈통을 보고 고른 한 쌍이었습니다.'
+      :S.sp.id==='betta'?'{n}은 태국의 한 베타 농장에서 태어났습니다. 바닥에는 물이 담긴 유리병 수천 개가 줄지어 있었고, 다 자라면 {n}도 그중 한 병에 담길 차례였습니다.'
       :S.sp.id==='clownloach'?'양식장 사람들이 어미 로치에게 호르몬 주사를 놓았습니다. 그렇게 받아 낸 알에서 {n}이 깨어났습니다.'
       :S.sp.id==='gar'?'원산지에서 몰래 들여온 어미에게서, 아시아의 한 양식장이 치어를 받아 냈습니다. 그중 하나가 {n}이었습니다.'
       :'{n}은 '+x.farm+'에서 수천 개의 알 중 하나로 깨어났습니다.'),'neutral',()=>{S.env='farm'});q(null,null,next)});
-    if(x.cull) step(()=>{q(T(S.sp.id==='betta'?'선별 작업자가 병을 하나씩 들어 불빛에 비춰 보았습니다.':S.sp.id==='koi'?'양식장 사람들이 치어를 체에 걸러 무늬를 하나씩 살폈습니다.':'양식장 사람들이 치어를 체에 걸러 지느러미와 몸 모양을 하나씩 살폈습니다.'),'sub',()=>{grow(1.5);f.path.push('선별')});
+    if(x.cull) step(()=>{q(T(home==='breeder'?'브리더가 치어를 한 마리씩 떠서 지느러미와 몸 모양을 살폈습니다.':S.sp.id==='betta'?'선별 작업자가 병을 하나씩 들어 불빛에 비춰 보았습니다.':S.sp.id==='koi'?'양식장 사람들이 치어를 체에 걸러 무늬를 하나씩 살폈습니다.':'양식장 사람들이 치어를 체에 걸러 지느러미와 몸 모양을 하나씩 살폈습니다.'),'sub',()=>{grow(1.5);f.path.push('선별')});
       ask(pSit('sieve'));
       q(null,null,()=>{if(R()<x.cull*(f.odds.cull||1)){fEnd('cull');return}q(T('{n}은 "팔 수 있는" 쪽에 남았습니다.'),'sub');next()})});
-    step(()=>{const bot=S.sp.id==='betta';
+    if(!home) step(()=>{const bot=S.sp.id==='betta';
       q(T(bot?'{n}은 손바닥만 한 병에 혼자 담겼습니다. 출하 전 며칠은 먹이가 없었습니다. 작업자 말로는 봉지 안에서 꼬리를 물어뜯지 않게 물에 진정제를 탄다고 합니다.':'출하 전 이틀 동안 먹이가 끊겼습니다. {n}은 수십 마리와 함께 비닐봉지에 담겼습니다.'),'sub',()=>{S.env=bot?'bottles':'box';S.status='출하';S.health-=8;grow(clamp(S.sp.life*.04,1,5));f.path.push(bot?'병 사육':'출하')});
       if(!bot) ask(pSit('box'));
       q(null,null,()=>{if(!die(.02+.06*(1-x.hardy),'transport'))next()})});
-    step(()=>{q(T('도매상 수조에서 {n}은 다른 양식장에서 온 물고기들과 같은 물을 나눠 썼습니다.'),'sub',()=>{S.env='quarantine';S.status='도매';grow(.3);f.path.push('도매');if(R()<.3)f.carrier=pick(['ich','ich','velvet',S.sp.id==='guppy'||S.sp.id==='platy'?'tetra':'finrot'])});
+    if(!home) step(()=>{q(T('도매상 수조에서 {n}은 다른 양식장에서 온 물고기들과 같은 물을 나눠 썼습니다.'),'sub',()=>{S.env='quarantine';S.status='도매';grow(.3);f.path.push('도매');if(R()<.3)f.carrier=pick(['ich','ich','velvet',S.sp.id==='guppy'||S.sp.id==='platy'?'tetra':'finrot'])});
       q(null,null,()=>{if(!die(.02+.05*(1-x.hardy),'quarantine'))next()})});
+    }
   }
   /* the shop */
   step(()=>{
-    let shop=wpick(x.shops);
+    let shop=f.preShop||wpick(x.shops);
     f.shop=shop;const sh=FSHOP[shop];
-    if(shop==='breeder'||shop==='friend'){S.origin=sh.l;f.path.push(sh.l);q(T(shop==='friend'?'{n}은 지인 집 수조에서 치어로 태어난 형제들과 함께 "필요한 사람 가져가세요" 글에 올라갔습니다.':'{n}은 국내 브리더의 수조에서 분양 날짜를 기다렸습니다.'),'sub',()=>{S.env='shop'});q(null,null,next);return}
+    if(shop==='breeder'||shop==='friend'){S.origin=sh.l;f.path.push(sh.l);q(T(shop==='friend'?(f.wild?'{n}을 사 온 지인이 "필요한 사람 가져가세요" 글을 올렸습니다. 어항이 생각보다 작았다고 했습니다.':'지인이 "치어 많이 태어났어요, 필요한 사람 가져가세요" 글을 올렸습니다. {n}은 그 형제들 중 한 마리였습니다.'):'{n}은 국내 브리더의 수조에서 분양 날짜를 기다렸습니다.'),'sub',()=>{S.env='shop'});q(null,null,next);return}
     if(shop==='fair'){fairStall();return}
     S.origin=sh.l;f.path.push(sh.l);
     q(T(shop==='mart'&&(x.cm>=25||f.wild)?'{n}은 대형마트 수족관 코너 끝 수조에 "이색 열대어"라는 이름표와 함께 넣어졌습니다. 다 자란 크기는 적혀 있지 않았습니다.':shop==='mart'?'{n}은 대형마트 수족관 코너의 작은 수조에 "특가" 가격표와 함께 넣어졌습니다. 같은 수조에 수십 마리가 있었습니다.'
@@ -178,13 +186,14 @@ function fishBuy(){
   function arrive(){
     const t=tankOf(f.tank);
     if(f.nameLater){S.name=f.nameLater;S.disp=S.name}
+    /* the pledge is signed first; what was already wrong that day is struck on the sheet once the fish is in the water */
+    q(T('서약인 '+S.o.name+' 님이 서약서에 서명했습니다. 오늘부터 {n}의 주인입니다.'),'neutral');
     q(T(S.name?S.o.name+' 님은 {n}에게 이름을 붙여 주었습니다. "'+S.name+'".':S.o.name+' 님은 {n}에게 이름을 붙이지 않았습니다.'),S.name?'good':'sub',()=>{S.env=f.tank==='pond'?'pond':'tank';S.status='집';if(S.name)remember('이름이 생겼다. "'+S.name+'".',1.1);render()});
     q(T('{n}의 집은 '+fTankLine()),'sub');
-    const acc=S.f.own==='expert'||S.f.own==='breeder'?'주인은 봉지를 수면에 30분 띄워 온도를 맞추고, 물을 조금씩 섞은 뒤에 {n}을 옮겼습니다.':R()<.5?'주인은 봉지를 그대로 수조에 쏟았습니다. 가게 물과 집 물의 온도가 달랐습니다.':'주인은 봉지를 잠깐 띄웠다가 {n}을 뜰채로 옮겼습니다.';
-    q(T(acc),'sub',()=>{if(/쏟/.test(acc)){f.coldShock=1;f.stress+=.15}});
+    const acc=S.f.own==='expert'||S.f.own==='breeder'?'주인은 봉지를 수면에 30분 띄워 온도를 맞추고, 물을 조금씩 섞은 뒤에 {n}을 옮겼습니다.':R()<.5?'주인은 봉지를 그대로 수조에 쏟았습니다. '+(S.f.shop==='friend'?'지인 집 물':S.f.shop==='breeder'?'브리더의 물':S.f.shop==='online'?'택배 상자 속 물':S.f.shop==='fair'?'축제장 물':'가게 물')+'과 집 물의 온도가 달랐습니다.':'주인은 봉지를 잠깐 띄웠다가 {n}을 뜰채로 옮겼습니다.';
+    q(T(acc),'sub',()=>{if(/쏟/.test(acc)){f.coldShock=1;f.stress+=.15}fSignCheck(/쏟/.test(acc))});
     if(!f.cycled) q(T('수조는 오늘 처음 물을 채운 새것이었습니다.'),'bad');
     if(f.carrier) q(null,null,()=>{});
-    q(T('서약인 '+S.o.name+' 님이 서약서에 서명했습니다. 오늘부터 {n}의 주인입니다.'),'neutral',()=>{fSignCheck(/쏟/.test(acc));render()});
   }
 }
 /* the day of signing: what the owner already got wrong is marked on the sheet at once */
@@ -233,7 +242,7 @@ function fLearn(m){
     [f.testKit&&f.wq<40,()=>{say('주인이 테스트 키트 색을 보고 바로 물을 3분의 1 갈았습니다. 다음 날 한 번 더 갈았습니다.','good');f.wq+=20}],
     [fLoad()>1.2&&f.mates.some(m=>m.n>1&&m.id!==S.sp.id),()=>{const m=f.mates.filter(m=>m.id!==S.sp.id&&m.n>1).sort((a,b)=>b.n*b.cm-a.n*a.cm)[0];const k=Math.ceil(m.n/2);m.n-=k;say('"과밀이 문제구나." 주인은 '+mateName(m)+' '+k+'마리를 물생활 카페 회원에게 분양 보냈습니다. 수조가 한결 넓어졌습니다.','good');f.stress-=.1}],
     [L<x.minL*.6&&f.tank!=='pond'&&TANKS.some(t=>t.k!=='pond'&&t.L>L),()=>{const up=TANKS.filter(t=>t.k!=='pond'&&t.L>L&&t.L>=Math.min(x.minL,1620))[0]||TANKS.filter(t=>t.k!=='pond'&&t.L>L).slice(-1)[0];
-      say('"다 크면 '+x.cm+'cm라고?" 주인은 {n}이 얼마나 자라는지 처음 찾아보았습니다.','sub');f.grow=2;fUpgrade(up,'주인은 '+josa(up.l,'을')+' 들여 옛 수조의 여과재를 그대로 옮겨 담았습니다.')}],
+      say('"다 크면 '+x.cm+'cm라고?" 주인은 {n}이 얼마나 자라는지 처음 찾아보았습니다.','sub');f.grow=2;fUpgrade(up,'주인은 '+josa(up.l,'을')+' 들였습니다. {n}이 몸을 다 펴고 헤엄쳤습니다.',true)}],
     [f.tank!=='pond'&&FI.k>=.8&&(f.wq<60||fLoad()>.9),()=>{const nf=L>=64?'외부 여과기':L>=27?'측면 여과기':'걸이식 여과기';say('"여과력이 모자라구나." 주인은 '+josa(f.filter==='없음'?'빈자리':f.filter,'을')+' 떼고 '+josa(nf,'을')+' 달았습니다. 옛 여과재는 새 여과기 안에 넣었습니다.','good');f.filter=nf;f.wq+=10}],
     [x.temp==='trop'&&!f.heater&&f.tank!=='pond',()=>{say('"열대어는 히터가 있어야 한대." 주인은 그날 바로 히터와 수온계를 주문했습니다.','good');f.heater=1;f.coldShock=0}],
     [!f.waterOK&&x.water!=='any',()=>{say(x.water==='brack'?'"기수어는 소금이 필요하다." 주인은 해수염과 비중계를 사서 조금씩 염도를 올렸습니다.':'"수질도 맞춰야 하는구나." 주인은 pH를 재고 물을 '+(x.water==='soft'?'약산성 연수로':'경수로')+' 천천히 바꿔 나갔습니다.','good');f.waterOK=1}],
@@ -252,7 +261,7 @@ function fLearn(m){
   S.cd.learn=S.tick+(own==='learner'?2:3);fx[1]();f.lessons++;S.r=clamp(S.r+.05,0,.97);S.interest=clamp(S.interest+.05,0,1);
   if(own==='casual'&&f.lessons>=2){f.own='learner';say('대충 키우던 주인이 물생활 카페에 가입했습니다. 첫 글의 제목은 "초보인데 물고기가 자꾸 아파요"였습니다.','sub')}
   else if(own==='gift'&&f.lessons>=2){f.own='learner';say('경품으로 받은 금붕어 때문에 시작한 공부가, 어느새 취미가 되었습니다.','sub')}
-  else if(own==='learner'&&f.lessons>=4&&f.lazy&&!f.lazyKnow){f.lazyKnow=1;say('주인은 이제 무엇이 문제인지 다 압니다. 하지 않을 뿐입니다.','bad')}
+  else if(own==='learner'&&f.lessons>=4&&f.lazy&&!f.lazyKnow){f.lazyKnow=1;say('주인은 이제 무엇이 문제인지 다 알았습니다. 하지 않았을 뿐입니다.','bad')}
   else if(own==='learner'&&f.lessons>=4&&!f.lazy){f.own='expert';S.r=Math.max(S.r,.82);say('주인은 이제 물생활 카페에서 질문보다 답을 더 많이 다는 사람이 되었습니다.','good');remember('주인의 손길이 달라졌다. 물이 늘 맑았다.',1.3)}
   f.wq=clamp(f.wq,0,100);f.stress=clamp(f.stress,0,1.2);render();return true;
 }
@@ -376,7 +385,8 @@ const fTankLine=()=>{const f=S.f,t=tankOf(f.tank),x=fx_();
 };
 function fishTankText(){const f=S.f,t=tankOf(f.tank);const mates=f.mates.reduce((s,m)=>s+m.n,0);
   return t.l+(t.L>=1?' '+t.L+'L':'')+' · '+(f.tank==='pond'?'연못':f.filter==='없음'?'여과기 없음':f.filter.replace(' 여과기',''))+(fx_().temp==='trop'&&f.tank!=='pond'?' · 히터 '+(f.heater?'있음':'없음'):'')+(f.tank==='pond'?'':' · 뚜껑 '+(f.lid?'있음':'없음'))+' · '+(mates?'합사 '+mates+'마리':'혼자')+(fLoad()>1.2?' (과밀)':'')}
-function fishOwnerText(){if(S.preOwner)return S.o.name+' · 아직 만나지 못함 ('+(S.status||'유통 중')+')';const f=S.f;return S.o.name+' · '+S.o.age+'세 · '+FOWN[f.own].l+(f.stubborn?' · 고집불통':f.grow&&f.lazy?' · 알지만 귀찮아함':f.grow?' · 배우는 중':'')}
+function fishOwnerText(){if(S.preOwner)return S.o.name+' · 아직 만나지 못함 ('+(S.status||'유통 중')+')';const f=S.f;const rk=typeof fRank==='function'?fRank(S.r):'',up=(rk==='고수'&&f.own!=='expert')||(rk==='중수'&&['casual','gift','learner','content'].includes(f.own));
+  return S.o.name+' · '+S.o.age+'세 · '+FOWN[f.own].l+(up?' → 지금은 '+rk:'')+(f.stubborn?' · 고집불통':f.grow&&f.lazy?' · 알지만 귀찮아함':f.grow&&rk!=='고수'?' · 배우는 중':'')}
 
 /* ---------- monthly life ---------- */
 function fishTick(){
@@ -391,6 +401,7 @@ function fishTick(){
   S.interest=clamp(S.interest-frac*(.3+(1-S.r)*1.2)*BORE.fish*bore*dec*fCharmK()*(f.lazy?1.35:1)+frac*S.r*1.0,.02,1);
   /* owners who grow get better week by week; the lazy ones barely */
   if(f.grow&&!f.stubborn)S.r=clamp(S.r+(f.lazy?.0015:.006)*m,0,.92);
+  if(f.lazy&&S.r>.7)S.r=.7; // knowing the fix and not doing it never makes a 고수
   fRankTick();
   const care=clamp(S.interest*(.3+.7*S.r),0,1);
   if(S.interest<.22) breakP(2,'돌봄 소홀');
@@ -478,7 +489,7 @@ function fishTick(){
     const fix=FCH.filter(c=>pondOK(c.p)&&c.o.filter(o=>pondOK(o.l,o.r)).length>=2&&(!c.once||!S.once['fc'+c.i])&&!(S.cd['fc'+c.i]>S.tick)&&(!c.when||c.when())).map(c=>[c,1/(1+2*(S.seen['fc'+c.i]||0))]);
     const all=sit.concat(fix);
     if(all.length){const c=wpick(all);S.cd.choice=S.tick+3;
-      if(c.o&&FSIT.includes(c)){const opts=fBuildOpts(c);if(opts.length>=2){S.seen['fs'+c.id]=(S.seen['fs'+c.id]||0)+1;S.cd['fs'+c.id]=S.tick+12;askChoice({p:c.p,o:opts});render();return}}
+      if(c.o&&FSIT.includes(c)){const opts=fBuildOpts(c);if(opts.length>=2){if(c.log)addLog(T(c.log),'sub');S.seen['fs'+c.id]=(S.seen['fs'+c.id]||0)+1;S.cd['fs'+c.id]=S.tick+12;askChoice({p:c.p,o:opts});render();return}}
       else{S.seen['fc'+c.i]=(S.seen['fc'+c.i]||0)+1;S.cd['fc'+c.i]=S.tick+30;if(c.once)S.once['fc'+c.i]=1;askChoice(Object.assign({},c,{o:c.o.filter(o=>(!o.when||o.when())&&pondOK(o.l,o.r))}));render();return}}
   }
   if(R()<.55){
@@ -623,13 +634,13 @@ function fMove(){
   const f=S.f,own=f.own;
   if(['casual','gift'].includes(own)&&R()<.3){q(T('이사가 정해졌습니다. 주인은 "수조는 옮기기 힘들다"고 했습니다.'),'bad');q(null,null,()=>fEnd('left'));return true}
   if(['casual','gift'].includes(own)&&R()<.25){q(T('이사를 앞두고 주인은 수조를 정리하기로 했습니다.'),'bad');q(null,null,()=>fRelease());return true}
-  q(T(own==='expert'?'이사 날, 주인은 {n}을 산소를 채운 봉지에 담고 여과재는 수조 물에 담가 따로 챙겼습니다.':'이사 날, {n}은 비닐봉지에 담겨 이삿짐 트럭 짐칸에서 몇 시간을 흔들렸습니다.'),own==='expert'?'sub':'bad',()=>{f.stress+=own==='expert'?.05:.25;if(own!=='expert'){f.cycled=0;f.tankAge=0}S.health-=own==='expert'?3:12});
+  q(T(own==='expert'||S.r>=.78?'이사 날, 주인은 {n}을 산소를 채운 봉지에 담고 여과재는 수조 물에 담가 따로 챙겼습니다.':'이사 날, {n}은 비닐봉지에 담겨 이삿짐 트럭 짐칸에서 몇 시간을 흔들렸습니다.'),own==='expert'||S.r>=.78?'sub':'bad',()=>{const good=own==='expert'||S.r>=.78;f.stress+=good?.05:.25;if(!good){f.cycled=0;f.tankAge=0}S.health-=good?3:12});
   render();return true;
 }
 /* the fish has outgrown its tank: a bigger tank (new and uncycled, unless the owner moves the filter media),
    a pond, or another home */
-function fUpgrade(up,good){
-  const f=S.f,own=f.own,keepMedia=own==='expert'||own==='breeder'||(own==='learner'&&R()<.5);
+function fUpgrade(up,good,keep){
+  const f=S.f,own=f.own,keepMedia=keep||own==='expert'||own==='breeder'||S.r>=.78||(own==='learner'&&R()<.5);
   q(T(good||'주인은 '+josa(up.l,'을')+' 들였습니다. {n}이 몸을 다 펴고 헤엄쳤습니다.'),'good',()=>{f.tank=up.k;f.filter=fPickFilter(up.k,own);f.outgrown=0;f.moved=1;f.stress-=.15;
     if(!keepMedia){f.cycled=0;f.tankAge=0;f.wasCycled=0}else f.tankAge=Math.max(f.tankAge,2);
     remember('수조가 넓어졌다. 몸을 다 펴고 헤엄쳤다.',1.5);render()});

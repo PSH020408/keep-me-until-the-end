@@ -14,7 +14,7 @@ A browser life-simulation about the promises we make to the animals we keep.
 > signed six promises. You choose its temperament, make its choices when it matters, raise it
 > through the seasons — and watch which promises are struck out in red pen.
 
-**Status:** public beta (v0.9.30, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.9.31, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told as a cruel fairy tale: plain sentences, wounds that bleed in text, no gore in the
@@ -112,6 +112,10 @@ decisions, in short:
 - **Facts must match the fish.** `tools/check_facts.mjs` plays every species and lists which
   real-world fact each ending showed; it caught a pea puffer being shown the betta fact and a dozen
   similar mismatches.
+- **Every screenshot is read like a player would.** Retaking the README screenshots turned up
+  fourteen small contradictions — a "beginner" labelled with an expert's skill, a fish named before
+  the pledge was signed, plant shade in a tank drawn with stones, a 31℃ heatwave next to a 28℃
+  gauge — each fixed and logged in v0.9.31 before the images were taken again.
 - **Responsive by test, not by eye.** The layout is rendered at 320–1440 px and on a landscape
   phone in headless Chromium and checked for overflow on every screen of a life.
 
@@ -125,7 +129,7 @@ decisions, in short:
 | v0.9.12–0.9.20 | 2026-10-11 | balance against published anchors (easing reverted), crises as choices, owner types, layouts |
 | v0.9.21–0.9.24 | 2026-10-11 | raising the fish (stats, schedule), breeding modes, learning vs. lazy owners, context checks |
 | v0.9.25–0.9.26 | 2026-10-12 | public beta: responsive layout, OG image, GitHub → Render deploy |
-| v0.9.27–0.9.30 | 2026-10-12 | one-screen play, the player as owner, facts checked per species, shared memorial on Supabase |
+| v0.9.27–0.9.31 | 2026-10-12 | one-screen play, the player as owner, facts checked per species, shared memorial on Supabase |
 
 Every row is expanded in [LOG.md](LOG.md).
 

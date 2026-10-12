@@ -164,7 +164,7 @@ const FLAV=[
  {g:['fish'],type:'good',once:'plant',t:'주인이 수초를 몇 포기 심어 주었습니다. {n}은 수초 사이를 들락날락했습니다.',m:'수초 사이 그늘. 숨을 곳이 생겼다.',h:5},
  {g:['fish','amphib'],type:'bad',t:'집 고양이가 어항 앞에 앉아 {n}을 몇 시간째 노려봅니다.',sc:1},
  {g:['fish','amphib'],type:'bad',t:'폭염으로 수온계가 31도를 가리킵니다. 물속 산소가 부족합니다.',h:-7},
- {g:['fish'],type:'bad',when:()=>['betta','guppy'].includes(S.sp.id),t:'한겨울에 어항 히터가 고장 났습니다. 열대어인 {n}의 움직임이 느려졌습니다.',h:-10},
+ {g:['fish'],type:'bad',when:()=>['betta','guppy'].includes(S.sp.id),t:'한겨울에 어항 히터가 고장 났습니다. 열대어인 {n}의 움직임이 느려졌습니다.',h:-10,fx:()=>{if(S.f)S.f.tempEvt={c:19,until:S.tick+3}}},
  {g:['fish'],type:'good',when:()=>S.tank.filter==='없음',t:'주인이 걸이식 여과기를 사서 달아 주었습니다. 물이 흐르기 시작했습니다.',m:'물이 맑아졌다. 숨쉬기가 편했다.',r:.1,h:10,fx:()=>{S.tank.filter='걸이식 여과기'}},
  {g:['fish'],type:'bad',when:()=>S.tank.filter!=='없음',t:'정전으로 여과기가 하룻밤 멈췄습니다. 아침에 물에서 비린내가 났습니다.',h:-10},
  {g:['fish'],type:'bad',once:'morefish',when:()=>S.r<.6,t:'주인이 마트에서 물고기 세 마리를 더 사 와 그대로 어항에 넣었습니다.',fx:()=>{S.tank.crowd+=3;S.flags.newfish=1}},

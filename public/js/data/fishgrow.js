@@ -60,7 +60,9 @@ const STAT_L={p:'힘',g:'근성',w:'지능',c:'매력'};
 /* water temperature, for the meter: derived from the same conditions the hazards use (season, heater, bowl size, window, pond) */
 const TEMP_OK={cold:[18,24],cool:[22,26],trop:[24,28],warm:[22,30]};
 function fTempNow(){
-  const f=S.f,x=fx_(),ss=season(),ok=TEMP_OK[x.temp]||[22,27];let c;
+  const f=S.f,x=fx_(),ss=season();let ok=TEMP_OK[x.temp]||[22,27],c;
+  /* goldfish and koi outdoors follow the seasons: a cold winter pond is rest, not harm, as long as it does not freeze through */
+  if(x.temp==='cold'&&(f.tank==='pond'||S.wild))ok=[ss==='winter'?2:12,26];
   if(S.wild){c=f.warm?24:{winter:4,spring:14,summer:25,autumn:15}[ss]}
   else if(f.tank==='pond')c={winter:4,spring:15,summer:27,autumn:15}[ss];
   else{c={winter:18,spring:21,summer:28,autumn:21}[ss];
@@ -68,8 +70,10 @@ function fTempNow(){
     if(!f.heater&&ss==='winter'&&tankL()<30)c-=2;
     if(ss==='summer'&&!f.fan&&tankL()<30)c+=3;
     if(ss==='summer'&&f.window)c+=5;
-    if(S.waiting&&f.ck==='cook')c=36;if(S.waiting&&f.ck==='sun')c=35;if(S.waiting&&f.ck==='cold')c=14}
+    if(S.waiting&&f.ck==='cook')c=38;if(S.waiting&&f.ck==='sun')c=35;if(S.waiting&&f.ck==='cold')c=14}
   c+=((S.tick*7)%5-2)*.2;
+  /* a line that names a temperature ("수온계가 31도") and the meter must agree */
+  if(!S.wild&&f.tempEvt&&f.tempEvt.until>S.tick)c=f.tempEvt.c;
   const mid=(ok[0]+ok[1])/2,out=Math.max(0,ok[0]-c,c-ok[1]);
   return {c,lo:ok[0],hi:ok[1],fit:clamp(100-out*13-Math.abs(c-mid)*2,0,100)}}
 
@@ -86,7 +90,7 @@ const TRAIN=[
  {l:'같은 종과 어울린다',gain:{c:4,w:2},d:'매력 ↑ · 스트레스 ↓',need:()=>fSameCount()>=1,ok:['{n}은 같은 종 곁에서 헤엄치는 법을 배웠습니다. 몸 색이 한층 진해졌습니다.',X({st:-.06})],fail:[['서열 싸움이 붙었습니다. {n}은 꼬리를 물리고 구석으로 밀려났습니다.',X({fin:.15,st:.1})]]},
  /* temperament */
  {l:'그림자를 피하는 법을 익힌다',t:'shy',gain:{w:8},d:'지능 ↑↑',ok:['{n}은 그림자의 모양만 보고도 손인지, 고양이인지, 뜰채인지 구분하게 되었습니다.'],fail:[['그림자만 지나가도 놀라 숨는 바람에 {n}은 며칠 동안 거의 먹지 못했습니다.',X({h:-8,st:.12})]]},
- {l:'수면 위 세상을 구경한다',t:'curious',gain:{w:6,g:3},d:'지능 ↑ · 근성 ↑ · 뛰쳐나갈지도',ok:['{n}은 수면 바로 밑에서 방 안을 구경했습니다. 창밖의 새, 텔레비전 불빛, 고양이의 꼬리까지.'],fail:[['수면 위가 너무 궁금했습니다.',()=>{if(lidOpen()&&!S.waiting)q(null,null,()=>fCr('jump'));else{addLog(T('{n}이 뛰어올랐다가 뚜껑에 머리를 부딪쳤습니다.'),'bad');S.health-=7}}]]},
+ {l:'수면 위 세상을 구경한다',t:'curious',gain:{w:6,g:3},d:'지능 ↑ · 근성 ↑ · 뛰쳐나갈지도',ok:[()=>S.f.tank==='pond'?'{n}은 수면 바로 밑에서 연못 위를 구경했습니다. 지나가는 구름, 잠자리, 처마 끝의 빗물까지.':'{n}은 수면 바로 밑에서 방 안을 구경했습니다. 창밖의 새, 텔레비전 불빛'+(S.f.cat?', 고양이의 꼬리까지.':', 주인의 휴대폰 불빛까지.')],fail:[['수면 위가 너무 궁금했습니다.',()=>{if(lidOpen()&&!S.waiting)q(null,null,()=>fCr('jump'));else{addLog(T('{n}이 뛰어올랐다가 뚜껑에 머리를 부딪쳤습니다.'),'bad');S.health-=7}}]]},
  {l:'먹이 경쟁에서 이기는 법을 익힌다',t:'glutton',gain:{p:5,g:4},d:'힘 ↑ · 근성 ↑ · 배탈 주의',ok:['{n}은 알갱이가 떨어지는 자리를 미리 차지하는 법을 익혔습니다.',X({h:3})],fail:[['{n}은 남의 몫까지 먹고 배가 터질 듯 부풀었습니다.',both(X({fat:.3}),sickIf(.45,['swimb']))]]},
  {l:'유리 앞에서 재롱을 부린다',t:'friendly',gain:{c:9},d:'매력 ↑↑',ok:['{n}이 손가락을 따라 유리 앞을 이리저리 헤엄쳤습니다. 주인은 그 영상을 친구들에게 보냈습니다.',X({i:.08})],fail:[['재롱을 본 주인 친구가 유리를 손바닥으로 쾅쾅 두드렸습니다. "얘 왜 안 해?"',X({st:.12,h:-3})]]},
  {l:'유리에 비친 나와 싸운다',t:'feisty',gain:{p:5,g:5},d:'힘 ↑ · 근성 ↑ · 머리를 박을지도',ok:['{n}은 유리 속 상대에게 하루 종일 지느러미를 폈습니다. 한 번도 지지 않았습니다.'],fail:[['{n}은 유리 속 상대를 몇 번이고 들이받았습니다. 주둥이가 하얗게 짓물렀습니다.',X({h:-8,st:.1})]]},
@@ -120,7 +124,7 @@ function fTrain(){
       if(fail){const fs=x.fail.filter(failFits),z=fs.length?pick(fs):['{n}은 무리하다 몸을 다쳤습니다. 한동안 지느러미를 접고 바닥에 붙어 있었습니다.',X({h:-6,st:.05})];addLog(T(z[0]),'bad');if(z[1])z[1]();return}
       const k=great?2:.6+R()*.8;
       for(const s in x.gain)fStat(s,Math.round(x.gain[s]*k));
-      addLog(T((great?'대성공! ':'')+x.ok[0]),great?'good':'neutral');if(x.ok[1])x.ok[1]();
+      addLog(T((great?'대성공! ':'')+(typeof x.ok[0]==='function'?x.ok[0]():x.ok[0])),great?'good':'neutral');if(x.ok[1])x.ok[1]();
       if(great)remember(x.rest?'푹 잤다. 몸이 가벼웠다.':'해냈다. 조금 강해졌다.',1.1);
       if(!x.rest)f.stress+=.02;
       if(R()<.12)fTwist();
@@ -218,13 +222,13 @@ FSIT.push(
   {l:'새 장식을 하나하나 들이받아 본다',t:'feisty',out:[[2,'{n}이 새 수조를 다시 자기 영역으로 만들었습니다.','neutral',()=>fStat('g',3)],[1,'바위 모서리에 눈 옆을 긁혔습니다.','bad',X({h:-6})]]},
   {l:'새 모래를 파 본다',g:['CICH','BOT','GOLD'].map(g=>FGROUP[g]).reduce((a,b)=>()=>a()||b()),out:[[2,'새 모래 밑에서 오래된 사료 조각이 나왔습니다. 물이 뿌옇게 흐려졌습니다.','neutral',X({wq:-6,h:1})],[1,'주인이 씻지 않은 새 모래를 그대로 부었습니다. 물이 하루 종일 흙탕물이었습니다.','bad',X({wq:-14,st:.06})]]},
  ]},
- {id:'g-pencil',p:'작은 얼굴이 유리에 붙었다. 손에 연필을 들고 있다. 뚜껑이 열려 있다. 나는…',when:()=>fKids()&&S.f.tank!=='pond'&&!S.f.lid,o:[
+ {id:'g-pencil',p:'작은 얼굴이 유리에 붙었다. 손에 연필을 들고 있다. 뚜껑이 열려 있다. 나는…',log:'아이가 연필을 쥐고 뚜껑 없는 수조 위로 손을 뻗었습니다.',when:()=>fKids()&&S.f.tank!=='pond'&&!S.f.lid,o:[
   {l:'바닥 깊이 숨는다',out:[[2,'연필은 수초만 찌르다 나갔습니다.','neutral',X({st:.05})],[1,'연필 끝이 {n}의 등을 찔렀습니다.','bad',X({h:-12,st:.1})]]},
   {l:'연필 끝을 따라 헤엄친다',t:['curious','friendly'],out:[[2,'아이가 깔깔 웃었습니다. "엄마, 물고기가 따라와!"','good',both(X({i:.06}),()=>fStat('c',3))],[2,'아이는 신이 나서 연필로 {n}을 이리저리 몰았습니다. 한참 뒤에야 엄마가 말렸습니다.','bad',X({h:-8,st:.12})]]},
   {l:'연필을 문다',t:'feisty',out:[[2,'{n}이 연필 끝을 물자 아이가 놀라 손을 뺐습니다.','neutral',()=>fStat('g',2)],[1,'아이가 화가 나서 연필로 수면을 마구 내리쳤습니다.','bad',X({h:-10,st:.15})]]},
   {l:'연필에서 떨어진 지우개 가루를 먹는다',t:'glutton',out:[[1,'{n}이 지우개 가루를 삼켰습니다. 사흘 동안 배설을 못 했습니다.','bad',X({h:-14})]]},
  ]},
- {id:'g-party',p:'거실에 사람이 가득하다. 음악이 쿵쿵 울린다. 누가 수조 위에서 잔을 기울인다. 나는…',when:()=>S.o.age<40&&['casual','gift','content'].includes(S.f.own)&&S.f.tank!=='pond',o:[
+ {id:'g-party',p:'거실에 사람이 가득하다. 음악이 쿵쿵 울린다. 누가 수조 위에서 잔을 기울인다. 나는…',log:'주인이 거실에서 밤새 술자리를 벌였습니다. 수조 옆까지 손님들이 서 있었습니다.',when:()=>S.o.age<40&&['casual','gift','content'].includes(S.f.own)&&S.f.tank!=='pond',o:[
   {l:'바닥 구석에서 밤이 끝나길 기다린다',out:[[3,'{n}은 바닥에서 밤새 쿵쿵거리는 진동을 견뎠습니다.','neutral',X({st:.12})],[1,'새벽에 누가 수조 위에서 담배를 비벼 껐습니다. 재가 물 위에 떠다녔습니다.','bad',X({wq:-12,h:-6})]]},
   {l:'수면 근처를 피해 다닌다',t:'shy',out:[[2,'{n}은 수초 사이에서 나오지 않았습니다.','neutral',X({st:.08})],[1,'누군가 "이 물고기 살아 있어?" 하며 수조를 흔들었습니다.','bad',X({st:.15,h:-4})]]},
   {l:'떨어지는 것을 받아먹는다',t:'glutton',out:[[1,'안주 부스러기였습니다. 짰습니다.','bad',X({h:-8,wq:-8})],[1,'떨어진 것은 맥주였습니다.','bad',()=>{if(!S.waiting)q(null,null,()=>fCr('poison','soju'))}]]},
@@ -307,7 +311,8 @@ const FFL2=[
  {t:'주인 친구가 "얘도 과자 먹어?" 하며 새우깡을 부숴 넣었습니다.',c:'bad',when:()=>S.o.age<45&&S.r<.6,fx:()=>{S.f.wq-=10}},
  {t:'주인이 물갈이를 하며 {n}을 잠깐 컵에 옮겨 두었습니다. 그대로 저녁을 먹으러 나갔습니다. 컵 속 물은 두 시간 만에 미지근해졌습니다.',c:'bad',when:()=>S.f.len<10&&S.r<.6,fx:()=>{S.health-=12;S.f.stress+=.1}},
  {t:'주인은 "물고기는 3초밖에 기억 못 한대"라며 웃었습니다. {n}은 주인이 손을 넣을 때마다 같은 구석으로 숨었습니다.',c:'sub',when:()=>S.f.tank!=='pond'&&S.r<.55},
- {t:'아이가 {n}에게 "뽀삐"라는 이름을 붙였다가, 일주일 뒤 "재미없다"며 다시는 수조를 보지 않았습니다.',c:'bad',when:fKids,once:'kidbored',fx:()=>{S.interest-=.1}},
+ {t:'아이가 {n}에게 "뽀삐"라는 이름을 붙였다가, 일주일 뒤 "재미없다"며 다시는 수조를 보지 않았습니다.',c:'bad',when:()=>fKids()&&!S.name,once:'kidbored',fx:()=>{S.interest-=.1;S.name='뽀삐';S.disp=S.name}},
+ {t:'아이가 일주일 내내 수조 앞에 붙어 {n}의 이름을 불렀습니다. 그다음 주에는 "재미없다"며 다시는 수조를 보지 않았습니다.',c:'bad',when:()=>fKids()&&!!S.name,once:'kidbored',fx:()=>{S.interest-=.1}},
  {t:'주인이 수조 유리에 "물고기 만지지 마시오"라고 쓴 종이를 붙였습니다.',c:'good',when:()=>fKids()&&S.f.grow&&!S.f.lazy,once:'kidsign',fx:()=>{(S.f.learnt=S.f.learnt||{}).kids=1}},
 ];
 FFL2.forEach(e=>{e.i=FFL.length;if(e.nm){const w=e.when;e.when=()=>!S.f.noMates&&(!w||w())}FFL.push(e)});
@@ -383,7 +388,16 @@ function fInner(text,cls){
 const INDOOR=/방 안|유리|뚜껑|히터|조명|창밖|창가|텔레비전|선반|거실|사이펀|어항|받침|콘센트|로봇청소기|수조째|불이 꺼|불 꺼진|수온계|세면대|물멍|에어컨|책상|수조 앞|맨유리/;
 const inPond=()=>!!(S&&S.f&&S.f.tank==='pond'&&!S.wild&&!S.preOwner);
 const pondOK=(...ts)=>!inPond()||!ts.flat(9).some(t=>typeof t==='string'&&INDOOR.test(t));
-const pondify=t=>inPond()&&typeof t==='string'?t.replace(/수조/g,'연못'):t;
+/* a tank furnished with stones, an ornament, a pipe or a spawning mop has no plants: "수초" lines name what is there.
+   Lines about planting ("수초를 심어…") are left alone; that event furnishes the tank itself. */
+const DECO_W={rock:['돌','돌 틈'],kitsch:['장식물','장식물 틈'],pipe:['파이프','파이프 안'],mop:['털실 뭉치','털실 뭉치 사이'],none:['구석','바닥 구석']};
+const plantify=t=>{const f=S&&S.f;if(typeof t!=='string'||!f||!f.lay||S.wild||S.preOwner||f.tank==='pond'||!/수초/.test(t)||/수초를 (몇|심|새로)/.test(t))return t;
+  const d=f.lay.deco==='none'&&f.hides?'nature':f.lay.deco,w=DECO_W[d];if(!w)return t;
+  return t.replace(/빽빽한 수초 사이|수초 사이|수초 깊숙이/g,m=>m.endsWith('깊숙이')?w[1]+' 깊숙이':w[1])
+    .replace(/수초 잎 위/g,w[0]+' 위').replace(/수초 그늘/g,w[0]+' 그늘')
+    .replace(/수초 뒤(로|에서|에)?/g,(m,j)=>d==='none'?'구석'+(j==='로'?'으로':j||''):w[0]+' 뒤'+(j||''))
+    .replace(/수초(?!를)/g,w[0])};
+const pondify=t=>{t=plantify(t);return inPond()&&typeof t==='string'?t.replace(/(?<!격리 )수조/g,'연못'):t};
 (()=>{const l=FCH.find(c=>c.id==='lid');if(l){const w=l.when;l.when=()=>S.f.tank!=='pond'&&(!w||w())}})();
 const optTexts=o=>[o.l,o.d,o.r].concat((o.out||[]).map(z=>z[1]));
 TRAIN.push(
@@ -395,7 +409,7 @@ TRAIN.push(
 /* ---------- 7. the owner's rank, from 주인 실력 ---------- */
 const RANKS=[[0,'왕초보'],[.3,'초보'],[.55,'중수'],[.78,'고수']];
 const fRank=r=>RANKS.filter(x=>r>=x[0]).pop()[1];
-const RANK_UP={초보:'주인은 이제 물을 갈 때 염소 중화제를 빼먹지 않습니다. 초보 딱지를 뗐습니다.',중수:'주인은 물을 갈기 전에 온도부터 잽니다. 수질 테스트 색만 보고도 무엇을 할지 압니다. 주인이 중수가 되었습니다.',고수:'주인은 물 냄새와 {n}의 지느러미 모양만 보고도 이상을 알아챕니다. 주인이 고수가 되었습니다.'};
+const RANK_UP={초보:'주인은 이제 물을 갈 때 염소 중화제를 빼먹지 않았습니다. 초보 딱지를 뗐습니다.',중수:'주인은 이제 물을 갈기 전에 온도부터 쟀습니다. 수질 테스트 색만 보고도 무엇을 할지 알았습니다. 주인이 중수가 되었습니다.',고수:'주인은 이제 물 냄새와 {n}의 지느러미 모양만 보고도 이상을 알아챘습니다. 주인이 고수가 되었습니다.'};
 function fRankTick(){const f=S.f;if(!f||S.preOwner||S.wild||!f.own)return;const r=fRank(S.r);
   if(!f.rank){f.rank=r;return}
   if(RANKS.findIndex(x=>x[1]===r)>RANKS.findIndex(x=>x[1]===f.rank)){f.rank=r;say(RANK_UP[r]||('주인이 '+r+'가 되었습니다.'),'good');
@@ -405,7 +419,7 @@ function fRankTick(){const f=S.f;if(!f||S.preOwner||S.wild||!f.own)return;const 
   else f.rank=r}
 
 /* velvet: a fish rubs on what is there — glass in a tank, stones in a pond */
-(()=>{const v=DZ.velvet;if(v)Object.defineProperty(v,'sym',{get:()=>'{n}의 몸이 금가루를 뿌린 듯 탁한 금빛으로 덮였습니다. 지느러미를 접고 '+(S&&S.f&&S.f.tank==='pond'?'바닥 돌에':'유리벽에')+' 몸을 비빕니다.',enumerable:true})})();
+(()=>{const v=DZ.velvet;if(v)Object.defineProperty(v,'sym',{get:()=>'{n}의 몸이 금가루를 뿌린 듯 탁한 금빛으로 덮였습니다. 지느러미를 접고 '+(S&&S.f&&S.f.tank==='pond'?'바닥 돌에':'유리벽에')+' 몸을 비볐습니다.',enumerable:true})})();
 
 /* ---------- 8. the "실제로는" fact has to be about this fish ----------
    tools/check_facts.mjs lists which fact each species ends with; these fix the ones that were about another animal. */
