@@ -3,15 +3,15 @@
 import {readFileSync} from 'node:fs';
 import vm from 'node:vm';
 const N=+process.argv[2]||3000, ONLY=process.argv[3];
-const files=['core','data/species','data/facts','data/events','data/endings','data/choices','data/fish','data/fishchoice','engine','fish','data/fishgrow','art/paint','art/look','art/raster','art/mammals','art/others','art/gags','art/death','art/fish','art','ui'];
+const files=['core','data/species','data/facts','data/events','data/endings','data/choices','data/fish','data/fishchoice','engine','fish','data/fishgrow','data/fishplus','art/paint','art/look','art/raster','art/mammals','art/others','art/gags','art/death','art/fish','art','ui'];
 const el=()=>new Proxy({style:{},classList:{add(){},toggle(){},remove(){}},dataset:{}},{get(t,k){if(k in t)return t[k];if(['appendChild','append','prepend','setAttribute','remove','addEventListener','focus','scrollIntoView','insertBefore','insertAdjacentHTML','querySelectorAll'].includes(k))return ()=>el();if(['querySelector','firstChild','lastChild','lastElementChild'].includes(k))return k==='querySelector'?()=>el():el();return t[k]},set(t,k,v){t[k]=v;return true}});
 const ids={};
-const ctx={Math,JSON,Object,Array,String,Number,Boolean,Date,console,
+const ctx={SIM_MODE:process.env.MODE||'real',Math,JSON,Object,Array,String,Number,Boolean,Date,console,
   document:{getElementById:id=>ids[id]||(ids[id]=el()),createElement:()=>el(),querySelector:()=>null,querySelectorAll:()=>[]},
   window:{},localStorage:{getItem:()=>null,setItem(){}},setInterval:()=>1,clearInterval(){},setTimeout:()=>0,clearTimeout(){}};
 vm.createContext(ctx);
 const src=files.map(f=>readFileSync(new URL('../public/js/'+f+'.js',import.meta.url),'utf8')).join('\n')+
-  '\n;globalThis.__run=(sp)=>{start(sp);skipping=true;let n=0;while(!S.done&&n++<9000){if(S.pending)S.pending.resolve(pick(S.pending.opts));tick()}skipping=false;return {g:S.sp.g,cat:S.endCat,pre:!!S.preOwner,own:S.f&&S.f.own,wildFish:S.f&&S.f.wild,id:S.sp.id,fx:S.fx,calm:S.calm,wild:S.wild,pct:S.ageM/S.sp.life,events:Object.keys(S.seen).length,mem:S.mem.length,first:S.f&&S.f.firstOwn,grow:S.f&&S.f.grow,lazy:S.f&&S.f.lazy,lessons:S.f&&S.f.lessons,yrs:S.f&&S.f.buyAge!=null?(S.ageM-S.f.buyAge)/12:0,diedHome:S.f&&S.f.buyAge!=null&&!S.calm&&!S.wild,kept:S.preOwner||S.wild&&!S.pl?null:S.pl.filter(x=>!x).length,p3:S.pl&&S.pl[2]?[S.pl[2].note].concat((S.pl[2].more||[]).map(r=>r.note)):[]}};';
+  '\n;MODE_NOW=globalThis.SIM_MODE||"real";globalThis.__run=(sp)=>{start(sp);skipping=true;let n=0;while(!S.done&&n++<9000){if(S.pending)S.pending.resolve(pick(S.pending.opts));tick()}skipping=false;return {g:S.sp.g,cat:S.endCat,pre:!!S.preOwner,own:S.f&&S.f.own,wildFish:S.f&&S.f.wild,id:S.sp.id,fx:S.fx,calm:S.calm,wild:S.wild,pct:S.ageM/S.sp.life,events:Object.keys(S.seen).length,mem:S.mem.length,first:S.f&&S.f.firstOwn,grow:S.f&&S.f.grow,lazy:S.f&&S.f.lazy,lessons:S.f&&S.f.lessons,yrs:S.f&&S.f.buyAge!=null?(S.ageM-S.f.buyAge)/12:0,diedHome:S.f&&S.f.buyAge!=null&&!S.calm&&!S.wild,kept:S.preOwner||S.wild&&!S.pl?null:S.pl.filter(x=>plKept(x)).length,p3:S.pl&&S.pl[2]?[S.pl[2].note].concat((S.pl[2].more||[]).map(r=>r.note)):[]}};';
 vm.runInContext(src,ctx);
 const gr={},ann={},cc={},p3={},by={},fx={},cats={},sps={},owns={};let calm=0,wild=0,pct=0,ev=0,pre=0;
 for(let i=0;i<N;i++){

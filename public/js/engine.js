@@ -25,7 +25,7 @@ function newLife(force){
      target:sp.life*(.85+R()*.25),dt:sp.life/110,name:nm,disp:nm||sp.name,
      sex:R()<.5?'암컷':'수컷',no:String(1000+Math.floor(R()*9000)),month:Math.floor(R()*12),
      flags:{},once:{},cd:{},seen:{},tick:0,pl:Array(sp.g==='fish'?6:5).fill(null),story:[],queue:[],mem:[],ending:false,done:false,
-     owners:1,status:'집',env:'home',wild:false,happyT:0,scaredT:0,fx:null,pred:null,calm:false};
+     owners:1,status:'집',env:'home',wild:false,happyT:0,scaredT:0,fx:null,pred:null,calm:false,mode:typeof MODE_NOW!=='undefined'?MODE_NOW:'real',hMax:100};
   const g=sp.g;
   if(WATER.includes(g)) S.env='tank';
   else if(g==='insect'||g==='crab'||g==='feeder'||g==='chick'||g==='fmouse') S.env='box';

@@ -8,7 +8,7 @@ const SHARE_CFG={
   key:'sb_publishable_twic4vU9mUSIjonkj6ybQg_ijxC1qmq',   // publishable key: safe to publish, row-level security decides what it may do
 };
 const shareOn=()=>!!(SHARE_CFG.url&&SHARE_CFG.key)&&typeof fetch==='function';
-const SHARE_VER='0.9.32';
+const SHARE_VER='0.9.33';
 
 /* words that are masked in names and last words before posting and again when showing */
 const BADW=['씨발','시발','씨바','씹','좆','병신','븅신','지랄','개새','새끼','니미','느금','엠창','fuck','shit','bitch','cunt','nigg'];
@@ -16,7 +16,7 @@ function clean(t,max){t=String(t==null?'':t).replace(/[\u0000-\u001f\u007f<>]/g,
   BADW.forEach(w=>{t=t.replace(new RegExp(w,'gi'),m=>'○'.repeat(m.length))});return t}
 
 /* a record coming back from the table is treated as untrusted: every field is rebuilt with known types and lengths */
-const LINE_C=['','good','bad','sub','end','mile','neutral','inner'];
+const LINE_C=['','good','bad','sub','end','mile','neutral','inner','star'];
 function sanitizeRec(r){
   const m=r&&typeof r.rec==='object'&&r.rec?r.rec:{};const s=(v,n)=>clean(v,n);
   const sp=typeof FX!=='undefined'&&FX[m.sp]?m.sp:'';

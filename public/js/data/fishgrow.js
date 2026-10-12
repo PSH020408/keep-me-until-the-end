@@ -38,7 +38,9 @@ const BW=()=>isLive()?{one:'새끼',lay:'낳았습니다',spawn:'출산',many:S.
 })();
 FEND.breedout.l=()=>{const w=BW();return fem()?[isLive()?'{n}은 한 달마다 새끼를 낳았습니다. 낳고 나면 며칠 만에 배가 다시 불러 왔습니다.':'{n}은 몇 달마다 알을 낳았고, 쉬는 기간은 없었습니다.','배는 늘 부풀었다 꺼졌고, 몸은 점점 말라 갔습니다.',(S.f.spawns||4)+'번째 '+w.spawn+' 뒤, {n}은 '+(isLive()?'산란통':'산란 상자')+' 바닥에서 일어나지 못했습니다.']
   :brood()==='mouth'?['{n}은 수컷이었고, 알을 입에 품는 쪽이었습니다.','한 번 품으면 몇 주 동안 아무것도 먹지 못했습니다. 주인은 새끼를 받아 내자마자 다음 암컷을 넣었습니다.','{n}은 입을 다문 채 바닥에 가라앉았습니다. 입안에는 아직 알이 있었습니다.']
-  :['{n}은 수컷 한 마리로 여러 암컷과 차례로 짝지어졌습니다.','짝짓기 때마다 지느러미가 찢기고 몸에 상처가 늘었습니다.','더 이상 쓸모가 없어진 {n}은 대형어 수조의 먹이로 넘겨졌습니다.']};
+  :(()=>{const p=pick(['oscar','arowana','channa'].filter(x=>x!==S.sp.id));S.f.fedOff=p;
+    return ['{n}은 수컷 한 마리로 여러 암컷과 차례로 짝지어졌습니다.','짝짓기 때마다 지느러미가 찢기고 몸에 상처가 늘었습니다. 지느러미는 다시 자라지 않았습니다.',
+      '더 이상 쓸모가 없어진 {n}은 '+fPredName(p)+' 수조에 던져졌습니다. 첫 입에 꼬리가 떨어져 나갔고, 물이 붉게 흐려졌습니다.','{n}은 반쯤 남은 몸으로 수조 구석까지 헤엄쳤습니다. 두 번째 입은 피하지 못했습니다.']})()};
 FEND.millcull.l=p=>[isLive()?'새끼를 덜 낳기 시작한 어미들은 번식장에서 쓸모가 없었습니다.':'알을 덜 낳기 시작한 어미들은 번식장에서 쓸모가 없었습니다.','주인은 뜰채로 {n}을 건져 '+fPredName(p)+'의 수조 위에서 기울였습니다. {n}은 몇 달 동안 '+(isLive()?'새끼 수백 마리를':'수천 개의 알을')+' 낳았습니다.','다음 날 아침, 그 수조에는 {n}의 흔적이 없었습니다.'];
 
 /* ---------- 2. stats ---------- */
@@ -114,9 +116,10 @@ function fTrain(){
   const f=S.f;f.trainAt=S.tick+8+Math.floor(R()*4);
   const shuf=a=>a.map(x=>[R(),x]).sort((p,q)=>p[0]-q[0]).map(x=>x[1]);
   const pool=TRAIN.filter(trainOk);
-  let o=shuf(pool.filter(x=>x.t)).slice(0,1).concat(shuf(pool.filter(x=>x.g)).slice(0,1));
+  /* five cards: one for the temperament, one for the species, one special opened by stats, rest, and the rest at random */
+  let o=shuf(pool.filter(x=>x.t)).slice(0,1).concat(shuf(pool.filter(x=>x.g)).slice(0,1)).concat(shuf(pool.filter(x=>x.sp)).slice(0,1));
   const rs=pool.find(x=>x.rest);if(rs&&!o.some(x=>x.rest))o.push(rs);
-  o=o.concat(shuf(pool.filter(x=>!x.t&&!x.g&&!x.rest)).slice(0,Math.max(0,4-o.length))).slice(0,4);
+  o=o.concat(shuf(pool.filter(x=>!x.t&&!x.g&&!x.rest&&!x.sp)).slice(0,Math.max(0,5-o.length))).slice(0,5);
   const st=fst(),tired=clamp(.06+f.stress*.4+(S.health<40?.15:0)+(f.ill?.1:0),0,.7);
   askChoice({who:'육성 — 이번 시기',p:pick(TRAIN_P),o:shuf(o).map(x=>({l:x.l,d:x.d+(x.rest?'':(r=>' · 실패 위험 '+(r<.12?'낮음':r<.25?'보통':'높음'))(tired+(x.t||x.g?.06:0))),c:'neutral',r:'',
     fx:()=>{
@@ -179,7 +182,7 @@ function fMistake(k){
   f.mist=f.mist||{};f.learnt=f.learnt||{};const n=f.mist[k]=(f.mist[k]||0)+1;
   if(f.learnt[k]>=1)return;
   if(f.grow&&!f.stubborn&&!f.lazy&&R()<(f.own==='expert'?.95:.8)){f.learnt[k]=1;
-    say(MFIX[k][0],'good');if(MFIX[k][1])MFIX[k][1]();S.r=clamp(S.r+.04,0,.95);f.lessons=(f.lessons||0)+1;
+    say(MFIX[k][0],'good');if(MFIX[k][1])MFIX[k][1]();S.r=clamp(S.r+.03,0,.95);f.lessons=(f.lessons||0)+1;
     if(n===1)remember('그 일이 있은 뒤로, 같은 일은 다시 없었다.',1.2);return}
   if(f.grow&&f.lazy){f.learnt[k]=.5;say(n>=2?pick(LAZY2):pick(LAZY),'bad');S.interest=clamp(S.interest-(n>=2?.06:.02),.02,1);return}
   if(f.stubborn){if(R()<.5)say('"물고기는 원래 잘 죽어." 주인은 그 말로 넘어갔습니다.','sub');return}

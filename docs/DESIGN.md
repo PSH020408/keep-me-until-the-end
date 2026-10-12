@@ -123,7 +123,7 @@ winter, foraging, predators). Tropical fish die at the first frost; goldfish and
 establish; a predator may find a power plant's warm outflow and become the top of a river.
 Each of those endings carries an ecological fact.
 
-**Cruel fairy tale.** Drawings stay painterly and without gore. The text is plain and
+**Cruel fairy tale.** Drawings stay painterly (from v0.9.33 they may show torn bodies and blood). The text is plain and
 unflinching; from v0.9.22 wounds may bleed in text (a deliberate change), and the fish's own
 voice ("아가미가 뜨거워" — "my gills are burning") follows what happens to it.
 
@@ -162,6 +162,26 @@ A kept life can be posted for other players to replay. The design choices:
   slurs are masked, and all text goes in as text.
 - **The replay is the same for everyone.** A shared life opens in the same 주마등 view as one's own,
   line by line, then the summary of broken promises and the last words.
+
+## Feedback round: more of a game, no softer (v0.9.33)
+
+A friend played the beta on a phone and reported three things: no explanation, too hard, and the violence was
+only in the words. The answers:
+
+- **Two difficulties.** 현실 keeps the published anchors (experts lose 6–8% a year, gift fish ≥90% in year one).
+  이야기, the default, makes owners kinder and the fish's own choices weigh more; it is still a game where most fish
+  do not live out their lives. The realism argument did not change, it moved into a choice the player makes.
+- **A tutorial** of six short cards on the first visit, and a ? button during play.
+- **Stats lead somewhere.** Inspired by raising sims, high stats open routes with their own events: charm and wits make a
+  social-media star (and then the costs of being content), strength and guts make the tyrant of the tank (and a dead
+  tankmate), wits make a fish that learns tricks, guts let a hardy fish thrive when nobody looks.
+- **Owners are people.** A personality changes how fast they get bored and how fast they learn, and their own lives
+  (love, a break-up, a new job) change how much the fish gets.
+- **Promises can be put right.** A fault corrected in time (a bigger tank before the fish outgrows the small one) keeps
+  its red line and gets a green correction beside it; a promise whose every fault was corrected counts as kept.
+- **Old age.** Past about 70% of the lifespan the ceiling of health falls; old fish do not recover to 100.
+- **Drawings may show torn bodies** (rule change by the author): bites out of the body, exposed spine and ribs, blood in
+  the water. The style stays a painted fairy tale; nothing is shown that the text does not already say.
 
 ## Writing rules for the game text
 

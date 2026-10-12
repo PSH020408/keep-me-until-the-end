@@ -31,12 +31,27 @@ function fishSprite(id,pose,px,o){
   if(!filt){if(ov==='pale'||ov==='sunken')filt='f-pale';else if(ov==='dark')filt='f-dark'}
   const img=`<image href="${href}" x="${fq(x0)}" y="${fq(y0)}" width="${fq(w)}" height="${fq(h)}"${filt?` filter="url(#${filt})"`:''}/>`;
   let defs='',clip='';
+  const cx0=()=>x0+w*.5,cy0=()=>y0+h*.52,rx0=()=>w*.42,ry0=()=>h*.38;
   const fin=clamp(o.fin||0,0,1);
   if(fin>.05||ov==='finrot'){
     const k=Math.max(fin,ov==='finrot'?.45:0),xe=x0+w*(1-.3*k);
     let d=`M${fq(x0-2)} ${fq(y0-2)}L${fq(xe)} ${fq(y0-2)}`;for(let i=0;i<=8;i++){const y=y0+h*i/8;d+=`L${fq(xe-(i%2?w*.05*k:0)-w*.04*k*Math.sin(i*1.7))} ${fq(y)}`}d+=`L${fq(x0-2)} ${fq(y0+h+2)}Z`;
     defs+=`<clipPath id="${uid}c"><path d="${d}"/></clipPath>`;clip=` clip-path="url(#${uid}c)"`;
   }
+  /* torn flesh (from v0.9.33 the drawings may show it): o.bite tears the rear of the body away along a ragged line,
+     o.nips takes small bites out of the edges, o.gut lets the insides hang from the wound */
+  let gore='',nipMask='';
+  if(o.bite){const k=clamp(o.bite,.15,.85),xc=x0+w*(1-.62*k),pts=[];
+    for(let i=0;i<=12;i++){const y=y0+h*i/12;pts.push([xc+(i%2?-1:1)*w*.035+w*.025*Math.sin(i*2.3+k*7),y])}
+    defs+=`<clipPath id="${uid}b"><path d="M${fq(x0-2)} ${fq(y0-2)}${pts.map(p=>`L${fq(p[0])} ${fq(p[1])}`).join('')}L${fq(x0-2)} ${fq(y0+h+2)}Z"/></clipPath>`;clip=` clip-path="url(#${uid}b)"`;
+    const body=pts.filter(p=>Math.abs(p[1]-cy0())<ry0()*1.02),dd=body.map((p,i)=>(i?'L':'M')+fq(p[0])+' '+fq(p[1])).join('');
+    gore+=`<path d="${dd}" stroke="#7A1010" stroke-width="${fq(w*.065)}" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="${dd}" stroke="#D4544A" stroke-width="${fq(w*.03)}" fill="none" stroke-linecap="round"/>`;
+    gore+=`<g stroke="#F2EDE4" stroke-linecap="round" fill="none"><path d="M${fq(xc-w*.16)} ${fq(cy0())}L${fq(xc+w*.07)} ${fq(cy0()-h*.02)}" stroke-width="${fq(Math.max(1,w*.022))}"/>${[0,1,2].map(i=>`<path d="M${fq(xc-w*(.02+i*.04))} ${fq(cy0())}q${fq(w*.03)} ${fq(-h*.12)} ${fq(w*.06)} ${fq(-h*.16)}M${fq(xc-w*(.02+i*.04))} ${fq(cy0())}q${fq(w*.03)} ${fq(h*.1)} ${fq(w*.06)} ${fq(h*.14)}" stroke-width="${fq(Math.max(.7,w*.011))}"/>`).join('')}</g>`;
+    if(o.gut) gore+=`<g><path d="M${fq(xc)} ${fq(cy0()+h*.05)}c${fq(w*.08)} ${fq(h*.1)} ${fq(w*.02)} ${fq(h*.3)} ${fq(w*.1)} ${fq(h*.42)}" stroke="#8E2A34" stroke-width="${fq(w*.03)}" fill="none" stroke-linecap="round"/><circle cx="${fq(xc+w*.05)}" cy="${fq(cy0()+h*.18)}" r="${fq(w*.04)}" fill="#A43A48"/><circle cx="${fq(xc+w*.09)}" cy="${fq(cy0()+h*.3)}" r="${fq(w*.03)}" fill="#6E1A24"/><ellipse cx="${fq(xc+w*.1)}" cy="${fq(cy0()+h*.46)}" rx="${fq(w*.035)}" ry="${fq(w*.022)}" fill="#C86A6E"/></g>`}
+  if(o.nips){const rnd=(()=>{let v=id.length*17+3;return()=>{v=(v*9301+49297)%233280;return v/233280}})();let holes='',rims='';
+    for(let i=0;i<o.nips;i++){const a=(i/o.nips)*6.283+rnd()*.6,r=w*(.035+rnd()*.035),px2=cx0()+Math.cos(a)*rx0()*1.02,py2=cy0()+Math.sin(a)*ry0()*1.05;
+      holes+=`<circle cx="${fq(px2)}" cy="${fq(py2)}" r="${fq(r)}" fill="#000"/>`;rims+=`<circle cx="${fq(px2)}" cy="${fq(py2)}" r="${fq(r*1.12)}" fill="none" stroke="#9A1A1A" stroke-width="${fq(Math.max(.8,w*.016))}"/>`}
+    defs+=`<mask id="${uid}n" maskUnits="userSpaceOnUse" x="${fq(x0-6)}" y="${fq(y0-6)}" width="${fq(w+12)}" height="${fq(h+12)}"><rect x="${fq(x0-6)}" y="${fq(y0-6)}" width="${fq(w+12)}" height="${fq(h+12)}" fill="#fff"/>${holes}</mask>`;nipMask=` mask="url(#${uid}n)"`;gore+=`<g mask="url(#${uid}m)">${rims}</g>`}
   defs+=`<mask id="${uid}m" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="${fq(x0-4)}" y="${fq(y0-4)}" width="${fq(w+8)}" height="${fq(h+8)}">${img.replace(/ filter="[^"]*"/,'')}</mask>`;
   let over='';
   const cx=x0+w*.5,cy=y0+h*.52,rx=w*.42,ry=h*.38;
@@ -55,8 +70,15 @@ function fishSprite(id,pose,px,o){
   if(ov==='thin'||o.thin) t+=` scale(1 ${fq(1-.22*(o.thin||1))})`;
   if(ov==='bent'||o.bent) t+=' skewY(-9) scale(.92 1)';
   if(o.flipV) t+=' scale(1 -1)';
-  return `<g${t?` transform="${t.trim()}"`:''}><g${clip}>${img}${over?`<g mask="url(#${uid}m)">${over}</g>`:''}</g></g>`;
+  return `<g${t?` transform="${t.trim()}"`:''}><g${clip}><g${nipMask}>${img}${over?`<g mask="url(#${uid}m)">${over}</g>`:''}</g></g>${gore}</g>`;
 }
+/* blood in the water: a cloud that spreads and a few scales sinking */
+function bloodCloud(cx,cy,r,n){let s=`<g filter="url(#f-blur)">`;
+  for(let i=0;i<(n||5);i++){const a=i*2.1,d=r*(.2+.16*i),rr=r*(.35+.1*(i%3));
+    s+=`<circle cx="${fq(cx+Math.cos(a)*d)}" cy="${fq(cy+Math.sin(a)*d*.7)}" r="${fq(rr)}" fill="#8E1414" opacity=".32"><animate attributeName="r" values="${fq(rr)};${fq(rr*1.35)};${fq(rr)}" dur="${6+i}s" repeatCount="indefinite"/></circle>`}
+  s+='</g>';
+  s+=[0,1,2,3,4].map(i=>`<ellipse cx="${fq(cx-r+i*r*.5)}" cy="${fq(cy)}" rx="1.8" ry="1.1" fill="#E8E2D4" opacity=".85"><animate attributeName="cy" values="${fq(cy-r*.2+i*3)};${fq(cy+r*1.6)}" dur="${4+i*.7}s" repeatCount="indefinite"/></ellipse>`).join('');
+  return s}
 /* animated swimmer: back and forth over range, flipping at the ends */
 function swimmer(svg,x,y,range,dur,opt){
   opt=opt||{};
@@ -364,7 +386,7 @@ function fishDeath(){
     if(!f.tank||S.wild) return riverDead('bottom');
     return inTank((g,b)=>`<g transform="translate(${g.x+g.w*.5} ${b-6-fh(pxT(g))/2}) rotate(3)">${dead(pxT(g),{ov:ovEnd==='flip'?'':ovEnd,fin:f.fin,bent:ovEnd==='bent'})}</g>`);
   case 'f-nipped':
-    return inTank((g,b)=>`<g transform="translate(${g.x+g.w*.45} ${b-6-fh(pxT(g))/2})">${dead(pxT(g),{fin:1,filter:'f-pale'})}</g>`+f.mates.filter(m=>m.n>0).slice(0,2).map((m,i)=>mateSvg(m,g,i)).join(''));
+    return inTank((g,b)=>bloodCloud(g.x+g.w*.45,b-10-fh(pxT(g))/2,Math.min(20,g.h*.16),4)+`<g transform="translate(${g.x+g.w*.45} ${b-6-fh(pxT(g))/2})">${dead(pxT(g),{fin:1,nips:f.endKey==='fight'?5:8,filter:'f-pale'})}</g>`+f.mates.filter(m=>m.n>0).slice(0,2).map((m,i)=>mateSvg(m,g,i)).join(''));
   case 'f-bent':
     return inTank((g,b)=>`<g transform="translate(${g.x+g.w*.5} ${b-14})">${dead(Math.min(g.w*.95,pxT(g)),{bent:1,filter:'f-dull'})}</g>`);
   case 'f-thin': case 'starve':
@@ -430,6 +452,7 @@ function fishDeath(){
     const p=S.pred&&FISHART[S.pred]?S.pred:'oscar';
     const ppx=Math.min(170,Math.max(110,(FX[p]||{cm:35}).cm*2.6)), tailPx=Math.min(ppx*.4,big*.8), cx=g.x+g.w*.56, cy=g.y+g.h*.46;
     const tp=clamp(x.cm*3.6,30,ppx*.5),mx=cx-ppx*.44,my=cy+ppx*.06;
+    s+=bloodCloud(mx,my,22,6)+`<g transform="translate(${g.x+g.w*.2} ${b-8}) rotate(-6)">${dead(Math.max(34,tp*.8),{bite:.7,gut:1,filter:'f-pale'})}</g>`;
     s+=`<g transform="translate(${cx} ${cy})">${fishSprite(p,'swim',ppx)}</g><defs><clipPath id="tailshop"><rect x="-300" y="-100" width="${300+tp*.08}" height="200"/></clipPath></defs><g transform="translate(${mx} ${my})" clip-path="url(#tailshop)"><g transform="translate(${-tp*.42} 0) rotate(-6) scale(-1 1)">${fishSprite(id,'dead',tp,{filter:'f-pale'})}</g></g>`;
     s+=[0,1,2].map(i=>`<circle cx="${cx-ppx*.4+i*7}" cy="${cy+10+i*12}" r="1.4" fill="#E8E4DA" opacity=".8"><animate attributeName="cy" values="${cy+10+i*12};${b}" dur="${5+i}s" repeatCount="indefinite"/></circle>`).join('');
     return s+`<rect x="${g.x+70}" y="${g.y+g.h+6}" width="60" height="18" fill="#F4E8C8"/><text x="${g.x+100}" y="${g.y+g.h+18.6}" text-anchor="middle" font-size="8.6" font-family="Jua,Gowun Dodum,sans-serif" fill="#5A5248">${f.endKey==='unsoldfeed'?'전시 수조':'혼합 수조'}</text>`;}
@@ -448,7 +471,7 @@ function fishDeath(){
     s+=`<rect x="0" y="70" width="120" height="58" rx="10" fill="#6E5E7A"/><rect x="0" y="118" width="130" height="16" fill="#3A2E3E"/><rect x="0" y="134" width="130" height="10" fill="#1E1820" opacity=".7"/>`;
     const paw=(x0,y0,r)=>`<g transform="translate(${x0} ${y0}) rotate(${r})" fill="#7E6448" opacity=".55"><ellipse rx="4.4" ry="3.6"/><circle cx="-4" cy="-5" r="1.6"/><circle cx="0" cy="-6.4" r="1.6"/><circle cx="4" cy="-5" r="1.6"/></g>`;
     s+=[[250,150,-80],[228,160,-70],[206,152,-80],[184,163,-70]].map(p=>paw(...p)).join('');
-    return s+`<g transform="translate(150 146) rotate(-8)">${dead(px,{filter:'f-dry',thin:.3})}</g><g fill="#B8B0A2" opacity=".7"><ellipse cx="176" cy="150" rx="5" ry="2"/></g>`;}
+    return s+`<path d="M128 150q18 6 40 2q10 -2 20 3" stroke="#7A1414" stroke-width="3" fill="none" opacity=".55" stroke-linecap="round"/><g transform="translate(150 146) rotate(-8)">${dead(px,{filter:'f-dry',thin:.3,bite:.3,nips:3})}</g><g fill="#B8B0A2" opacity=".7"><ellipse cx="176" cy="150" rx="5" ry="2"/></g>`;}
   case 'f-siphon':{
     let s=`<rect width="260" height="200" fill="#E4DED2"/><rect y="168" width="260" height="32" fill="#9C8466"/>`;
     s+=`<rect x="20" y="40" width="130" height="92" fill="${waterCol(f.wq)}" stroke="#4A5458" stroke-width="2.4"/><path d="M60 128Q62 60 120 30Q170 10 196 120" stroke="#5E8A6A" stroke-width="5" fill="none" opacity=".85"/>`;
@@ -464,8 +487,11 @@ function fishDeath(){
     const p=S.pred&&FISHART[S.pred]?S.pred:'oscar';
     const ppx=Math.min(210,Math.max(120,(FX[p]||{cm:35}).cm*3.2));
     const tailPx=Math.min(ppx*.4,big*.8);
-    if(f.tank&&f.tank!=='pond') return inTank((g)=>{const cx=g.x+g.w*.58,cy=g.y+g.h*.48;
-      return `<defs><clipPath id="tailc"><rect x="0" y="-60" width="200" height="120"/></clipPath></defs><g transform="translate(${cx-ppx*.5+tailPx*.15} ${cy}) rotate(-8)"><g clip-path="url(#tailc)">${fishSprite(id,'dead',tailPx)}</g></g><g transform="translate(${cx} ${cy})">${fishSprite(p,'swim',ppx)}</g>`+[0,1,2,3].map(i=>`<circle cx="${cx-ppx*.4+i*7}" cy="${cy+10+i*12}" r="1.4" fill="#E8E4DA" opacity=".8"><animate attributeName="cy" values="${cy+10+i*12};${g.y+g.h-12}" dur="${5+i}s" repeatCount="indefinite"/></circle>`).join('')});
+    /* what is left: the front half sinking with its insides out, the big fish turning away, the water going red */
+    if(f.tank&&f.tank!=='pond'||f.fedOff) return inTank((g,b)=>{const vx=g.x+g.w*.3,vpx=clamp(x.cm*5,46,Math.min(110,g.w*.45)),vy=b-fh(vpx)*.5-10;
+      const pcx=g.x+g.w*.66,pcy=g.y+g.h*.36,pp=Math.min(ppx,g.w*.62);
+      return bloodCloud(vx+vpx*.2,vy-6,Math.min(30,g.h*.22),6)+`<g transform="translate(${vx} ${vy}) rotate(14)">${dead(vpx,{bite:.62,gut:1,filter:'f-pale'})}</g>`
+        +`<g transform="translate(${pcx} ${pcy}) scale(-1 1)">${swimmer(fishSprite(p,'swim',pp),0,0,10,7)}</g>`+bloodCloud(pcx+pp*.42,pcy+4,Math.min(16,g.h*.12),3);});
     return riverDead('eaten');}
   case 'eaten': case 'bite': return riverDead('eaten');
   case 'f-pond':

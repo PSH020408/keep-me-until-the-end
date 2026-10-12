@@ -14,7 +14,7 @@ A browser life-simulation about the promises we make to the animals we keep.
 > signed six promises. You choose its temperament, make its choices when it matters, raise it
 > through the seasons — and watch which promises are struck out in red pen.
 
-**Status:** public beta (v0.9.32, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.9.33, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told as a cruel fairy tale: plain sentences, wounds that bleed in text, no gore in the
@@ -72,15 +72,15 @@ browser (static site on Render)                 Supabase (Postgres, Seoul)
 
 ## Balance — anchored to real numbers
 
-`node tools/sim.mjs 6000` plays thousands of lives with random choices. The beta is tuned to:
+Two difficulties (v0.9.33): **현실** (real) is tuned to the anchors below; **이야기** (story, the default) makes owners kinder and the fish's choices weigh more (28.5% of lives lived out with random choices, against 17.4% in 현실). `node tools/sim.mjs 6000` plays thousands of lives with random choices (`MODE=story` for the story setting). 현실 is tuned to:
 
 | Anchor | Target (source in docs/DATA_SOURCES.md) | Beta |
 |---|---|---|
-| Expert keeper, deaths per fish-year | public aquarium 6–8% | 5–7% |
+| Expert keeper, deaths per fish-year | public aquarium 6–8% | 6–8% |
 | Gift goldfish dead in year 1 | ≥ 90% | 92–96% |
 | Casual owner dead in year 1 | most | ~80% |
 | Learner dead in year 1 | 20–30% | ~20% |
-| Dead before any owner | 20–30% (trade losses) | ~27% |
+| Dead before any owner | 20–30% (trade losses) | ~23% (escapes not counted) |
 
 ## How it was made — the thinking behind it
 
@@ -129,7 +129,7 @@ decisions, in short:
 | v0.9.12–0.9.20 | 2026-10-11 | balance against published anchors (easing reverted), crises as choices, owner types, layouts |
 | v0.9.21–0.9.24 | 2026-10-11 | raising the fish (stats, schedule), breeding modes, learning vs. lazy owners, context checks |
 | v0.9.25–0.9.26 | 2026-10-12 | public beta: responsive layout, OG image, GitHub → Render deploy |
-| v0.9.27–0.9.32 | 2026-10-12 | one-screen play, the player as owner, facts checked per species, shared memorial on Supabase |
+| v0.9.27–0.9.33 | 2026-10-12 | one-screen play, the player as owner, facts checked per species, shared memorial on Supabase |
 
 Every row is expanded in [LOG.md](LOG.md).
 

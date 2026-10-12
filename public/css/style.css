@@ -44,6 +44,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-of
 .pledges .tx{font-family:var(--display);font-weight:700;font-size:15px}
 .pledges li.broken .tx{text-decoration:line-through;text-decoration-color:var(--pen);text-decoration-thickness:2px;color:var(--muted)}
 .pledges .note{display:block;font-family:var(--hand);color:var(--pen);font-size:21px;line-height:1.1;margin-top:2px}
+.pledges .note.fix{color:#2E7A5A}.pledges li.mended .tx{text-decoration-color:rgba(200,60,50,.45);color:var(--ink)}
 .sign{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 20px;font-size:13px;color:var(--muted);border-top:1px dashed var(--line);padding-top:12px}
 .sign b{font-family:var(--hand);font-size:24px;color:var(--ink);font-weight:400;margin-left:6px}
 .sign .who{display:flex;align-items:baseline;gap:6px;min-width:0}
@@ -270,6 +271,8 @@ h1,h2,h3,.pledges .tx,.choice .prompt,.log li.mile p,.strip .it span,.lan-sum .f
 #fishRow #mHealth .track{height:8px}
 #mPow .fill{background:#B8452E}#mGuts .fill{background:#C98A2A}#mWits .fill{background:#3A6A9A}#mCharm .fill{background:#D47A9A}
 #ownRow .meter .track{height:5px}#ownRow #mSkill{flex:1.6}#ownRow .meter .top{white-space:nowrap;gap:4px}#ownRow #mSkill .fill{background:var(--muted)}#ownRow #mTemp .fill{background:#4A8C8C}
+#mTemp .track{position:relative;overflow:hidden}#mTemp .band{position:absolute;top:0;bottom:0;z-index:2;background:rgba(255,255,255,.18);border-left:2px solid rgba(74,140,140,.9);border-right:2px solid rgba(74,140,140,.9)}
+#mTemp .fill{position:relative;z-index:1;opacity:.92}#mTemp[data-t=hot] .fill{background:var(--pen)!important}#mTemp[data-t=cold] .fill{background:#3A6A9A!important}#mTemp[data-t=hot] .v{color:var(--pen)}#mTemp[data-t=cold] .v{color:#3A6A9A}
 .mrow .meter .top{font-size:11.5px}
 .meter.low .fill{background:var(--pen)!important}
 #mPow.low .fill{background:#B8452E!important}#mGuts.low .fill{background:#C98A2A!important}#mWits.low .fill{background:#3A6A9A!important}#mCharm.low .fill{background:#D47A9A!important}#mSkill.low .fill{background:var(--muted)!important}
@@ -478,3 +481,22 @@ body.ingame #choice:not([hidden]){position:fixed;inset:0;margin:auto;z-index:45;
   body.ingame .species{font-size:22px}
   body.ingame .cardtop .label{font-size:10px}
 }
+
+/* v0.9.33: difficulty picker, tutorial, special-event lines */
+.modepick{display:flex;flex-wrap:wrap;align-items:center;gap:6px 8px;margin:10px 0 0}
+.modepick button{font:inherit;font-family:var(--display);font-size:14px;padding:4px 14px;border:1.5px solid var(--ink);border-radius:999px;background:transparent;color:var(--ink);cursor:pointer}
+.modepick button[aria-pressed=true]{background:var(--ink);color:var(--paper)}
+.modepick .modedesc{flex-basis:100%;font-size:12.5px;color:var(--muted)}
+.tut{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:rgba(12,14,20,.55);padding:16px}
+.tut[hidden]{display:none}
+.tut-card{position:relative;width:min(460px,100%);background:var(--paper);color:var(--ink);border:2px solid var(--ink);border-radius:16px;padding:20px 20px 16px;box-shadow:0 18px 50px rgba(0,0,0,.3)}
+.tut-h{font-family:var(--display);font-size:22px;margin:4px 0 8px}
+.tut-p{margin:0 0 14px;line-height:1.65;font-size:15px}
+.tut-x{position:absolute;top:10px;right:12px;border:0;background:transparent;font-size:18px;color:var(--muted);cursor:pointer}
+.tut .row{display:flex;justify-content:flex-end;gap:8px}
+.tut-prev:disabled{opacity:.35}
+.helpbtn{margin-left:6px;width:26px;padding:1px 0!important;text-align:center}
+.log li.star p{color:#9A6A12;font-weight:600}
+.log li.star .t::after{content:' ★';color:#C9921E}
+body.ingame .helpbtn{display:inline-block!important}
+.helpbtn{display:none}

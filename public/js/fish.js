@@ -55,7 +55,7 @@ function fishPrologue(){
   const x=fx_(),f=S.f;
   const steps=[];
   const step=(fn)=>steps.push(fn);
-  const die=(p,key)=>R()<p*(f.odds&&f.odds[key]||1)&&(fEnd(key),true);
+  const die=(p,key)=>R()<p*(f.odds&&f.odds[key]||1)*modeK('die')&&(fEnd(key),true);
   /* the fish's own moments on the way: a choice, then the step's odds */
   const ask=c=>q(null,null,()=>askChoice(c,()=>{}));
   f.odds={};f.preShop=wpick(x.shops);
@@ -176,7 +176,8 @@ function fShopFate(){
 function fishBuy(){
   const f=S.f,x=fx_(),sh=FSHOP[f.shop];
   const fitOwn=(k,w)=>k==='content'&&!(x.big||x.pred||x.cm>=25)?0:['breeder','mill'].includes(k)&&!(x.breedEasy||['betta','wildbetta','apisto','oranda','ryukin','koi','cory','altum','peapuffer'].includes(S.sp.id))?0:w;
-  const own=wpick(sh.own.map(([k,w])=>[k,fitOwn(k,w)]).map(([k,w])=>[k,f.shopMood==='hide'?(['expert','learner','breeder'].includes(k)?w*1.6:w*.6):f.shopMood==='front'?(['casual','gift'].includes(k)?w*1.25:w):f.shopMood==='friendly'?(k==='learner'?w*1.5:w):f.shopMood==='show'?(k==='content'?w*3:k==='casual'?w*1.3:w):w]));
+  /* in story mode the signer is more often the kind who tries */
+  const own=wpick(sh.own.map(([k,w])=>[k,fitOwn(k,w)*(S.mode==='story'?({learner:1.8,expert:1.2,casual:.6,gift:.5}[k]||1):1)]).map(([k,w])=>[k,f.shopMood==='hide'?(['expert','learner','breeder'].includes(k)?w*1.6:w*.6):f.shopMood==='front'?(['casual','gift'].includes(k)?w*1.25:w):f.shopMood==='friendly'?(k==='learner'?w*1.5:w):f.shopMood==='show'?(k==='content'?w*3:k==='casual'?w*1.3:w):w]));
   setupOwner(own);
   S.preOwner=0;f.buyAge=S.ageM;f.firstOwn=own;
   fAdvice(own,f.shop);
@@ -263,7 +264,7 @@ function fLearn(m){
   const fx=fixes.find((z,i)=>z[0]&&!(f.learned&&f.learned[i]>S.tick));if(!fx)return false;
   if(f.lazy&&R()<.72){S.cd.learn=S.tick+3;if(R()<.5)say(pick(['주인은 무엇을 고쳐야 하는지 알고 있었습니다. 귀찮아서 다음 주로 미뤘습니다.','"주말에 해야지." 주말은 세 번 지나갔습니다.','주인은 해야 할 일을 메모장에 적었습니다. 메모장은 거기까지였습니다.']),'bad');return false}
   (f.learned=f.learned||{})[fixes.indexOf(fx)]=S.tick+12;
-  S.cd.learn=S.tick+(own==='learner'?2:3);fx[1]();f.lessons++;S.r=clamp(S.r+.05,0,.97);S.interest=clamp(S.interest+.05,0,1);
+  S.cd.learn=S.tick+(own==='learner'?2:3);fx[1]();f.lessons++;S.r=clamp(S.r+.035*persK('learn'),0,.97);S.interest=clamp(S.interest+.05,0,1);
   if(own==='casual'&&f.lessons>=2){f.own='learner';say('대충 키우던 주인이 물생활 카페에 가입했습니다. 첫 글의 제목은 "초보인데 물고기가 자꾸 아파요"였습니다.','sub')}
   else if(own==='gift'&&f.lessons>=2){f.own='learner';say('경품으로 받은 금붕어 때문에 시작한 공부가, 어느새 취미가 되었습니다.','sub')}
   else if(own==='learner'&&f.lessons>=4&&f.lazy&&!f.lazyKnow){f.lazyKnow=1;say('주인은 이제 무엇이 문제인지 다 알았습니다. 하지 않았을 뿐입니다.','bad')}
@@ -403,9 +404,9 @@ function fishTick(){
   /* owner attention */
   const dec=tm('friendly')?.7:tm('feisty')?1.15:1, own=f.own;
   const bore=own==='expert'?.35:own==='breeder'?.6:own==='learner'?.9:own==='content'?.8:own==='casual'?1.5:2.1;
-  S.interest=clamp(S.interest-frac*(.3+(1-S.r)*1.2)*BORE.fish*bore*dec*fCharmK()*(f.lazy?1.35:1)+frac*S.r*1.0,.02,1);
+  S.interest=clamp(S.interest-frac*(.3+(1-S.r)*1.2)*BORE.fish*bore*dec*fCharmK()*(f.lazy?1.35:1)*modeK('bore')*persK('bore')+frac*S.r*1.0,.02,1);
   /* owners who grow get better week by week; the lazy ones barely */
-  if(f.grow&&!f.stubborn)S.r=clamp(S.r+(f.lazy?.0015:.006)*m,0,.92);
+  if(f.grow&&!f.stubborn)S.r=clamp(S.r+(f.lazy?.001:.0036)*m*persK('learn'),0,.92);
   if(f.lazy&&S.r>.7)S.r=.7; // knowing the fix and not doing it never makes a 고수
   fRankTick();
   const care=clamp(S.interest*(.3+.7*S.r),0,1);
@@ -423,8 +424,8 @@ function fishTick(){
   const L=tankL(), load=fLoad();
   const FI=filtOf(f.filter),filt=FI.k*(FI.ug&&f.tankAge>12&&own!=='expert'?1.35:1)*(f.pumpOff?1.25:1);
   const tiny=L<5?1.6:1;
-  const decay=(4+20*load)*filt*tiny*((f.fat||0)>.3?1.2:1);
-  const spike=f.cycled?0:34*(.2+Math.min(load,2))*Math.exp(-f.tankAge/1);
+  const decay=(4+20*load)*filt*tiny*((f.fat||0)>.3?1.2:1)*modeK('wq');
+  const spike=(f.cycled?0:34*(.2+Math.min(load,2))*Math.exp(-f.tankAge/1))*modeK('wq');
   const clean=care*(30+20*S.r)*(f.lazy?.82:1)+(f.cycled&&f.hides?5:f.cycled?3:0);
   f.wq=clamp(f.wq+(clean-decay-spike)*Math.min(m,1.2),0,100);
   if(!f.cycled&&f.tankAge>1.6) f.cycled=1;
@@ -456,12 +457,19 @@ function fishTick(){
   /* health */
   let dh=(f.wq>65?6:f.wq>40?-2:-(40-f.wq)*.55)-f.stress*11-tempHit*9-(f.refuse?16:0)-((f.beak||0)>1?14:0)-(f.stunt||0)*9;
   if(f.ill) dh-=DZ[f.ill.id].prog*f.ill.sev*22;
-  S.health=clamp(S.health+(dh<0?dh*fEndureK():dh)*Math.min(m,1.2),0,100);
+  /* old age: past ~70% of the lifespan the body wears out — recovery slows and the ceiling of health falls */
+  const age=S.ageM/sp.life,old=clamp((age-.7)/.3,0,1.2);S.hMax=Math.round(100-old*68);
+  if(old>0){dh=(dh>0?dh*(1-old*.7):dh)-old*4}
+  /* some fish do fine when nobody looks: hardy species with guts lose less when neglected */
+  if(dh<0&&S.interest<.35&&x.hardy>=.7&&f.st)dh*=clamp(1-(f.st.g-30)/90,.5,1);
+  if(dh<0)dh*=modeK('dh');
+  S.health=clamp(S.health+(dh<0?dh*fEndureK():dh)*Math.min(m,1.2),0,S.hMax);
+  fMendCheck();
   /* disease */
   if(f.ill) fIllTick(care,m);
   else{
     const rate=.008*(1+4*f.stress)*(f.wq<50?1+(50-f.wq)/15:1)*(f.carrier?6:1)*(f.coldShock?3:1)*(1.6-x.hardy)*(S.ageM>sp.life*.75?1.8:1);
-    if(R()<1-Math.exp(-rate*m*lifeK())) fSick(f.carrier&&R()<.7?f.carrier:fPickDz());
+    if(R()<1-Math.exp(-rate*m*lifeK()*modeK('dz'))) fSick(f.carrier&&R()<.7?f.carrier:fPickDz());
   }
   if(f.coldShock&&R()<.5) f.coldShock=0;
   if(S.done||S.ending||S.waiting) return;
@@ -507,6 +515,22 @@ function fishTick(){
   render();
 }
 /* long-lived fish meet fewer accidents per month, or a koi would never see thirty */
+/* a promise that was broken and then put right: a small tank swapped for a big one before the fish outgrew it,
+   a heater fitted, a lid made, a school completed. The red line stays, the correction is written beside it,
+   and a promise whose every fault was put right counts as kept. */
+function mendP(i,re,label){const p=S.pl[i];if(!p||S.preOwner||S.wild)return;let did=0;
+  [p].concat(p.more||[]).forEach(r=>{if(!r.mended&&re.test(r.note)){r.mended={age:S.ageM,label};did=1}});
+  if(did){drawPledges($('gamePledges'),true);if(!skipping)addLog(T('서약서 '+(i+1)+'번 줄 옆에 고친 흔적이 생겼습니다. '+label+'.'),'good')}}
+const plKept=p=>!p||[p].concat(p.more||[]).every(r=>r.mended);
+function fMendCheck(){const f=S.f,x=fx_();if(S.preOwner||S.wild||!f.own)return;
+  if(tankL()>=x.minL*.5&&f.len<x.cm*.9&&!(f.stunt>.25)) mendP(2,/수조에 넣음|몸보다 작은 수조|처음부터 과밀|키울 수 없는 종/,'큰 수조로 바꿔 줌');
+  if(fLoad()<=1.1) mendP(2,/^과밀 수조$/,'수조를 넓혀 줌');
+  if(f.heater) mendP(2,/히터 없음|히터 없이/,'히터를 달아 줌');
+  if(f.lid) mendP(3,/뚜껑 없음/,'뚜껑을 맞춰 줌');
+  if(x.social==='school'&&fSameCount()+1>=5) mendP(2,/무리 지어 사는 종을/,'무리를 채워 줌');
+  if(f.waterOK) mendP(2,/맞추지 않음|기수어인데/,'물을 맞춰 줌');
+  /* torn fins left as they are for months: that is not noticing */
+  if(f.fin>.45){f.finT=(f.finT||0)+S.dt;if(f.finT>=4)breakP(1,'찢어진 지느러미를 몇 달째 그대로 둠')}else if(f.fin<.2)f.finT=0}
 const lifeK=()=>clamp(Math.sqrt(120/S.sp.life),.5,1.4);
 const fGoodOwner=()=>S.r>.6&&S.interest>.4;
 function fCause(){
@@ -570,7 +594,7 @@ function fIllTick(care,m){
 /* owner-made and accidental hazards. returns true when something took over the tick */
 function fHazards(m){
   const f=S.f,x=fx_(),own=f.own,ss=season();
-  const hit=r=>R()<1-Math.exp(-r*m*HZ*lifeK());
+  const hit=r=>R()<1-Math.exp(-r*m*HZ*lifeK()*modeK('hz'));
   const low=1-S.r;
   // jump / escape
   if(f.tank!=='pond'&&hit((x.jump||0)*.025*(f.lid?.04:1)*(1+f.stress)*tmod('jump')*fWitsK()*fL('lid'))){return fCr('jump')}
@@ -717,7 +741,7 @@ function fRehome(text,opt){
   }
   q(null,null,()=>{
     /* the old owner's broken promises are kept for 주마등 before the sheet is handed over */
-    const broke=pledgeList().map((p,i)=>S.pl[i]?{p,n:[S.pl[i].note].concat((S.pl[i].more||[]).map(r=>r.note)),a:ageLabel(S.pl[i].age)}:null).filter(Boolean);
+    const broke=pledgeList().map((p,i)=>S.pl[i]?{p,n:[S.pl[i]].concat(S.pl[i].more||[]).map(r=>r.note+(r.mended?' → '+r.mended.label:'')),a:ageLabel(S.pl[i].age)}:null).filter(Boolean);
     (S.prevPl=S.prevPl||[]).push({o:S.o.name+' · '+(f.place?{classroom:'교실',office:'사무실',restaurant:'식당'}[f.place]:FOWN[f.own].l),pls:broke});
     S.owners++;S.o=makeOwner();if(opt.name)S.o.name=opt.name;if(opt.place)S.o.fam=opt.place==='classroom'?'아이 있는 가족':'1인 가구';
     if(opt.tank==='pond')S.o.house='마당 있는 주택';
@@ -886,7 +910,7 @@ const FEND={
   :p==='vacation'?['먹이 블록은 이틀 만에 녹아 물을 흐렸고, 그 뒤로는 아무것도 없었습니다.','주인이 돌아왔을 때 수조는 조용했습니다.']
   :['{n}은 고향 강에서 먹던 것과 다른 먹이를 끝내 받아들이지 못했습니다.','하루하루 배가 꺼졌습니다. 수조 바닥에는 먹지 않은 사료가 쌓여 썩어 갔습니다.','{n}은 사료 알갱이 사이에 누웠습니다.']},
  stunt:{cat:'성장 정체',fx:'f-bent',fact:()=>fx_().big?'fOutgrow':isGold()?'fBowl':'fBowlAny',pl:[[2,'몸보다 작은 수조']],l:()=>['{n}의 몸은 더 자라야 했지만 수조가 허락하지 않았습니다.','몸은 자라지 못했고, 등은 휘었습니다. 돌아설 때마다 유리벽에 부딪혔습니다.','{n}은 자기 몸에 맞지 않는 수조에서 생을 마쳤습니다.']},
- breedout:{cat:'번식 소모',fx:'f-bottom',fact:'fBreed',pl:[[4,'어미를 쉬지 않고 번식시킴']],l:()=>fem()?['{n}은 몇 달마다 알을 낳았고, 쉬는 기간은 없었습니다.','배는 늘 부풀었다 꺼졌고, 몸은 점점 말라 갔습니다.',(S.f.spawns||4)+'번째 산란 뒤, {n}은 산란통 바닥에서 일어나지 못했습니다.']:['{n}은 수컷 한 마리로 여러 암컷과 차례로 짝지어졌습니다.','짝짓기 때마다 지느러미가 찢기고 몸에 상처가 늘었습니다.','더 이상 쓸모가 없어진 {n}은 대형어 수조의 먹이로 넘겨졌습니다.']},
+ breedout:{cat:'번식 소모',fx:()=>S.f.fedOff?'f-eaten':'f-bottom',fact:'fBreed',pl:()=>S.f.fedOff?[[4,'쉬지 않고 번식시킴'],[0,'쓸모없어지자 대형어 먹이로 넘김']]:[[4,'어미를 쉬지 않고 번식시킴']],l:()=>fem()?['{n}은 몇 달마다 알을 낳았고, 쉬는 기간은 없었습니다.','배는 늘 부풀었다 꺼졌고, 몸은 점점 말라 갔습니다.',(S.f.spawns||4)+'번째 산란 뒤, {n}은 산란통 바닥에서 일어나지 못했습니다.']:['{n}은 수컷 한 마리로 여러 암컷과 차례로 짝지어졌습니다.','짝짓기 때마다 지느러미가 찢기고 몸에 상처가 늘었습니다.','더 이상 쓸모가 없어진 {n}은 대형어 수조의 먹이로 넘겨졌습니다.']},
  pond:{cat:'잡아먹힘',fx:'f-pond',fact:'fKoi',pl:[[3,'연못에 그물을 치지 않음']],l:()=>['새벽, 연못가에 왜가리 한 마리가 내려앉았습니다.','긴 부리가 물속으로 꽂혔습니다. 아침에 주인이 본 건 연못가 돌 위의 비늘 몇 장뿐이었습니다.']},
  burst:{cat:'사고',fx:'f-burst',fact:'fBurst',pl:[[3,'수평이 안 맞는 받침에 수조를 둠']],l:()=>['새벽 세 시, 거실에서 "퍽" 하는 소리가 났습니다.','한쪽으로 기운 받침 위에서 몇 달을 버티던 실리콘 이음매가 터졌습니다. '+tankL()+'리터의 물이 한꺼번에 쏟아졌습니다.','{n}은 거실 바닥 물웅덩이에서 퍼덕였습니다. 물은 마룻바닥 틈으로 빠르게 스며들었습니다. 주인이 불을 켰을 때, {n}은 유리 조각 사이에 누워 있었습니다.']},
  cat:{cat:'사고',fx:'f-cat',fact:'fCat',pl:[[3,'고양이 있는 집에 뚜껑 없는 수조']],l:()=>['주인이 출근한 오후, 고양이가 수조 위 선반에 올라앉았습니다.','앞발이 수면을 몇 번 휘저었습니다. 세 번째에 {n}이 걸려 나왔습니다.','저녁에 주인이 찾은 건 소파 밑의 {n}과, 바닥에 찍힌 젖은 발자국이었습니다. 고양이는 {n}을 먹지도 않았습니다.']},
@@ -897,7 +921,7 @@ const FEND={
  office:{cat:'방치',fx:'f-float',fact:'fPlace',pl:[[2,'연휴 동안 방치']],l:()=>['연휴 아흐레 동안 사무실에는 아무도 오지 않았습니다. 로비 수조의 조명 타이머만 켜졌다 꺼졌다를 반복했습니다.','출근한 직원이 수조를 보고 시설팀에 전화를 걸었습니다.','"물고기 다 죽었는데요. 새로 넣을까요?"']},
  free:{cat:'자유',fx:'f-home',calm:1,fact:'fChain',l:()=>{const y=S.sp.life*(.55+R()*.4);S.ageM=y;S.f.wild=1;S.f.free=1;S.f.len=fx_().cm;S.health=100;S.env='wildriver';S.status='강에서 삶';
    return ['{n}은 '+x_region()+'에서 '+josa(ageLabel(y),'을')+' 살았습니다. 그물과 상자와 유리벽을 끝내 몰랐습니다.','어느 해, {n}은 태어난 물 바닥에 조용히 몸을 누이고 다시 움직이지 않았습니다.']}},
- millcull:{cat:'도태',fx:'f-shopeaten',fact:'fBreed',pl:[[4,'번식이 끝난 어미를 먹이로 줌']],l:p=>['알을 덜 낳기 시작한 어미들은 번식장에서 쓸모가 없었습니다.','주인은 뜰채로 {n}을 건져 '+fPredName(p)+'의 수조 위에서 기울였습니다. {n}은 몇 달 동안 수천 개의 알을 낳았습니다.','다음 날 아침, 그 수조에는 {n}의 흔적이 없었습니다.']},
+ millcull:{cat:'도태',fx:'f-eaten',fact:'fBreed',pl:[[4,'번식이 끝난 어미를 먹이로 줌'],[0,'쓸모없어지자 대형어 먹이로 넘김']],l:p=>['알을 덜 낳기 시작한 어미들은 번식장에서 쓸모가 없었습니다.','주인은 뜰채로 {n}을 건져 '+fPredName(p)+'의 수조 위에서 기울였습니다. {n}은 몇 달 동안 수천 개의 알을 낳았습니다.','다음 날 아침, 그 수조에는 {n}의 흔적이 없었습니다.']},
  apex:{cat:'하천의 포식자',fx:'apex',calm:1,fact:'fApex',l:()=>['{n}은 발전소 온배수가 흘러드는 물목에서 겨울을 났습니다. 물은 한겨울에도 미지근했습니다.','이듬해 봄, 그 물목의 붕어와 피라미가 눈에 띄게 줄었습니다. 낚시꾼들이 "이상한 물고기"를 봤다는 글을 올렸습니다.','{n}은 '+josa(ageLabel(S.ageM),'을')+' 살았습니다. 수조에서는 먹이였던 것들이, 이 강에서는 {n}의 먹이였습니다.']},
  angler:{cat:'외래종 퇴치',fx:'f-angler',fact:'fRelease',l:()=>['{n}이 문 지렁이에는 바늘이 있었습니다.','"외래종이네." 낚시꾼은 {n}을 강둑 풀밭에 던져 두었습니다. 다시 물에 넣어 주는 사람은 없었습니다.','{n}은 해가 질 때까지 풀밭에서 아가미를 들썩였습니다.']},
  left:{cat:'버려짐',fx:'f-float',fact:'alone',pl:[[0,'이사하며 두고 감']],l:()=>['이삿날, 짐은 모두 트럭에 실렸습니다. 수조만 빈집에 남았습니다.','전기가 끊기고, 여과기가 멈췄습니다. 새로 이사 온 사람이 문을 열었을 때 {n}은 탁한 물 위에 떠 있었습니다.']},
@@ -911,12 +935,12 @@ function fEnd(key,arg){
   let factKey=val(e.fact);
   if(typeof factFix==='function')factKey=factFix(key,factKey,arg);
   const fact=F[factKey]||factKey;
+  const lines=e.l(arg).map(T);
   const pl=val(e.pl)||null;
   if(S.preOwner&&key!=='free') S.status='유통 중 사망';
-  const lines=e.l(arg).map(T);
   const rl=!e.calm&&typeof fRepeatLine==='function'&&fRepeatLine(key);if(rl)lines.push(T(rl));
   const sl=(e.calm||key==='natural')&&typeof fStatLine==='function'&&fStatLine();if(sl)lines.push(T(sl));
-  endLife(lines,e.cat,fact,S.preOwner?null:pl,!!e.calm,val(e.fx),['eaten','feeder','shopmate','unsoldfeed','shopnip'].includes(key)?arg:null);
+  endLife(lines,e.cat,fact,S.preOwner?null:pl,!!e.calm,val(e.fx),['eaten','feeder','shopmate','unsoldfeed','shopnip','millcull'].includes(key)?arg:f.fedOff||null);
 }
 /* engine hooks */
 function fishSurvivedLines(){

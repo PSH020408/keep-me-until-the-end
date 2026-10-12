@@ -457,7 +457,7 @@ const FFL=[
  {t:'{n}이 지나가는 물고기들의 지느러미를 하나씩 물어뜯었습니다.',c:'neutral',when:()=>fx_().nip&&S.f.mates.length>0,fx:()=>{S.f.wq-=2}},
  // owner types
  {t:'주인이 물생활 커뮤니티에 {n}의 사진과 수질 기록을 올렸습니다. "정성이 대단하다"는 댓글이 달렸습니다.',c:'good',when:()=>S.f.own==='expert',m:'주인은 매일 내 물을 쟀다.'},
- {t:'주인이 유튜브로 "물잡이" 영상을 보고 노트에 받아 적었습니다.',c:'good',once:'study',when:()=>S.f.own==='learner'&&S.r<.6,fx:()=>{S.r=clamp(S.r+.12,0,.95)}},
+ {t:'주인이 유튜브로 "물잡이" 영상을 보고 노트에 받아 적었습니다.',c:'good',once:'study',when:()=>S.f.own==='learner'&&S.r<.6,fx:()=>{S.r=clamp(S.r+.08,0,.95)}},
  {t:'주인은 {n}에게 "어차피 물고기"라며 일주일 넘게 눈길도 주지 않았습니다.',c:'bad',when:()=>['casual','gift'].includes(S.f.own),fx:()=>{S.interest-=.06}},
  {t:'주인이 살아 있는 먹이용 금붕어 한 봉지를 사 왔습니다. 물고기들이 {n}의 입속으로 하나씩 사라졌습니다. 그중 몇 마리는 이미 하얀 점이 돋아 있었습니다.',c:'bad',when:()=>fx_().pred&&['content','casual'].includes(S.f.own)&&S.f.len>8,fx:()=>{S.health+=4;if(R()<.35)fSick(R()<.5?'ich':'worms')}},
  {t:'주인이 {n}의 먹방 영상을 찍었습니다. 썸네일에는 "괴물 물고기의 식사"라고 적혔습니다.',c:'neutral',when:()=>S.f.own==='content'&&fx_().pred,m:'불빛이 번쩍였다. 사람들이 나를 보고 있었다.'},

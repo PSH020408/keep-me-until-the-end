@@ -9,10 +9,12 @@ function drawPledges(el,live){
     const li=document.createElement('li');
     li.innerHTML='<span class="no">0'+(i+1)+'</span><span><span class="tx"></span></span>';
     li.querySelector('.tx').textContent=p;
-    if(live&&S.pl[i]){li.classList.add('broken');
+    if(live&&S.pl[i]){li.classList.add('broken');const mended=typeof plKept==='function'&&plKept(S.pl[i]);if(mended)li.classList.add('mended');
       /* every reason the promise was broken, grouped by the age it happened */
       const by=[];[S.pl[i]].concat(S.pl[i].more||[]).forEach(r=>{const a=ageLabel(r.age),g=by.find(g=>g.a===a);if(g)g.n.push(r.note);else by.push({a,n:[r.note]})});
-      by.forEach(g=>{const n=document.createElement('span');n.className='note';n.textContent=g.a+' — '+g.n.join(' · ');li.lastChild.appendChild(n)})}
+      by.forEach(g=>{const n=document.createElement('span');n.className='note';n.textContent=g.a+' — '+g.n.join(' · ');li.lastChild.appendChild(n)});
+      [S.pl[i]].concat(S.pl[i].more||[]).filter(r=>r.mended).forEach(r=>{const n=document.createElement('span');n.className='note fix';n.textContent='↳ '+ageLabel(r.mended.age)+' — '+r.mended.label;li.lastChild.appendChild(n)});
+      if(mended){const n=document.createElement('span');n.className='note fix';n.textContent='다시 지켰습니다';li.lastChild.appendChild(n)}}
     el.appendChild(li);
   });
 }
@@ -67,7 +69,7 @@ function render(){
   $('ageNow').textContent=ageLabel(S.ageM);
   $('ageFill').style.width=clamp(S.ageM/S.sp.life*100,0,100)+'%';
   stepText();
-  meter($('mHealth'),S.health);
+  meter($('mHealth'),S.health);if(S.f&&S.hMax<100&&!S.done)$('mHealth').querySelector('.v').textContent=Math.round(S.health)+' / '+S.hMax;
   const F=S.f,pre=!!(F&&S.preOwner),wild=!!S.wild;
   if(F&&S.temper&&typeof fst==='function')fst();
   /* the fish's own stats */
@@ -79,7 +81,13 @@ function render(){
   meter($('mCare'),wild?wildOf().forage*100*(S.health/100*.5+.5):S.interest*100);
   const sk=$('mSkill');if(sk){sk.hidden=!F||wild||pre;if(!sk.hidden){meter(sk,S.r*100);sk.querySelector('.v').textContent=fRank(S.r)+' '+Math.round(S.r*100)}}
   const wq=$('mWq');if(wq){wq.hidden=!(F&&!pre&&!wild);if(!wq.hidden)meter(wq,F.wq)}
-  const tp=$('mTemp');if(tp){tp.hidden=!(F&&!pre&&typeof fTempNow==='function');if(!tp.hidden){const t=fTempNow();meter(tp,t.fit);tp.querySelector('.v').textContent=t.c.toFixed(0)+'℃';tp.title='알맞은 수온 '+t.lo+'~'+t.hi+'℃'}}
+  const tp=$('mTemp');if(tp){tp.hidden=!(F&&!pre&&typeof fTempNow==='function');if(!tp.hidden){const t=fTempNow();
+    /* the bar is a thermometer (0–36℃) with the species' range as a band; colour says too cold / right / too hot */
+    const sc=v=>clamp(v/36*100,0,100),st=t.c<t.lo-.5?'cold':t.c>t.hi+.5?'hot':'ok';
+    tp.querySelector('.fill').style.width=sc(t.c)+'%';tp.classList.remove('low');tp.dataset.t=st;
+    let band=tp.querySelector('.band');if(!band){band=document.createElement('i');band.className='band';tp.querySelector('.track').appendChild(band)}
+    band.style.left=sc(t.lo)+'%';band.style.width=(sc(t.hi)-sc(t.lo))+'%';
+    tp.querySelector('.v').textContent=t.c.toFixed(0)+'℃'+(st==='hot'?' ▲':st==='cold'?' ▼':'');tp.title='알맞은 수온 '+t.lo+'~'+t.hi+'℃'}}
   if(document.body&&document.body.classList)document.body.classList.toggle('ingame',!S.done&&!$('game').hidden);
   fields();drawStage();
 }
@@ -97,7 +105,7 @@ function showEnd(cat,fact,calm){
   stageKey='';render();
   const sm=document.createElement('div');sm.className='stamp'+(calm?' calm':'');sm.textContent=cat;$('card').appendChild(sm);
   const lived=S.ageM,pot=S.sp.life,pct=Math.round(clamp(lived/pot,0,1)*100);
-  const kept=S.pl.filter(x=>!x).length;
+  const kept=S.pl.filter(x=>typeof plKept==='function'?plKept(x):!x).length;
   const E=$('ending');E.hidden=false;E.innerHTML='';done=0;barDraw();
   const h=document.createElement('h2');
   const al=ageLabel(lived);
@@ -276,7 +284,7 @@ function saveMem(m){mem.unshift(m);mem=mem.slice(0,200);storeMem()}
 function lifeRecord(cat,calm,fact,kept,al,pct){
   let st=(S.story||[]).filter(x=>x.t);
   if(st.length>32){const head=st.slice(0,8),tail=st.slice(-14),mid=st.slice(8,-14),k=mid.length/10;st=head.concat(Array.from({length:10},(_,i)=>mid[Math.floor(i*k)]),tail)}
-  const pls=S.preOwner||S.noPledge||S.flags.fac?[]:pledgeList().map((p,i)=>S.pl[i]?{p,n:[S.pl[i].note].concat((S.pl[i].more||[]).map(r=>r.note)),a:ageLabel(S.pl[i].age)}:null).filter(Boolean);
+  const pls=S.preOwner||S.noPledge||S.flags.fac?[]:pledgeList().map((p,i)=>S.pl[i]?{p,n:[S.pl[i]].concat(S.pl[i].more||[]).map(r=>r.note+(r.mended?' → '+r.mended.label:'')),a:ageLabel(S.pl[i].age)}:null).filter(Boolean);
   return {id:S.memId,n:S.name?S.name+' · '+S.sp.name:S.sp.name,sp:S.sp.id,lived:al,pot:ageLabel(S.sp.life),pct,cat,calm:!!calm,
     kept:S.noPledge||S.preOwner||S.flags.fac||S.wild&&!pls.length?null:kept,of:S.pl.length,
     own:S.preOwner?null:S.o.name+(S.f?' · '+FOWN[S.f.own].l:''),path:S.f&&S.f.path.length?S.f.path.join(' → '):S.origin,
