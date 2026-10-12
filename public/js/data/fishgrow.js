@@ -404,3 +404,32 @@ function fRankTick(){const f=S.f;if(!f||S.preOwner||S.wild||!f.own)return;const 
 
 /* velvet: a fish rubs on what is there — glass in a tank, stones in a pond */
 (()=>{const v=DZ.velvet;if(v)Object.defineProperty(v,'sym',{get:()=>'{n}의 몸이 금가루를 뿌린 듯 탁한 금빛으로 덮였습니다. 지느러미를 접고 '+(S&&S.f&&S.f.tank==='pond'?'바닥 돌에':'유리벽에')+' 몸을 비빕니다.',enumerable:true})})();
+
+/* ---------- 8. the "실제로는" fact has to be about this fish ----------
+   tools/check_facts.mjs lists which fact each species ends with; these fix the ones that were about another animal. */
+const FACT_FISH={
+  accident:'사고의 대부분은 미리 알았다면 막을 수 있었던 일입니다. 뚜껑 하나, 흡입구 스펀지 하나, 온도 조절기 하나가 생사를 가릅니다.',
+  left:'이사를 하면서 물고기를 두고 가거나 아무에게나 넘기는 일이 흔합니다. 수조를 옮기기 어렵다면, 받아 줄 사람을 미리 찾아 두는 것이 책임입니다.',
+  swimb:'부레병은 과식, 변비, 세균 감염 등으로 부레가 눌려 몸이 기울거나 뒤집히는 병입니다. 먹이를 줄이고 수질을 맞추면 낫는 경우도 있습니다.',
+  tetra:'테트라히메나는 수질이 나쁠 때 상처로 파고드는 작은 섬모충입니다. 몸속까지 퍼지면 치료가 어렵습니다.',
+  pond:'연못 물고기의 가장 큰 위협은 왜가리와 고양이 같은 포식자입니다. 연못 위에 친 그물 하나가 생사를 가릅니다.',
+  noair:'가물치와 폴립테루스처럼 공기로 숨 쉬는 물고기는 수면과 뚜껑 사이에 공기층이 있어야 합니다. 물을 가득 채우고 뚜껑을 꽉 닫으면 숨이 막힙니다.',
+};
+function factFix(key,k,arg){
+  const id=S.sp.id,gold=isGold();
+  if(k==='accident')return FACT_FISH.accident;
+  if(key==='left')return FACT_FISH.left;
+  if(key==='fight'&&!['betta','wildbetta'].includes(id))return 'fTemper';
+  if(key==='pond'&&id!=='koi')return FACT_FISH.pond;
+  if(key==='noair'&&id!=='bichir')return FACT_FISH.noair;
+  if(key==='disease'&&S.f.ill){const d=S.f.ill.id;
+    if(d==='swimb'&&!gold)return FACT_FISH.swimb;
+    if(d==='tetra'&&!['guppy','platy'].includes(id))return FACT_FISH.tetra;
+    if(d==='cyhv2'&&!gold)return 'fWater';
+    if(d==='khv'&&id!=='koi')return 'fWater';
+    if(d==='neond'&&id!=='neon')return 'fWater';
+    if(d==='skinny'&&id!=='clownloach')return 'fWild';
+    if(d==='hex'&&!['oscar','altum','apisto','channa','arowana'].includes(id))return 'fWater'}
+  if(['neglect','stunt'].includes(key)&&k==='fBowl'&&!gold)return 'fBowlAny';
+  return k;
+}

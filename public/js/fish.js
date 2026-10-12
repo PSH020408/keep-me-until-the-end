@@ -787,7 +787,9 @@ wildTick=function(){
     if((x.big||x.pred)&&f.len>=15&&R()<.012*S.dt){render();fEnd('angler');return}
     /* a tropical fish may find the warm outflow of a power plant before winter */
     if(x.coldWild<.4&&season()==='autumn'&&!f.warmTried){f.warmTried=1;if(R()<.18+fT('bold')*.08+(x.pred?.12:0)){f.warm=1;addLog(T('찬 바람이 불기 시작할 무렵, {n}은 미지근한 물이 흘러드는 물목을 찾아냈습니다. 발전소 온배수였습니다.'),'good');remember('겨울인데도 물이 따뜻했다.',1.5)}}
-    if(f.warm){f.warmM=(f.warmM||0)+S.dt;if((x.pred||x.big)&&f.warmM>=12){render();fEnd('apex');return}
+    if(f.warm){f.warmM=(f.warmM||0)+S.dt;if(x.pred&&f.warmM>=12){render();fEnd('apex');return}
+      /* a big fish that is not a hunter (pleco, clown loach) settles in the warm water without ruling it */
+      if(!x.pred&&x.big&&f.warmM>=18){addLog(T('{n}은 온배수 물목의 바닥에 자리를 잡았습니다. 그 물목에는 이제 {n}을 닮은 물고기가 몇 마리 더 보였습니다.'),'sub');return wildSurvived()}
       const c0=w.cold;w.cold=.97;try{_wildTick()}finally{w.cold=c0}return}
     f.len=Math.min(x.cm*(isGold()?1.4:1),f.len+S.dt*(x.temp==='trop'?.1:.6));
     const hardy=x.coldWild>=.4;
@@ -843,7 +845,7 @@ const FEND={
  eaten:{cat:'합사',fx:'f-eaten',fact:'합사할 때는 지금 크기가 아니라 다 자랐을 때의 크기와 식성을 봐야 합니다. 입에 들어가는 물고기는 먹이입니다.',pl:[[3,'큰 육식어와 합사']],l:p=>['같은 수조의 '+josa(fPredName(p),'은')+' 하루가 다르게 자랐습니다.','어느 밤, '+josa(fPredName(p),'이')+' 수조를 한 바퀴 돌았습니다. 아침에 {n}은 보이지 않았고, '+fPredName(p)+'의 아가미 사이로 꼬리지느러미 끝이 비쳤습니다.']},
  nipped:{cat:'합사',fx:'f-nipped',fact:'fWater',pl:[[3,'지느러미 뜯는 물고기와 합사']],l:()=>['{n}의 지느러미는 매일 조금씩 뜯겨 나갔습니다.','뜯긴 자리에 하얀 곰팡이가 피었고, 지느러미는 다시 자라지 않았습니다.','{n}은 지느러미 없는 몸으로 바닥에 누웠습니다.']},
  mauled:{cat:'합사',fx:'f-nipped',fact:'fTemper',pl:[[3,'공격적인 물고기와 합사']],l:p=>{const nm=fPredName(p);return [fbOf(p).nip?'같은 수조의 '+josa(nm,'이')+' 매일 {n}의 지느러미를 한 조각씩 뜯어 갔습니다.':'같은 수조의 '+josa(nm,'은')+' {n}이 보이기만 하면 쫓아왔습니다. {n}은 숨을 곳을 찾아 수조 구석만 맴돌았습니다.','지느러미는 실처럼 갈라지고, 몸 옆에는 물린 자국이 늘어 갔습니다. 주인은 "물고기끼리 장난치는 것"이라고 했습니다.','어느 아침, {n}은 수초 뒤에서 움직이지 않았습니다. '+josa(nm,'은')+' 아무 일 없다는 듯 수조를 돌고 있었습니다.']}},
- fight:{cat:'싸움',fx:'f-nipped',fact:'fBetta',pl:[[3,'싸우는 물고기를 합사']],l:()=>[S.sp.id==='betta'?'주인은 "둘이면 덜 외롭겠지"라며 수조에 베타 한 마리를 더 넣었습니다.':'같은 수조에 같은 종 수컷이 한 마리 더 있었습니다.','둘은 밤새 아가미를 펴고 싸웠습니다. 아침, {n}의 지느러미는 실처럼 찢겨 있었습니다.','{n}은 수초 뒤에서 다시 나오지 않았습니다.']},
+ fight:{cat:'싸움',fx:'f-nipped',fact:'fBetta',pl:[[3,'싸우는 물고기를 합사']],l:()=>[S.sp.id==='betta'?'주인은 "둘이면 덜 외롭겠지"라며 수조에 베타 한 마리를 더 넣었습니다.':'같은 수조에 같은 종 수컷이 한 마리 더 있었습니다.',(['betta','wildbetta'].includes(S.sp.id)?'둘은 밤새 아가미를 펴고 싸웠습니다.':'둘은 밤새 서로를 쫓으며 지느러미를 물어뜯었습니다.')+' 아침, {n}의 지느러미는 실처럼 찢겨 있었습니다.','{n}은 수초 뒤에서 다시 나오지 않았습니다.']},
  stress:{cat:'스트레스',fx:'f-bottom',fact:'fCrowd',pl:[[2,'좁고 붐비는 수조']],l:()=>['좁고 붐비는 수조에서 {n}은 하루도 마음 편히 헤엄치지 못했습니다.','색이 바래고, 먹이를 거르고, 지느러미를 접은 채 구석에서 지냈습니다.','어느 날 {n}은 그 구석에서 움직이지 않았습니다.']},
  jump:{cat:'점프사',fx:'f-floor',fact:'fJumpF',pl:[[3,'수조 뚜껑 없음']],l:()=>['한밤중, {n}이 수면 위로 몸을 날렸습니다. 뚜껑은 없었습니다.','{n}은 마룻바닥에 떨어져 한참 몸을 퍼덕였습니다. 집 안의 누구도 깨어나지 않았습니다.','아침에 발견된 {n}은 먼지가 들러붙은 채 말라 있었습니다.']},
  escape:{cat:'탈출',fx:'f-escape',fact:()=>S.sp.id==='channa'?'fChanna':'fBichir',pl:[[3,'수조 틈을 막지 않음']],l:()=>['전선이 지나가는 뚜껑 틈이 손가락 두 개만큼 벌어져 있었습니다.','{n}은 그 틈으로 몸을 밀어 넣고 바닥으로 미끄러져 내려갔습니다. 물을 찾아 기어간 곳은 장식장 밑이었습니다.','며칠 뒤 냄새를 따라 장식장을 들어낸 주인은 먼지를 뒤집어쓴 채 말라붙은 {n}을 찾았습니다.']},
@@ -889,7 +891,8 @@ function fEnd(key,arg){
   const e=FEND[key];if(!e||S.ending)return;
   const f=S.f;f.endKey=key;f.endArg=arg;
   const val=v=>typeof v==='function'?v(arg):v;
-  const factKey=val(e.fact);
+  let factKey=val(e.fact);
+  if(typeof factFix==='function')factKey=factFix(key,factKey,arg);
   const fact=F[factKey]||factKey;
   const pl=val(e.pl)||null;
   if(S.preOwner) S.status='유통 중 사망';
