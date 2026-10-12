@@ -440,13 +440,13 @@ function askChoice(c,cb){
     if(before)showDelta(before,statSnap());
     render();if(!skipping)run();
   };
-  if(skipping){resolve(pick(opts));return}
+  if(skipping){resolve(pick(opts.filter(o=>!o.dis)));return}
   S.waiting=true;S.pending={opts,resolve};stop();
   const box=$('choice');box.innerHTML='';box.hidden=false;if(box.classList){box.classList.toggle('crisis',/살아남기/.test(c.who||''));box.classList.toggle('train',/육성/.test(c.who||''))}
   const who=document.createElement('span');who.className='who';who.textContent=c.who||((S.noPledge?'당신':S.disp)+'의 선택');
   const p=document.createElement('p');p.className='prompt';const pf=typeof pondify==='function'?pondify:x=>x;p.textContent=pf(T(c.p));
   const list=document.createElement('div');list.className='opts';
-  opts.forEach(o=>{const b=document.createElement('button');b.textContent=pf(o.l);if(o.d){const sm=document.createElement('small');sm.textContent=pf(o.d);b.appendChild(sm)}b.onclick=()=>resolve(o);list.appendChild(b)});
+  opts.forEach(o=>{const b=document.createElement('button');b.textContent=pf(T(o.l));if(o.d){const sm=document.createElement('small');sm.textContent=pf(T(o.d));b.appendChild(sm)}if(o.dis){b.disabled=true;b.className='dis'}else b.onclick=()=>resolve(o);list.appendChild(b)});
   box.append(who,p,list);
   /* on phones the choice is a bottom sheet, so the page does not need to move */
   const sheetUI=!!(document.body&&document.body.classList&&document.body.classList.contains('ingame'));

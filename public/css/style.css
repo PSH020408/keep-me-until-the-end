@@ -500,3 +500,7 @@ body.ingame #choice:not([hidden]){position:fixed;inset:0;margin:auto;z-index:45;
 .log li.star .t::after{content:' ★';color:#C9921E}
 body.ingame .helpbtn{display:inline-block!important}
 .helpbtn{display:none}
+
+/* v0.10: an option this species can never take — shown, greyed, not clickable */
+.opts button.dis,.opts button.dis:hover{opacity:.42;cursor:not-allowed;border-style:dashed;background:transparent;border-color:var(--line)}
+.opts button.dis small{color:var(--pen)}

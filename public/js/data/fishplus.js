@@ -1,5 +1,5 @@
 /* ---------- v0.9.33: more of a game, and no softer ----------
-   1. difficulty: 이야기 (story) or 현실 (real: the published anchors in LOG.md)
+   1. difficulty: 쉬움 (story) or 어려움 (real: the published anchors in LOG.md)
    2. owners have a personality, and their heart changes over the years
    3. stat routes: what the fish became opens its own events (star, tyrant, genius, survivor)
    4. special training unlocked by stats
@@ -8,8 +8,8 @@
 
 /* ---------- 1. difficulty ---------- */
 const MODES={
-  story:{l:'이야기',d:'주인이 조금 더 너그럽고, 물고기의 선택이 결과를 더 크게 바꿉니다. 그래도 많이 죽습니다.',hz:.5,die:.5,dz:.5,dh:.6,bore:.72,wq:.7},
-  real:{l:'현실',d:'실제 통계에 맞춘 난이도입니다. 대부분 끝까지 살지 못합니다.',hz:1,die:1,dz:1,dh:1,bore:1,wq:1}};
+  story:{chk:1.15,l:'쉬움',d:'주인이 조금 더 너그럽고, 물고기의 선택이 결과를 더 크게 바꿉니다. 그래도 많이 죽습니다.',hz:.12,die:.15,dz:.12,dh:.33,bore:.65,wq:.55},
+  real:{chk:1,l:'어려움',d:'실제 통계에 맞춘 난이도입니다. 대부분 끝까지 살지 못합니다.',hz:.3,die:.45,dz:.3,dh:.8,bore:.95,wq:.8}};
 let MODE_NOW='story';
 try{const m=localStorage.getItem('kmu_mode');if(MODES[m])MODE_NOW=m}catch(e){}
 const modeK=k=>(MODES[(typeof S!=='undefined'&&S&&S.mode)||'real']||MODES.real)[k];

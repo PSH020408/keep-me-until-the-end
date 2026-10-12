@@ -153,7 +153,7 @@ function fishPrologue(){
   }
   /* the buyer */
   step(()=>{fishBuy()});
-  let i=0;function next(){const s=steps[i++];if(s)s()}
+  let i=0;function next(){if(S.ending)return;const s=steps[i++];if(s)s()}
   next();
 }
 
@@ -184,7 +184,7 @@ function fishBuy(){
   const shipLeg=sh.ship;
   q(T(own==='gift'&&f.shop==='fair'?'아이가 종이 뜰채로 {n}을 건져 올렸습니다. {n}은 손바닥만 한 비닐봉지에 담겼습니다.'
      :own==='gift'&&f.shop==='vase'?'{n}이 담긴 꽃병은 생일 선물로 포장되었습니다.'
-     :{expert:S.o.name+' 님은 수조 앞에 한참 서서 지느러미와 아가미를 하나하나 살펴본 물생활 고수였습니다.',learner:S.o.name+' 님은 휴대폰으로 사육법을 검색하며 수조 앞을 오래 서성이던 초보였습니다.',casual:S.o.name+' 님은 "이거 예쁘다" 한마디에 바로 결제한 사람이었습니다.',breeder:S.o.name+' 님은 번식시킬 짝을 찾던 사람이었습니다.',content:S.o.name+' 님은 "다 크면 얼마나 커져요?"부터 물어본 대형어 영상 채널 운영자였습니다.',gift:'{n}은 선물용 봉지에 담겨 포장되었습니다. 선물을 받은 사람은 '+S.o.name+' 님이었습니다.',mill:S.o.name+' 님은 "암컷 열, 수컷 다섯"을 한 번에 주문한 번식장 운영자였습니다.'}[own]),'neutral',()=>{S.status=shipLeg?'택배 이동 중':'집';drawPledges($('gamePledges'),true);render()});
+     :(typeof KINTRO!=='undefined'&&S.f.kind&&KINTRO[S.f.kind]?KINTRO[S.f.kind]():null)||{expert:S.o.name+' 님은 수조 앞에 한참 서서 지느러미와 아가미를 하나하나 살펴본 물생활 고수였습니다.',learner:S.o.name+' 님은 휴대폰으로 사육법을 검색하며 수조 앞을 오래 서성이던 초보였습니다.',casual:S.o.name+' 님은 "이거 예쁘다" 한마디에 바로 결제한 사람이었습니다.',breeder:S.o.name+' 님은 번식시킬 짝을 찾던 사람이었습니다.',content:S.o.name+' 님은 "다 크면 얼마나 커져요?"부터 물어본 대형어 영상 채널 운영자였습니다.',gift:'{n}은 선물용 봉지에 담겨 포장되었습니다. 선물을 받은 사람은 '+S.o.name+' 님이었습니다.',mill:S.o.name+' 님은 "암컷 열, 수컷 다섯"을 한 번에 주문한 번식장 운영자였습니다.'}[own]),'neutral',()=>{S.status=shipLeg?'택배 이동 중':'집';drawPledges($('gamePledges'),true);render()});
   if(f.shop==='fair') q(T('{n}이 담긴 봉지는 아이 손에 들려 몇 시간 동안 야시장을 돌았습니다. 봉지 속 물은 손바닥 한 줌이었습니다.'),'bad'),q(null,null,()=>{if(R()<.15){S.preOwner=1;fEnd('fairbag');return}arrive()});
   else if(shipLeg) q(T('{n}은 비닐봉지째 택배 상자에 담겼습니다. 상자에는 "생물"이라는 스티커가 붙었습니다.'),'sub',()=>{S.env='box'}),
     q(null,null,()=>{const hot=season()==='summer',cold=season()==='winter';if(R()<(.02+.06*(1-x.hardy))*(hot||cold?2.5:1)){S.preOwner=1;f.shipHot=hot;fEnd('delivery');return}arrive()});
@@ -495,6 +495,9 @@ function fishTick(){
   if(fHazards(m)) return;
   /* the schedule: how the fish spends the coming weeks (fishgrow.js) */
   if(fTrainDue()){fTrain();render();return}
+  /* catalogue events (data/fev_*.js) */
+  if(typeof fevHappyTry==='function'&&fevHappyTry('home'))return;
+  if(!(S.cd.choice>S.tick)&&typeof fevTry==='function'&&R()<.32*FEV_HOME_P&&fevTry('home')){S.cd.choice=S.tick+3;return}
   /* choices and everyday events */
   if(!(S.cd.choice>S.tick)&&R()<.32){
     /* situations whose options depend on temperament and species (FSIT), and the fixed ones (FCH) */
@@ -597,8 +600,8 @@ function fHazards(m){
   const hit=r=>R()<1-Math.exp(-r*m*HZ*lifeK()*modeK('hz'));
   const low=1-S.r;
   // jump / escape
-  if(f.tank!=='pond'&&hit((x.jump||0)*.025*(f.lid?.04:1)*(1+f.stress)*tmod('jump')*fWitsK()*fL('lid'))){return fCr('jump')}
-  if(x.escape&&f.tank!=='pond'&&hit(x.escape*.03*(f.lid?(own==='expert'?.05:.35):1)*fWitsK()*fL('lid'))){return fCr('escape')}
+  if(f.tank!=='pond'&&hit((x.jump||0)*.025*(f.lid?.04:1)*(1+f.stress)*tmod('jump')*fWitsK()*fL('lid')*(typeof sideK==='function'?sideK('jumpy'):1))){return fCr('jump')}
+  if(x.escape&&f.tank!=='pond'&&hit((typeof sideK==='function'?sideK('escapey'):1)*x.escape*.03*(f.lid?(own==='expert'?.05:.35):1)*fWitsK()*fL('lid'))){return fCr('escape')}
   if(x.air>1&&f.lidTight&&hit(.03)){render();fEnd('noair');return true}
   // tankmates
   const pm=fPredMate();
@@ -742,10 +745,12 @@ function fRehome(text,opt){
   q(null,null,()=>{
     /* the old owner's broken promises are kept for 주마등 before the sheet is handed over */
     const broke=pledgeList().map((p,i)=>S.pl[i]?{p,n:[S.pl[i]].concat(S.pl[i].more||[]).map(r=>r.note+(r.mended?' → '+r.mended.label:'')),a:ageLabel(S.pl[i].age)}:null).filter(Boolean);
-    (S.prevPl=S.prevPl||[]).push({o:S.o.name+' · '+(f.place?{classroom:'교실',office:'사무실',restaurant:'식당'}[f.place]:FOWN[f.own].l),pls:broke});
+    (S.prevPl=S.prevPl||[]).push({o:S.o.name+' · '+(f.place?{classroom:'교실',office:'사무실',restaurant:'식당'}[f.place]:(FOWN[f.own]||{l:'유통업자'}).l),pls:broke});
     S.owners++;S.o=makeOwner();if(opt.name)S.o.name=opt.name;if(opt.place)S.o.fam=opt.place==='classroom'?'아이 있는 가족':'1인 가구';
     if(opt.tank==='pond')S.o.house='마당 있는 주택';
-    const own=opt.own||wpick([['learner',35],['casual',35],['expert',12],['gift',8],['content',10]]);
+    /* a fish people like the look of is more often taken by someone who will try (charm) */
+    const ck=clamp(1+(fst().c-35)/60,.6,1.8);
+    const own=opt.own||wpick([['learner',35*ck],['casual',35/ck],['expert',12*ck],['gift',8],['content',10]]);
     setupOwner(own);
     if(opt.tank){f.tank=opt.tank;f.filter=fPickFilter(opt.tank,own);if(opt.tank==='pond'){f.net=R()<(own==='expert'?.8:.3)?1:0;f.lid=0;f.cycled=1;f.mates=f.mates.filter(m=>FX[m.id]&&FX[m.id].temp!=='trop')}}
     f.place=opt.place||null;f.moved=1;

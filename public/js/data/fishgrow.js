@@ -50,7 +50,7 @@ function fst(){const f=S.f;if(!f.st){const t=S.temper,g=k=>FGROUP[k]&&FGROUP[k](
         w:18+R()*12+(t==='curious'?15:t==='shy'?10:0)+g('NIGHT')*10+g('SMALL')*5,
         c:18+R()*12+(t==='friendly'?15:t==='glutton'?5:0)+g('GOLD')*10+g('LAB')*5};
   for(const k in f.st)f.st[k]=Math.round(clamp(f.st[k],0,100))}return f.st}
-const fStat=(k,v)=>{const s=fst();s[k]=clamp(s[k]+v,0,100)};
+const fStat=(k,v)=>{const s=fst();s[k]=clamp(s[k]+(v>0&&typeof growOf==='function'?v*growOf(k):v),0,typeof capOf==='function'?capOf(k):100)};
 /* multipliers used by the hazards and the owner */
 const fGutsK=()=>S.f?.7+fst().g/100*.6+fst().p/100*.3:1;   // crisis: weight of the surviving outcomes (guts, then strength)
 const fPowK=()=>S.f?1.2-fst().p/100*.6:1;          // fin damage, bullying, fights
@@ -372,6 +372,7 @@ const INNER_GOOD=[
  [/햇볕을 쬐|숨을 곳|새 굴|은신처 안/,['여기라면 괜찮아.']],
 ];
 function fInner(text,cls){
+  return; /* v0.10: no inner voice — observer view only */
   if(!S||!S.f||S.done||!text||!S.story)return;
   const bad=cls==='bad'||cls==='end'||(S.ending&&cls==='sub'),good=cls==='good'&&!S.ending;
   if(!bad&&!good)return;

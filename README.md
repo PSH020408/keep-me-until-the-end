@@ -14,11 +14,12 @@ A browser life-simulation about the promises we make to the animals we keep.
 > signed six promises. You choose its temperament, make its choices when it matters, raise it
 > through the seasons — and watch which promises are struck out in red pen.
 
-**Status:** public beta (v0.9.33, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.10.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
-> alive are told as a cruel fairy tale: plain sentences, wounds that bleed in text, no gore in the
-> drawings. Intended for ages 15+.
+> alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
+> terms, what happens to the gills, skin and organs — no inner voice, no exaggeration, no gore in
+> the drawings. Intended for ages 15+.
 
 | Desktop — one screen: tank and gauges left, log right | Phone — tank on top, log below, controls at the bottom |
 |---|---|
@@ -30,16 +31,26 @@ A browser life-simulation about the promises we make to the animals we keep.
 1. **The pledge.** Sign the adoption pledge with a nickname; a slot machine draws one of 23 fish.
 2. **Before any owner.** Wild fish face the net; farmed fish face the sorting sieve. Then the
    box, the wholesaler, the shop tank — about a quarter die here, as in the trade.
-3. **The owner.** Expert, learner, casual, gift, hobby breeder, content creator or fish mill —
-   each with a tank, filter, heater, lid, layout and tankmates that fit (or don't).
-   Learners improve week by week; some know the fix and are too lazy to do it.
+3. **The owner.** One of 22 kinds of people, from the expert and the over-eager beginner to the
+   no-filter believer, the medicine hoarder, the office tea-room tank, the temple release ceremony,
+   the unboxing YouTuber and the grandmother given a tank as a present — each with a tank, filter,
+   heater, lid, layout and tankmates that fit (or don't). Some learn after a near miss, some know
+   the fix and put it off, some learn the wrong lesson. Owners change: a fish can be passed on
+   through a second-hand app, a move, a hospital stay or a break-up, and a charming fish is more
+   often taken by someone who will try.
 4. **Raising the fish.** Five stats of its own — health (HP), strength, guts, wits and charm — and
-   four the owner keeps — skill, water temperature, water quality and care. Every few months a schedule card decides how the
-   weeks are spent; strength wins fights, guts survives crises, wits avoids accidents, charm keeps
-   the owner interested. Every choice shows what it changed.
-5. **Crises.** Jumping, a predator in the tank, the filter intake, a stuck heater, a blackout,
-   chlorine, the cat, a burst tank — each one a choice that can end the life.
-6. **The ending.** A stamp with the cause, the life lived against the life possible, the six
+   four the owner keeps — skill, water temperature, water quality and care. Each species has its own
+   ceiling and training speed (a neon tetra never gets strong, a gar does), and its own training,
+   each with a hidden cost (an arowana that practises jumping jumps more). Every few months a schedule
+   card decides how the weeks are spent; every choice shows what it changed.
+5. **Events.** About 370 catalogue events across the whole chain — capture, export, air cargo,
+   shop tanks, the home, water and disease, tankmates and breeding, each kind of owner, and Korean
+   rivers after a release. Choices describe only what the fish senses; the stat being checked and
+   the odds are hidden (chance = (stat / need)², 5–95%). An option beyond the species' ceiling is
+   shown greyed — "{n}의 몸으로는 할 수 없다" — and there is always a passive option. Things no fish
+   can dodge (a drug that spreads through the water, a 4 ℃ river for a tropical fish) have no choice.
+6. **The ending.** Three kinds: a bad ending, a black-comedy happy ending with a bitter last line,
+   or 보내 줌 (a caring owner's humane euthanasia when nothing else can be done). A stamp with the cause, the life lived against the life possible, the six
    promises with the broken ones struck out, the fish's happiest memory and last words, and one
    real, sourced fact. A life can be kept in the **주마등** (*revolving lantern* — "life flashing
    before one's eyes") and replayed — and, if the player chooses, posted to **모두의 주마등** (the shared
@@ -72,15 +83,23 @@ browser (static site on Render)                 Supabase (Postgres, Seoul)
 
 ## Balance — anchored to real numbers
 
-Two difficulties (v0.9.33): **현실** (real) is tuned to the anchors below; **이야기** (story, the default) makes owners kinder and the fish's choices weigh more (28.5% of lives lived out with random choices, against 17.4% in 현실). `node tools/sim.mjs 6000` plays thousands of lives with random choices (`MODE=story` for the story setting). 현실 is tuned to:
+Two difficulties (v0.10.0): **어려움** (hard) is tuned to the anchors below; **쉬움** (easy, the default)
+makes owners kinder, the fish's checks a little likelier and black comedy commoner. With random
+choices, 15.2% of lives are lived out in 어려움 and 24.4% in 쉬움; happy endings are 4% and 7% of lives.
+`node tools/sim.mjs 6000` plays thousands of lives with random choices (`MODE=story` for 쉬움), and
+`node tools/fevtest.mjs` forces every catalogue event on every species it fits and plays the life out.
 
-| Anchor | Target (source in docs/DATA_SOURCES.md) | Beta |
+Every event carries a truth tier: 📌 fact (it happens and the mechanism is verified), 🔸 likely (real
+mechanism, invented scene) or 🎭 story (black comedy). 어려움 shows more 📌 and little 🎭; the biggest
+comedies appear only in 쉬움. Facts shown on screen still need a source in docs/DATA_SOURCES.md.
+
+| Anchor (어려움) | Target (source in docs/DATA_SOURCES.md) | v0.10.0 |
 |---|---|---|
-| Expert keeper, deaths per fish-year | public aquarium 6–8% | 6–8% |
-| Gift goldfish dead in year 1 | ≥ 90% | 92–96% |
-| Casual owner dead in year 1 | most | ~80% |
-| Learner dead in year 1 | 20–30% | ~20% |
-| Dead before any owner | 20–30% (trade losses) | ~23% (escapes not counted) |
+| Expert keeper, deaths per fish-year | public aquarium 6–8% | 13% — to be retuned |
+| Gift goldfish dead in year 1 | ≥ 90% | 89% |
+| Casual owner dead in year 1 | most | 74% |
+| Learner dead in year 1 | 20–30% | 26% |
+| Dead before any owner | 20–30% (trade losses) | 20% (escapes not counted) |
 
 ## How it was made — the thinking behind it
 
@@ -97,7 +116,8 @@ decisions, in short:
 - **The player signs, the fish chooses.** The player is the owner by name — the pledge cannot be sent
   without one — but what kind of keeper they turn out to be is drawn, and the choices belong to the
   fish, written in its first person and shaped by its temperament and species. You make the promise;
-  you do not get to decide how well you keep it.
+  you do not get to decide how well you keep it. Since v0.10 the fish has no inner voice: its
+  thoughts are no longer quoted, and the new events and bad endings are told from outside.
 - **One screen while a life plays.** Playtesters on phones kept scrolling between the log, the tank and
   the speed buttons. The play view is now a fixed layout where only the log scrolls and choices open as
   dialogs (bottom sheets on phones), checked from 360×640 to 1440×900.
@@ -130,6 +150,8 @@ decisions, in short:
 | v0.9.21–0.9.24 | 2026-10-11 | raising the fish (stats, schedule), breeding modes, learning vs. lazy owners, context checks |
 | v0.9.25–0.9.26 | 2026-10-12 | public beta: responsive layout, OG image, GitHub → Render deploy |
 | v0.9.27–0.9.33 | 2026-10-12 | one-screen play, the player as owner, facts checked per species, shared memorial on Supabase |
+| v0.9.34 | 2026-10-13 | difficulty renamed 쉬움 / 어려움 |
+| v0.10.0 | 2026-10-13 | event layer: species ceilings, hidden checks, 22 owner kinds, 372 catalogue events, 415 endings, truth tiers, no inner voice |
 
 Every row is expanded in [LOG.md](LOG.md).
 
@@ -150,12 +172,17 @@ public/            the site (index.html, css/, js/, img/, og.png, favicon)
   js/data/fishchoice.js  situations by temperament and species, crises
   js/data/fishgrow.js    stats, schedule, breeding modes, learning/lazy owners, context checks
   js/fish.js             the fish life loop, hazards, endings
+  js/data/fev.js         event layer: species ceilings, owner kinds, hidden checks, flags, endings, truth tiers
+  js/data/fev_*.js       the catalogue as data (origin, trade, home, health, mates, owners A/B, wild + happy endings)
   js/art/fish.js         painted fish in a tank drawn to scale
   js/share.js            shared memorial (Supabase REST, opt-in, sanitised)
 tools/sim.mjs      headless balance simulation (prints endings, owner anchors, learning vs. not)
+tools/fevtest.mjs  forces every catalogue event on fitting species and plays the life out
 tools/check_facts.mjs  which fact each species ends with, and log lines that contradict the tank
 tools/fishsheet.html  contact sheet of tanks and deaths
 docs/              DESIGN (rationale), DATA_SOURCES, EVENTS (content authoring), DEPLOY, SHARING (shared memorial), portfolio outline
+  FISH_REWORK.md     v0.10 design: principles, species ceilings, owners, endings, decisions log
+  fish_events/       the event catalogue in Markdown, the writing brief, and the conversion guide
 LOG.md             development log (every version, every balance snapshot)
 render.yaml        Render blueprint
 ```
@@ -170,6 +197,8 @@ render.yaml        Render blueprint
 | 모두의 주마등 | "everyone's lantern" — the shared memorial of lives other players posted |
 | 육성 | raising / training (the schedule card) |
 | 고비 — 살아남기 | crisis — survive |
+| 쉬움 · 어려움 | easy · hard (difficulty) |
+| 보내 줌 | "letting go" — humane euthanasia by a caring owner, the third kind of ending |
 | 왕초보 · 초보 · 중수 · 고수 | owner ranks: novice · beginner · intermediate · expert |
 
 ## Author
