@@ -5,7 +5,7 @@ services:
     runtime: static
     buildCommand: ""
     staticPublishPath: ./public
-    autoDeploy: true
+    autoDeployTrigger: commit   # deploy every push to main (replaces the deprecated autoDeploy: true)
     pullRequestPreviewsEnabled: false
     headers:
       - path: /*
