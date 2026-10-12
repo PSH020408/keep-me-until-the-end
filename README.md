@@ -3,11 +3,9 @@
 A browser life-simulation about the promises we make to the animals we keep.
 
 <p align="center">
-  <a href="https://keep-me-until-the-end.onrender.com"><b>▶&nbsp;&nbsp;Play the beta — keep-me-until-the-end.onrender.com</b></a><br>
-  <sub>Free · no sign-up · works on phone, tablet and desktop · in Korean · about 5–10 minutes per life</sub>
+  <a href="https://keep-me-until-the-end.onrender.com"><img alt="Play the beta" src="https://img.shields.io/badge/%E2%96%B6%20Play%20the%20beta-keep--me--until--the--end.onrender.com-C4301F?style=for-the-badge"></a><br>
+  <sub>Free · no sign-up · phone, tablet and desktop · in Korean</sub>
 </p>
-
-[![Play the beta](https://img.shields.io/badge/%E2%96%B6%20Play%20the%20beta-keep--me--until--the--end.onrender.com-C4301F?style=for-the-badge)](https://keep-me-until-the-end.onrender.com)
 
 [![키워주세요 — 끝까지 — click to play](public/og.png)](https://keep-me-until-the-end.onrender.com)
 
@@ -16,7 +14,7 @@ A browser life-simulation about the promises we make to the animals we keep.
 > signed six promises. You choose its temperament, make its choices when it matters, raise it
 > through the seasons — and watch which promises are struck out in red pen.
 
-**Status:** public beta (v0.9.26, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.9.27, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told as a cruel fairy tale: plain sentences, wounds that bleed in text, no gore in the
@@ -43,7 +41,12 @@ A browser life-simulation about the promises we make to the animals we keep.
 6. **The ending.** A stamp with the cause, the life lived against the life possible, the six
    promises with the broken ones struck out, the fish's happiest memory and last words, and one
    real, sourced fact. A life can be kept in the **주마등** (*revolving lantern* — "life flashing
-   before one's eyes") and replayed.
+   before one's eyes") and replayed — and, if the player chooses, posted to **모두의 주마등** (the shared
+   memorial) where other players can replay it.
+
+The player signs the pledge with a nickname and is the fish's first owner under that name; what kind of
+keeper they turn out to be (expert, learner, casual…) is drawn. While a life plays, everything is on one
+screen: the tank and gauges, a scrolling log, and choices that open as dialogs.
 
 ## Balance — anchored to real numbers
 
@@ -100,9 +103,10 @@ public/            the site (index.html, css/, js/, img/, og.png, favicon)
   js/data/fishgrow.js    stats, schedule, breeding modes, learning/lazy owners, context checks
   js/fish.js             the fish life loop, hazards, endings
   js/art/fish.js         painted fish in a tank drawn to scale
+  js/share.js            shared memorial (Supabase REST, opt-in, sanitised)
 tools/sim.mjs      headless balance simulation (prints endings, owner anchors, learning vs. not)
 tools/fishsheet.html  contact sheet of tanks and deaths
-docs/              DESIGN (rationale), DATA_SOURCES, EVENTS (content authoring), DEPLOY, portfolio outline
+docs/              DESIGN (rationale), DATA_SOURCES, EVENTS (content authoring), DEPLOY, SHARING (shared memorial), portfolio outline
 LOG.md             development log (every version, every balance snapshot)
 render.yaml        Render blueprint
 ```

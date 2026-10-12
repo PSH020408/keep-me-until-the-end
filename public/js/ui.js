@@ -80,7 +80,6 @@ function render(){
   const sk=$('mSkill');if(sk){sk.hidden=!F||wild||pre;if(!sk.hidden){meter(sk,S.r*100);sk.querySelector('.v').textContent=fRank(S.r)+' '+Math.round(S.r*100)}}
   const wq=$('mWq');if(wq){wq.hidden=!(F&&!pre&&!wild);if(!wq.hidden)meter(wq,F.wq)}
   const tp=$('mTemp');if(tp){tp.hidden=!(F&&!pre&&typeof fTempNow==='function');if(!tp.hidden){const t=fTempNow();meter(tp,t.fit);tp.querySelector('.v').textContent=t.c.toFixed(0)+'℃';tp.title='알맞은 수온 '+t.lo+'~'+t.hi+'℃'}}
-  const ms=$('miniStat');if(ms){const f=S.f,parts=[ageLabel(S.ageM),'건강 '+Math.round(S.health)];if(f&&!S.preOwner&&!S.wild)parts.push('수질 '+Math.round(f.wq),'보살핌 '+Math.round(S.interest*100));ms.textContent=parts.join(' · ');ms.classList.toggle('low',S.health<30)}
   if(document.body&&document.body.classList)document.body.classList.toggle('ingame',!S.done&&!$('game').hidden);
   fields();drawStage();
 }
@@ -154,9 +153,11 @@ function showEnd(cat,fact,calm){
   row.append(b1,b2);E.appendChild(row);
   /* keep this life? only a kept life goes into 주마등 */
   const keep=document.createElement('div');keep.className='keep';
-  keep.innerHTML='<p>이 생을 <b>주마등</b>에 남기시겠습니까?</p><span class="sub">남긴 생은 아래 주마등에서 눌러 다시 볼 수 있습니다. 어떻게 살다 어떻게 끝났는지, 주인이 무엇을 지키지 못했는지.</span><div class="row"><button class="btn">남기기</button><button class="btn ghost">남기지 않기</button></div>';
+  keep.innerHTML='<p>이 생을 <b>주마등</b>에 남기시겠습니까?</p><span class="sub">남긴 생은 아래 주마등에서 눌러 다시 볼 수 있습니다. 어떻게 살다 어떻게 끝났는지, 주인이 무엇을 지키지 못했는지.</span>'+(typeof shareOn==='function'&&shareOn()?'<label class="pubchk"><input type="checkbox" checked> 모두의 주마등에도 올리기 <small>서약인 이름, 물고기, 결말, 마지막 한마디가 다른 사람에게 보입니다.</small></label>':'')+'<div class="row"><button class="btn">남기기</button><button class="btn ghost">남기지 않기</button></div>';
   const kb=keep.querySelector('.btn:not(.ghost)'),nb=keep.querySelector('.btn.ghost');
-  kb.onclick=()=>{S.memId='m'+Date.now();saveMem(lifeRecord(cat,calm,fact,kept,al,pct));keep.innerHTML='<p class="done">주마등에 남겼습니다.</p>'};
+  kb.onclick=()=>{S.memId='m'+Date.now();const rec=lifeRecord(cat,calm,fact,kept,al,pct);saveMem(rec);const ck=keep.querySelector('.pubchk input'),pub=!!(ck&&ck.checked);
+    keep.innerHTML='<p class="done">주마등에 남겼습니다.</p>'+(pub?'<span class="sub pubst">모두의 주마등에 올리는 중…</span>':'');
+    if(pub)sharePost(rec).then(ok=>{const st=keep.querySelector('.pubst');if(st)st.textContent=ok?'모두의 주마등에도 올렸습니다. 다른 서약인들이 이 생을 다시 볼 수 있습니다.':'모두의 주마등에 올리지 못했습니다. 내 주마등에는 남아 있습니다.'})};
   nb.onclick=()=>{keep.innerHTML='<p class="done muted">남기지 않았습니다.</p>'};
   E.insertBefore(keep,row);
   if(!skipping&&E.scrollIntoView) setTimeout(()=>E.scrollIntoView({behavior:'smooth',block:'start'}),400);
@@ -171,7 +172,7 @@ function start(force){
   const old=document.querySelector('.stamp');if(old)old.remove();
   const sp=S.sp;
   $('spName').textContent=sp.name;$('spSci').textContent=sp.sci+(sp.cites?' · CITES 규제종':'');
-  $('cardNo').textContent=(S.noPledge?'먹이 거래 기록':S.f?'관상어 입양 서약서':'입양 서약서')+' No. 2026-'+S.no;
+  $('cardNo').textContent=(S.noPledge?'먹이 거래 기록':(S.o&&S.o.name?S.o.name+' 님의 ':'')+(S.f?'관상어 입양 서약서':'입양 서약서'))+' No. 2026-'+S.no;
   $('cardSex').textContent=S.sex;
   $('ageMax').textContent='기대수명 '+ageLabel(sp.life);
   drawPledges($('gamePledges'),true);render();
@@ -219,6 +220,8 @@ try{slotPreload()}catch(e){}
 let slotBusy=false;
 function spin(){
   if(slotBusy)return;
+  /* the pledge is signed by the player: no name, no fish */
+  const nk=$('nick');if(nk&&!nk.value.trim()&&!(S&&S.o&&S.o.name)){nk.classList.add('need');$('nickMsg').hidden=false;nk.focus();return}
   const pool=SP.filter(s=>ACTIVE_GROUPS.includes(s.g)), sp=wpick(pool.map(s=>[s,s.w]));
   const box=$('slot'),strip=$('slotStrip'),nm=$('slotName');
   const calm=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -248,12 +251,17 @@ function spin(){
   })));
 }
 $('startBtn').onclick=()=>spin();
+$('infoBtn').onclick=()=>{const c=$('card'),on=!c.classList.contains('showinfo');c.classList.toggle('showinfo',on);$('infoBtn').setAttribute('aria-expanded',String(on));$('infoBtn').textContent=on?'정보 ▴':'정보 ▾'};
 $('playBtn').onclick=()=>{paused=false;setPlay();run()};
 $('stopBtn').onclick=()=>{paused=true;setPlay();stop();stepText()};
 /* phones: one button cycles the six speeds; the bar with it stays at the bottom of the screen */
 $('speedCycle').onclick=()=>{const L=[1,2,4,8,16,32],nx=L[(L.indexOf(speed)+1)%L.length],b=document.querySelector('[data-speed="'+nx+'"]');if(b)b.click()};
 document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{speed=+b.dataset.speed;$('speedCycle').textContent=speed+'×';document.querySelectorAll('[data-speed]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));if(S&&!S.done&&paused){paused=false;setPlay()}run()});
 try{$('nick').value=localStorage.getItem('kiwojuseyo-nick')||''}catch(e){}
+/* the sheet carries the signer's name as it is typed */
+function nickShow(){const v=$('nick').value.trim();$('sheetOwner').textContent=v?v+' 님의 ':'';if(v){$('nick').classList.remove('need');$('nickMsg').hidden=true}}
+$('nick').addEventListener('input',nickShow);nickShow();
+$('nick').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();spin()}});
 $('skipBtn').onclick=()=>{if(!S||S.done)return;skipping=true;stop();if(S.pending)S.pending.resolve(pick(S.pending.opts));let n=0;while(!S.done&&n++<8000){if(S.pending)S.pending.resolve(pick(S.pending.opts));tick()}skipping=false;stageKey='';render();if($('ending').scrollIntoView)$('ending').scrollIntoView({behavior:'smooth',block:'start'})};
 
 /* 주마등 v2: the old automatic memorial (kiwojuseyo-mem) is cleared once; only lives the player chose to keep are stored */

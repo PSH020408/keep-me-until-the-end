@@ -170,7 +170,7 @@ function fishBuy(){
   const shipLeg=sh.ship;
   q(T(own==='gift'&&f.shop==='fair'?'아이가 종이 뜰채로 {n}을 건져 올렸습니다. {n}은 손바닥만 한 비닐봉지에 담겼습니다.'
      :own==='gift'&&f.shop==='vase'?'{n}이 담긴 꽃병은 생일 선물로 포장되었습니다.'
-     :{expert:'{n}을 고른 사람은 수조 앞에 한참 서서 지느러미와 아가미를 하나하나 살펴본 물생활 고수였습니다.',learner:'{n}을 고른 사람은 휴대폰으로 사육법을 검색하며 수조 앞을 오래 서성이던 초보였습니다.',casual:'{n}을 고른 사람은 "이거 예쁘다" 한마디에 바로 결제한 사람이었습니다.',breeder:'{n}을 고른 사람은 번식시킬 짝을 찾던 사람이었습니다.',content:'{n}을 고른 사람은 "다 크면 얼마나 커져요?"부터 물어본 대형어 영상 채널 운영자였습니다.',gift:'{n}은 선물용 봉지에 담겨 포장되었습니다.',mill:'{n}을 데려간 사람은 "암컷 열, 수컷 다섯"을 한 번에 주문한 번식장 운영자였습니다.'}[own]),'neutral',()=>{S.status=shipLeg?'택배 이동 중':'집';drawPledges($('gamePledges'),true);render()});
+     :{expert:S.o.name+' 님은 수조 앞에 한참 서서 지느러미와 아가미를 하나하나 살펴본 물생활 고수였습니다.',learner:S.o.name+' 님은 휴대폰으로 사육법을 검색하며 수조 앞을 오래 서성이던 초보였습니다.',casual:S.o.name+' 님은 "이거 예쁘다" 한마디에 바로 결제한 사람이었습니다.',breeder:S.o.name+' 님은 번식시킬 짝을 찾던 사람이었습니다.',content:S.o.name+' 님은 "다 크면 얼마나 커져요?"부터 물어본 대형어 영상 채널 운영자였습니다.',gift:'{n}은 선물용 봉지에 담겨 포장되었습니다. 선물을 받은 사람은 '+S.o.name+' 님이었습니다.',mill:S.o.name+' 님은 "암컷 열, 수컷 다섯"을 한 번에 주문한 번식장 운영자였습니다.'}[own]),'neutral',()=>{S.status=shipLeg?'택배 이동 중':'집';drawPledges($('gamePledges'),true);render()});
   if(f.shop==='fair') q(T('{n}이 담긴 봉지는 아이 손에 들려 몇 시간 동안 야시장을 돌았습니다. 봉지 속 물은 손바닥 한 줌이었습니다.'),'bad'),q(null,null,()=>{if(R()<.15){S.preOwner=1;fEnd('fairbag');return}arrive()});
   else if(shipLeg) q(T('{n}은 비닐봉지째 택배 상자에 담겼습니다. 상자에는 "생물"이라는 스티커가 붙었습니다.'),'sub',()=>{S.env='box'}),
     q(null,null,()=>{const hot=season()==='summer',cold=season()==='winter';if(R()<(.02+.06*(1-x.hardy))*(hot||cold?2.5:1)){S.preOwner=1;f.shipHot=hot;fEnd('delivery');return}arrive()});
@@ -178,13 +178,13 @@ function fishBuy(){
   function arrive(){
     const t=tankOf(f.tank);
     if(f.nameLater){S.name=f.nameLater;S.disp=S.name}
-    q(T(S.name?'새 주인은 {n}에게 이름을 붙여 주었습니다. "'+S.name+'".':'{n}에게 이름은 붙지 않았습니다.'),S.name?'good':'sub',()=>{S.env=f.tank==='pond'?'pond':'tank';S.status='집';if(S.name)remember('이름이 생겼다. "'+S.name+'".',1.1);render()});
+    q(T(S.name?S.o.name+' 님은 {n}에게 이름을 붙여 주었습니다. "'+S.name+'".':S.o.name+' 님은 {n}에게 이름을 붙이지 않았습니다.'),S.name?'good':'sub',()=>{S.env=f.tank==='pond'?'pond':'tank';S.status='집';if(S.name)remember('이름이 생겼다. "'+S.name+'".',1.1);render()});
     q(T('{n}의 집은 '+fTankLine()),'sub');
     const acc=S.f.own==='expert'||S.f.own==='breeder'?'주인은 봉지를 수면에 30분 띄워 온도를 맞추고, 물을 조금씩 섞은 뒤에 {n}을 옮겼습니다.':R()<.5?'주인은 봉지를 그대로 수조에 쏟았습니다. 가게 물과 집 물의 온도가 달랐습니다.':'주인은 봉지를 잠깐 띄웠다가 {n}을 뜰채로 옮겼습니다.';
     q(T(acc),'sub',()=>{if(/쏟/.test(acc)){f.coldShock=1;f.stress+=.15}});
     if(!f.cycled) q(T('수조는 오늘 처음 물을 채운 새것이었습니다.'),'bad');
     if(f.carrier) q(null,null,()=>{});
-    q(T('서약서에 서명이 끝났습니다.'),'neutral',()=>{fSignCheck(/쏟/.test(acc));render()});
+    q(T('서약인 '+S.o.name+' 님이 서약서에 서명했습니다. 오늘부터 {n}의 주인입니다.'),'neutral',()=>{fSignCheck(/쏟/.test(acc));render()});
   }
 }
 /* the day of signing: what the owner already got wrong is marked on the sheet at once */
@@ -376,7 +376,7 @@ const fTankLine=()=>{const f=S.f,t=tankOf(f.tank),x=fx_();
 };
 function fishTankText(){const f=S.f,t=tankOf(f.tank);const mates=f.mates.reduce((s,m)=>s+m.n,0);
   return t.l+(t.L>=1?' '+t.L+'L':'')+' · '+(f.tank==='pond'?'연못':f.filter==='없음'?'여과기 없음':f.filter.replace(' 여과기',''))+(fx_().temp==='trop'&&f.tank!=='pond'?' · 히터 '+(f.heater?'있음':'없음'):'')+(f.tank==='pond'?'':' · 뚜껑 '+(f.lid?'있음':'없음'))+' · '+(mates?'합사 '+mates+'마리':'혼자')+(fLoad()>1.2?' (과밀)':'')}
-function fishOwnerText(){if(S.preOwner)return '아직 없음 · '+(S.status||'유통 중');const f=S.f;return S.o.name+' · '+S.o.age+'세 · '+FOWN[f.own].l+(f.stubborn?' · 고집불통':f.grow&&f.lazy?' · 알지만 귀찮아함':f.grow?' · 배우는 중':'')}
+function fishOwnerText(){if(S.preOwner)return S.o.name+' · 아직 만나지 못함 ('+(S.status||'유통 중')+')';const f=S.f;return S.o.name+' · '+S.o.age+'세 · '+FOWN[f.own].l+(f.stubborn?' · 고집불통':f.grow&&f.lazy?' · 알지만 귀찮아함':f.grow?' · 배우는 중':'')}
 
 /* ---------- monthly life ---------- */
 function fishTick(){

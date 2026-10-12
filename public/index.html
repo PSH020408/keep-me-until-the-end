@@ -29,10 +29,11 @@
 <body>
 <div class="wrap">
   <section id="intro" class="sheet">
-    <div class="title"><span class="label">반려생물 입양 서약서<span class="beta">BETA</span></span><h1>키워주세요</h1><span class="sub">— 끝까지</span></div>
+    <div class="title"><span class="label"><span id="sheetOwner"></span>반려생물 입양 서약서<span class="beta">BETA</span></span><h1>키워주세요</h1><span class="sub">— 끝까지</span></div>
     <p class="lede">오늘은 관상어 데이입니다. 물고기 23종 중 한 마리가 강이나 양식장에서 태어나 누군가의 수조에 닿기까지, 그리고 그 뒤의 생을 따라갑니다. 어떤 물고기가 어떤 집으로 갈지는 무작위로 정해집니다. 서약인은 아래 여섯 가지를 약속하고 생물을 데려갑니다. 당신은 그 생물의 기질을 정하고, 때때로 그 생물이 되어 선택합니다.</p>
     <ol class="pledges" id="introPledges"></ol>
-    <div class="sign"><span class="who"><label for="nick">서약인</label><input id="nick" maxlength="12" placeholder="닉네임을 적어 주세요" autocomplete="off"></span><span>입양 동물<b>무작위 · 관상어 23종</b></span></div>
+    <div class="sign"><span class="who"><label for="nick">서약인</label><input id="nick" maxlength="12" placeholder="닉네임을 적어 주세요" autocomplete="off" enterkeyhint="go"></span><span>입양 동물<b>무작위 · 관상어 23종</b></span></div>
+    <p class="nickmsg" id="nickMsg" hidden>서약인 이름을 적어야 물고기를 데려갈 수 있습니다. 이 이름으로 입양하고, 기록에도 이 이름이 남습니다.</p>
     <p class="warn">유기, 방치, 학대, 밀렵·밀수, 번식장, 식용, 잡아먹히는 장면이 잔혹동화처럼 그려집니다. 15세 이상 권장.</p>
     <div class="row"><button class="btn" id="startBtn">서약서 받고 보내기</button></div>
   </section>
@@ -57,9 +58,9 @@
   </div>
 
   <section id="game" hidden>
-    <div style="display:flex;flex-direction:column;gap:16px">
+    <div id="playGrid">
     <div class="sheet" id="card">
-      <div class="row" style="justify-content:space-between"><span class="label" id="cardNo"></span><span class="label" id="cardSex"></span></div>
+      <div class="row cardtop"><span class="label" id="cardNo"></span><span class="label" id="cardSex"></span><button type="button" class="infobtn" id="infoBtn" aria-expanded="false">정보 ▾</button></div>
       <div class="head">
         <div class="info">
           <h2 class="species" id="spName"></h2>
@@ -72,7 +73,7 @@
             <div class="meter" id="mCharm" hidden><div class="top"><span>매력</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
           </div></div>
           <div class="mrow" id="ownRow"><span class="mhead" id="ownHead">주인 몫</span><div class="meters">
-            <div class="meter" id="mSkill" hidden><div class="top"><span>주인 실력</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
+            <div class="meter" id="mSkill" hidden><div class="top"><span><span class="long">주인 </span>실력</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
             <div class="meter" id="mTemp" hidden><div class="top"><span>수온</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
             <div class="meter" id="mWq" hidden><div class="top"><span>수질</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
             <div class="meter" id="mCare"><div class="top"><span id="careLabel">보살핌</span><span class="v"></span></div><div class="track"><div class="fill"></div></div></div>
@@ -98,11 +99,10 @@
       <button id="speedCycle" class="m-only" aria-label="배속 바꾸기">1×</button>
       <span class="sp"></span>
       <button id="skipBtn">마지막까지</button>
-      <div class="mini m-only" id="miniStat" aria-hidden="true"></div>
     </div>
     <div class="choice sheet" id="choice" hidden></div>
     <div class="ending sheet" id="ending" hidden></div>
-    <ul class="log" id="log"></ul>
+    <div class="logwrap"><div class="loghead"><span>기록</span><span class="lognote">새 기록이 위에 쌓입니다</span></div><ul class="log" id="log"></ul></div>
     </div>
   </section>
 
@@ -113,7 +113,14 @@
     <div class="row memtools" id="memTools" hidden><button type="button" class="btn ghost" id="memMore">모두 보기</button><button type="button" class="btn ghost" id="memClear">모두 지우기</button></div>
   </section>
 
-  <p class="foot">물고기 이야기 속 사건과 확률은 실제 통계(공공 수족관의 연간 폐사율, 운송·판매 중 폐사 조사, 선물로 받은 금붕어의 생존 등)에 맞춰 조정한 추정치이고, 화면에 사실로 나오는 수치는 모두 출처가 있습니다. 출처 목록은 저장소의 docs/DATA_SOURCES.md에 있습니다. 남긴 생과 닉네임은 이 브라우저(localStorage)에만 저장되고 어디로도 보내지지 않습니다.<span class="ver">베타 v0.9.26 · 관상어 데이 · PARK, SEHO</span></p>
+  <section class="memorial pub" id="pubSec" hidden>
+    <h3>모두의 주마등</h3>
+    <p class="summary" id="pubSummary"></p>
+    <ul class="mem" id="pubList"></ul>
+    <div class="row memtools"><button type="button" class="btn ghost" id="pubMore" hidden>더 보기</button></div>
+  </section>
+
+  <p class="foot">물고기 이야기 속 사건과 확률은 실제 통계(공공 수족관의 연간 폐사율, 운송·판매 중 폐사 조사, 선물로 받은 금붕어의 생존 등)에 맞춰 조정한 추정치이고, 화면에 사실로 나오는 수치는 모두 출처가 있습니다. 출처 목록은 저장소의 docs/DATA_SOURCES.md에 있습니다. 남긴 생과 닉네임은 이 브라우저(localStorage)에 저장됩니다. '모두의 주마등에도 올리기'를 고른 생만 서약인 이름, 물고기, 결말, 마지막 한마디와 함께 공개됩니다.<span class="ver">베타 v0.9.27 · 관상어 데이 · PARK, SEHO</span></p>
 </div>
 
 <!-- load order matters: later files use what earlier files declare -->
@@ -138,5 +145,6 @@
 <script src="js/art/fish.js"></script>
 <script src="js/art.js"></script>
 <script src="js/ui.js"></script>
+<script src="js/share.js"></script>
 </body>
 </html>

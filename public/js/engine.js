@@ -87,7 +87,7 @@ function askReflect(rf,cb){
   const no=document.createElement('button');no.className='btn ghost';no.textContent='넘어가기';no.onclick=()=>done('');
   ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();done(ta.value)}});
   row.append(ok,no);box.append(who,p,ta,row);
-  if(box.scrollIntoView)box.scrollIntoView({block:'nearest',behavior:'smooth'});
+  if(box.scrollIntoView&&!(document.body&&document.body.classList&&document.body.classList.contains('ingame')))box.scrollIntoView({block:'nearest',behavior:'smooth'});
   if(ta.focus)setTimeout(()=>ta.focus(),50);
 }
 function familyOutcome(){
@@ -449,7 +449,7 @@ function askChoice(c,cb){
   opts.forEach(o=>{const b=document.createElement('button');b.textContent=pf(o.l);if(o.d){const sm=document.createElement('small');sm.textContent=pf(o.d);b.appendChild(sm)}b.onclick=()=>resolve(o);list.appendChild(b)});
   box.append(who,p,list);
   /* on phones the choice is a bottom sheet, so the page does not need to move */
-  const sheetUI=typeof matchMedia==='function'&&matchMedia('(max-width:620px),(max-height:500px) and (orientation:landscape)').matches;
+  const sheetUI=!!(document.body&&document.body.classList&&document.body.classList.contains('ingame'));
   if(box.scrollIntoView&&!sheetUI) box.scrollIntoView({block:'nearest',behavior:'smooth'});
 }
 

@@ -294,7 +294,7 @@ body{word-break:keep-all;overflow-wrap:break-word}
 @media (hover:none){.opts button:hover{border-color:var(--line);background:transparent}.btn:hover{opacity:1}.mem button.mrow:hover span:first-child{text-decoration:none}}
 .opts button:active{border-color:var(--ink);background:var(--bg)}
 .m-only{display:none!important}
-@media (max-width:620px),(max-height:500px) and (orientation:landscape){.m-only{display:revert!important}#speedCycle{display:block!important}.controls .mini{display:block!important}}
+@media (max-width:620px),(max-height:500px) and (orientation:landscape){.m-only{display:revert!important}#speedCycle{display:block!important}}
 .beta{display:inline-block;margin-left:8px;padding:1px 8px;border:1px solid var(--pen);border-radius:999px;color:var(--pen);font-family:var(--mono);font-size:10px;letter-spacing:.08em;vertical-align:middle}
 .foot .ver{display:block;margin-top:6px;font-family:var(--mono);font-size:11px}
 .score{white-space:nowrap}
@@ -358,23 +358,102 @@ body{word-break:keep-all;overflow-wrap:break-word}
   .lan-card{max-height:calc(100dvh - 12px)}
 }
 
-/* phones (and landscape phones): the bottom bar and the choice sheet */
+/* ---------- play mode: one screen while a life plays; only the log scrolls ----------
+   desktop and landscape: card (stage, stats, details) and controls on the left, the log on the right;
+   portrait tablets and phones: card on top, the log below it, the controls at the bottom.
+   Choices open as a dialog (a bottom sheet on narrow screens), so the page never has to move. */
+#playGrid{display:flex;flex-direction:column;gap:16px}
+.cardtop{justify-content:space-between}
+.infobtn,.loghead{display:none}
+body.ingame{height:100dvh;overflow:hidden}
+body.ingame .memorial,body.ingame .foot{display:none}
+body.ingame .wrap{height:100dvh;max-width:1280px;padding:10px 12px calc(10px + env(safe-area-inset-bottom,0px));gap:0}
+body.ingame #game{height:100%;min-height:0}
+body.ingame #playGrid{display:grid;height:100%;min-height:0;gap:8px;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto}
+body.ingame #card{grid-row:1;min-height:0;max-height:58dvh;overflow:auto;overscroll-behavior:contain;padding:12px 14px;gap:8px}
+body.ingame .logwrap{grid-row:2}
+body.ingame .controls{grid-row:3}
+body.ingame .logwrap{display:flex;flex-direction:column;min-height:0;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:8px 12px 4px}
+body.ingame .loghead{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-family:var(--display);font-size:15px;padding:2px 0 6px;border-bottom:1px solid var(--ink)}
+body.ingame .loghead .lognote{font-family:var(--body);font-size:11px;color:var(--muted)}
+body.ingame #log{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain;border-top:0;-webkit-overflow-scrolling:touch}
+body.ingame .species{font-size:clamp(28px,6vw,40px)}
+body.ingame .infobtn{display:inline-block;background:transparent;border:1px solid var(--line);border-radius:999px;padding:1px 10px;font-size:12px;color:var(--muted)}
+body.ingame #card:not(.showinfo) .fields,body.ingame #card:not(.showinfo) .sci{display:none}
+body.ingame .stage{max-height:30dvh;width:auto;max-width:100%;margin:0 auto}
+body.ingame .chips{min-height:0;margin-top:6px}
+body.ingame .life .top{margin-bottom:3px}
+/* the choice as a dialog */
+body.ingame #choice:not([hidden]){position:fixed;inset:0;margin:auto;z-index:45;width:min(640px,calc(100% - 32px));height:fit-content;max-height:calc(100dvh - 40px);
+  overflow:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;box-shadow:0 0 0 100vmax rgba(10,12,18,.42),0 24px 60px rgba(0,0,0,.3)}
+/* wide screens (and phones on their side): two columns */
+@media (min-width:900px),(min-width:700px) and (max-height:560px){
+  body.ingame #playGrid{grid-template-columns:minmax(0,1fr) minmax(300px,390px);grid-template-rows:minmax(0,1fr) auto;gap:12px 16px}
+  body.ingame #card{grid-column:1;grid-row:1;max-height:none;padding:16px 18px}
+  body.ingame .controls{grid-column:1;grid-row:2}
+  body.ingame .logwrap{grid-column:2;grid-row:1/3}
+  body.ingame .head{grid-template-columns:minmax(0,1fr) minmax(240px,380px)}
+  body.ingame .stage{max-height:none;width:100%}
+  body.ingame .infobtn{display:none}
+  body.ingame #card:not(.showinfo) .sci{display:block}
+  body.ingame #card:not(.showinfo) .fields{display:grid}
+}
+/* two columns but a card narrower than ~850px: the stage on top, the gauges across underneath */
+@media (min-width:900px) and (max-width:1279px),(min-width:700px) and (max-height:560px){
+  body.ingame .head{grid-template-columns:minmax(0,1fr)}
+  body.ingame .stagewrap{order:-1}
+  body.ingame .stage{max-height:42dvh;width:auto;max-width:100%}
+  body.ingame .mrow .meters{gap:10px 14px}
+}
+@media (min-width:700px) and (max-height:560px){
+  body.ingame .stage{max-height:40dvh;width:auto}
+  body.ingame #card:not(.showinfo) .fields{display:none}
+  body.ingame .infobtn{display:inline-block}
+  body.ingame #card{padding:10px 12px}
+}
+/* narrow screens: compact controls, and the choice as a bottom sheet */
 @media (max-width:620px),(max-height:500px) and (orientation:landscape){
-  /* controls: a bar fixed to the bottom of the screen while a life is playing —
-     play · stop · speed (one button cycles 1–32×) · to the end, with age and the main gauges above */
   .controls{display:grid;grid-template-columns:1fr 1fr 1fr 1.3fr;gap:6px}
   .controls [data-speed],.controls .sp{display:none}
-  .controls button{padding:10px 0;min-height:44px;font-size:13.5px;text-align:center}
-  body.ingame .controls{position:fixed;left:0;right:0;bottom:0;z-index:40;margin:0;background:color-mix(in srgb,var(--paper) 94%,transparent);
-    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-top:1px solid var(--line);
-    padding:6px 12px calc(8px + env(safe-area-inset-bottom,0px));box-shadow:0 -6px 20px rgba(20,24,32,.08)}
-  body.ingame .wrap{padding-bottom:132px}
-  .controls .mini{grid-column:1/-1;grid-row:1;font-family:var(--mono);font-size:11px;color:var(--muted);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .controls .mini.low{color:var(--pen)}
-  /* a choice opens as a bottom sheet above the bar, so nobody has to scroll to find it */
-  body.ingame #choice:not([hidden]){position:fixed;left:8px;right:8px;bottom:calc(98px + env(safe-area-inset-bottom,0px));z-index:45;
-    max-height:min(64dvh,560px);overflow:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-    box-shadow:0 -10px 40px rgba(20,24,32,.22);padding:16px 14px}
-  body.ingame #choice:not([hidden]) .opts button{padding:12px 13px}
+  .controls button{padding:9px 0;min-height:42px;font-size:13.5px;text-align:center}
 }
-@media (max-height:500px) and (orientation:landscape){body.ingame .controls{left:0;right:0;margin-inline:auto;width:min(620px,100%);border-radius:14px 14px 0 0}body.ingame #choice:not([hidden]){left:0;right:0;margin-inline:auto;width:min(640px,calc(100% - 16px));max-height:calc(100dvh - 120px)}}
+@media (max-width:620px){
+  body.ingame #choice:not([hidden]){inset:auto 8px calc(8px + env(safe-area-inset-bottom,0px)) 8px;margin:0;width:auto;max-height:76dvh;padding:16px 14px;
+    box-shadow:0 0 0 100vmax rgba(10,12,18,.38),0 -10px 40px rgba(20,24,32,.22)}
+  body.ingame #choice:not([hidden]) .opts button{padding:12px 13px}
+  body.ingame .logwrap{padding:6px 10px 2px}
+  body.ingame .log li{padding:7px 0}
+  body.ingame .mrow{margin-top:4px;gap:2px}
+  /* compact gauges: the fish's five in one row, the owner's four in another */
+  body.ingame #fishRow .meters{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px 8px}
+  body.ingame #fishRow #mHealth{grid-column:auto}
+  body.ingame #ownRow .meters{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px 8px}
+  body.ingame .mrow .meter .top{font-size:10.5px;gap:2px}
+  body.ingame .mrow .meter .v{font-size:10px}
+  body.ingame .mrow .mhead{font-size:10px}
+  body.ingame #mSkill .long{display:none}
+  body.ingame .stage{max-height:26dvh}
+  body.ingame .species{font-size:26px}
+  body.ingame .life .top{font-size:11px}
+  body.ingame #card{max-height:60dvh}
+}
+
+/* the signer's name is required */
+.sign input.need{border-bottom-color:var(--pen);border-bottom-width:2px}
+.nickmsg{margin:0;font-family:var(--hand);font-size:21px;line-height:1.2;color:var(--pen)}
+#sheetOwner{color:var(--ink)}
+
+/* 모두의 주마등 */
+.pubchk{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;font-size:14px;cursor:pointer}
+.pubchk input{width:18px;height:18px;accent-color:var(--pen);transform:translateY(3px)}
+.pubchk small{flex-basis:100%;color:var(--muted);font-size:12px}
+.keep .pubst{display:block}
+.memorial.pub{border-top:1px solid var(--line);padding-top:18px}
+
+/* short phones: a smaller stage leaves room for the log */
+@media (max-width:620px) and (max-height:700px){
+  body.ingame .stage{max-height:21dvh}
+  body.ingame .chips{display:none}
+  body.ingame .species{font-size:22px}
+  body.ingame .cardtop .label{font-size:10px}
+}
