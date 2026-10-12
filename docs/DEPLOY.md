@@ -46,6 +46,21 @@ them empty hides the feature.
 - If the address ever changes, update those three tags in `public/index.html` and the README.
 - Check on a phone (Safari and Chrome): start a life, finish it, keep it in 주마등, replay it.
 
+### Is a push live?
+
+Render → the service → **Deploys**. The *Trigger* column says what started each deploy:
+
+| Trigger | Meaning |
+|---|---|
+| New commit | a push to `main` deployed itself — auto-deploy works |
+| Blueprint | Render applied `render.yaml` (when the service was created or the file changed) |
+| Manual | someone pressed **Manual Deploy → Deploy latest commit** |
+
+The footer of the page shows the version (`베타 v0.9.x`); it must match `package.json` after a deploy.
+If a push does not appear as *New commit*, check **Settings → Build & Deploy → Auto-Deploy** (On Commit)
+and that Render's GitHub app can see the repository; **Manual Deploy** always works as a fallback.
+(2026-10-12: v0.9.27–0.9.31 were pushed but never deployed; the site stayed on v0.9.26 until a manual deploy.)
+
 ## Checklist (beta)
 
 - [x] OG image `public/og.png` (1200×630), favicon (svg, 32 px png, apple-touch-icon)
