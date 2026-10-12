@@ -14,7 +14,7 @@ A browser life-simulation about the promises we make to the animals we keep.
 > signed six promises. You choose its temperament, make its choices when it matters, raise it
 > through the seasons — and watch which promises are struck out in red pen.
 
-**Status:** public beta (v0.9.28, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.9.29, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told as a cruel fairy tale: plain sentences, wounds that bleed in text, no gore in the

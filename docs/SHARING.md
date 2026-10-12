@@ -13,9 +13,14 @@ last words). Nothing else — no account, no IP address in the table, no trackin
 
 1. Create a free project at supabase.com (region: Northeast Asia (Seoul)).
 2. **SQL Editor → New query**, paste the block below, **Run**.
-3. **Project Settings → API**: copy the *Project URL* and the *anon public* key into
-   `public/js/share.js` (`SHARE_CFG.url`, `SHARE_CFG.key`), commit and push. The anon key is meant to
-   be public; what it can do is limited by the policies below.
+3. **Project Settings → API Keys**: copy the *Project URL* and the **publishable** key (`sb_publishable_…`)
+   into `public/js/share.js` (`SHARE_CFG.url`, `SHARE_CFG.key`), commit and push. The publishable key is
+   meant to be public; what it can do is limited by the policies below. Never put a secret or
+   service_role key in the page.
+
+Live project (2026-10-12): `oauxtbxyjrtchxsfyucm` (Northeast Asia, Seoul). Checked after setup:
+an anonymous insert returns 201, select and `life_stats` return 200, and an anonymous delete changes
+nothing (blocked by row-level security).
 
 ```sql
 create table public.lives (
@@ -40,6 +45,7 @@ create policy "anyone can insert" on public.lives for insert to anon with check 
 create view public.life_stats with (security_invoker = on) as
   select count(*)::int as total, count(*) filter (where calm)::int as lived from public.lives;
 
+grant select, insert on public.lives to anon;
 grant select on public.life_stats to anon;
 
 -- slow down floods: at most 20 posts a minute in total
