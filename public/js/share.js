@@ -8,7 +8,7 @@ const SHARE_CFG={
   key:'sb_publishable_twic4vU9mUSIjonkj6ybQg_ijxC1qmq',   // publishable key: safe to publish, row-level security decides what it may do
 };
 const shareOn=()=>!!(SHARE_CFG.url&&SHARE_CFG.key)&&typeof fetch==='function';
-const SHARE_VER='0.9.33';
+const SHARE_VER='0.10.0';
 
 /* words that are masked in names and last words before posting and again when showing */
 const BADW=['씨발','시발','씨바','씹','좆','병신','븅신','지랄','개새','새끼','니미','느금','엠창','fuck','shit','bitch','cunt','nigg'];
