@@ -1002,7 +1002,7 @@ fevEnd({'HOM-36-D':{kind:'bad',cat:'학대',tier:'fact',fx:'f-hand',pl:[[3,'아�
 /* ================= I. 이사와 계절 ================= */
 
 /* EV-HOM-37 이사 다음 날 (§3-19 심화) — [출처: 이동·이사 시 여과재 건조에 의한 질산화 세균 손실; 암모니아에 의한 아가미·각막 손상] */
-fev([{id:'HOM-37',tier:'fact',need:{pond:0,l_move:0},once:1,w:()=>isKind('relay','breakup','casual')?1:.5,
+fev([{id:'HOM-37',tier:'fact',need:{pond:0,l_move:0},once:1,when:()=>!isKind('expert','staff'),w:()=>isKind('relay','breakup','casual')?1:.5,
   log:'주인이 이사를 했습니다. 수조 물은 다 버렸고, 여과재는 마른 채로 옮겨졌습니다.',
   p:'하루 종일 봉지 속에서 흔들렸습니다. 새 수조의 물은 차갑고 낯선 냄새가 납니다. 여과기 스펀지는 하얗게 말라 있습니다. 며칠이 지나자 아가미가 화끈거립니다. {n}은…',
   o:[
@@ -1012,7 +1012,7 @@ fev([{id:'HOM-37',tier:'fact',need:{pond:0,l_move:0},once:1,w:()=>isKind('relay'
    {l:'새 장식 뒤에 숨어 움직이지 않는다',ok:()=>hom_roll('g',25,()=>hom_move37(isSp('@scaleless','altum','neon')?1:0),()=>hom_move37(2))}
   ]}]);
 function hom_move37(lv){
-  if(isKind('expert','staff')||(isKind('learner')&&R()<.5))return {t:'주인은 기존 수조 물과 젖은 여과재를 통에 담아 함께 옮겼습니다. 새 수조의 물은 금세 익숙해졌습니다.',c:'good'};
+  if(isKind('learner')&&R()<.5)return {t:'주인은 물 냄새가 이상하다는 걸 알아챘습니다. 마른 여과재를 버리고, 물잡이가 된 친구 수조의 스펀지를 얻어 와 넣었습니다. 며칠 뒤 물이 자리를 잡았습니다.',c:'good',fx:{h:-4}};
   S.f.cycled=0;
   if(isSp('oscar','arowana','koi','@gold','pleco','gar'))lv++;
   if(isSp('@scaleless','altum','neon'))lv++;

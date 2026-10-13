@@ -401,7 +401,7 @@ const plantify=t=>{const f=S&&S.f;if(typeof t!=='string'||!f||!f.lay||S.wild||S.
     .replace(/수초 잎 위/g,w[0]+' 위').replace(/수초 그늘/g,w[0]+' 그늘')
     .replace(/수초 뒤(로|에서|에)?/g,(m,j)=>d==='none'?'구석'+(j==='로'?'으로':j||''):w[0]+' 뒤'+(j||''))
     .replace(/수초(?!를)/g,w[0])};
-const pondify=t=>{t=plantify(t);return inPond()&&typeof t==='string'?t.replace(/(?<!격리 )수조/g,'연못'):t};
+const pondify=t=>{t=plantify(t);return inPond()&&typeof t==='string'?t.replace(/(?<!격리 )수조(를|가|는|와|로)?/g,(m,j)=>j?josa('연못',j):'연못'):t};
 (()=>{const l=FCH.find(c=>c.id==='lid');if(l){const w=l.when;l.when=()=>S.f.tank!=='pond'&&(!w||w())}})();
 const optTexts=o=>[o.l,o.d,o.r].concat((o.out||[]).map(z=>z[1]));
 TRAIN.push(

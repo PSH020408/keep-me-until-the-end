@@ -9,7 +9,7 @@
 /* ---------- 1. difficulty ---------- */
 const MODES={
   story:{chk:1.6,l:'쉬움',d:'주인이 조금 더 너그럽고, 물고기의 선택이 결과를 더 크게 바꿉니다. 그래도 많이 죽습니다.',hz:.12,die:.15,dz:.12,dh:.33,bore:.65,wq:.55},
-  real:{chk:1.2,l:'어려움',d:'실제 통계에 맞춘 난이도입니다. 대부분 끝까지 살지 못합니다.',hz:.3,die:.45,dz:.3,dh:.8,bore:.95,wq:.8}};
+  real:{chk:1.2,l:'어려움',d:'실제 통계에 맞춘 난이도입니다. 대부분 끝까지 살지 못합니다.',hz:.3,die:.45,dz:.3,dh:.7,bore:.95,wq:.8}};
 let MODE_NOW='story';
 try{const m=localStorage.getItem('kmu_mode');if(MODES[m])MODE_NOW=m}catch(e){}
 const modeK=k=>(MODES[(typeof S!=='undefined'&&S&&S.mode)||'real']||MODES.real)[k];
@@ -122,7 +122,7 @@ const FFL3=[
  {t:'{n}이 먹이인 줄 알고 주인 손가락을 물었습니다. 주인은 "아야" 하고 웃었습니다. 그날부터 {n}은 손가락만 보면 달려들었고, 주인은 그걸 좋아했습니다.',c:'good',once:'finger',w:1.2,when:()=>(tm('feisty')||tm('glutton'))&&fx_().cm>=5&&S.f.tank!=='pond',fx:()=>{fStat('c',3);S.interest+=.08}},
  {t:'주인 동생이 {n}을 "피라냐"라고 부르며 친구들에게 자랑했습니다. 친구들은 무서워하며 손가락을 유리에 대 보았습니다.',c:'sub',once:'piranha',w:1,when:()=>S.o.fam!=='1인 가구'&&fx_().cm<20},
  {t:'{n}이 유리에 비친 자기 모습과 하루 종일 싸웠습니다. 주인은 그 영상을 "우리 애 춤춤"이라는 제목으로 올렸습니다.',c:'sub',once:'mirror',w:1.3,when:()=>(S.sp.id==='betta'||tm('feisty'))&&S.f.tank!=='pond',fx:()=>{S.f.stress+=.08;S.f.fame=Math.max(S.f.fame||0,.5)}},
- {t:'택배 상자를 수조 뚜껑 위에 올려 두었다가 상자가 미끄러지며 뚜껑이 밀렸습니다. 아무도 몰랐습니다.',c:'bad',once:'box',w:1,when:()=>S.f.lid&&S.f.tank!=='pond',fx:()=>{S.f.lid=0}},
+ {t:'택배 상자를 수조 뚜껑 위에 올려 두었다가 상자가 미끄러지며 뚜껑이 밀렸습니다. 아무도 몰랐습니다.',c:'bad',once:'box',w:1,when:()=>S.f.lid&&S.f.tank!=='pond',fx:()=>{S.f.lid=0;S.f.lidShift=1}},
  {t:'옆집 공사 소음이 열흘 동안 이어졌습니다. 드릴 소리가 날 때마다 수면이 떨렸고, {n}은 바닥에 붙어 지냈습니다.',c:'bad',once:'drill',w:1,when:()=>S.f.tank!=='pond',fx:()=>{S.f.stress+=.15}},
  {t:'주인 집에 온 조카가 수조 뚜껑을 열고 {n}에게 장난감 낚싯대를 드리웠습니다. 바늘은 없었지만, {n}은 그 줄을 한참 쫓아다녔습니다.',c:'sub',once:'toyrod',w:1,when:()=>S.f.tank!=='pond'&&tm('curious')},
  {t:'연못에 백로가 내려앉았습니다. {n}은 바닥 진흙에 몸을 묻었고, 백로는 연못 가장자리에서 한참 서 있다 날아갔습니다. 다음 날 연못의 물고기는 한 마리 줄어 있었습니다.',c:'bad',once:'egret',w:1.5,

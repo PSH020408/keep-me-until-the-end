@@ -27,7 +27,7 @@ const trd_k=(p,end,inj)=>R()<p?{end:end}:valOf(inj);
 /* EV-TRD-01 출하 전 굶기기 — [출처: 관상어 운송 전 1–2일 절식 관행] */
 function trd01(o){return ()=>{const r=Object.assign({},valOf(o));r.set=Object.assign({fasted:1},r.set||{});
   if(isSp('neon','guppy','apisto')&&R()<.4){r.t=(r.t?r.t+' ':'')+'출하 날 아침, {n}의 배는 등 쪽으로 붙어 있었습니다.';r.fx=Object.assign({},r.fx,{h:((r.fx&&r.fx.h)||0)-6});r.set.thin=1}
-  else if(isSp('oscar','arowana','gar','channa','koi'))r.t=(r.t?r.t+' ':'')+'이틀 굶어도 {n}의 몸은 그대로였습니다. 봉지 속 물만 덜 더러워졌습니다.';
+  else if(isSp('oscar','arowana','gar','channa','koi'))r.t=(r.t?r.t+' ':'')+'먹이는 끝내 내려오지 않았습니다. 큰 몸은 이틀 굶어도 크게 축나지 않았습니다.';
   return r}}
 fev([{id:'TRD-01',stage:'trade',tier:'fact',once:1,
   p:'이틀째 먹이가 떨어지지 않습니다. 수조 위로 사람 그림자가 지나가도 아무것도 내려오지 않습니다. 옆 칸의 물고기들은 바닥을 입으로 훑고 있습니다. {n}은…',
@@ -549,10 +549,10 @@ fev([{id:'TRD-29',stage:'home',tier:'fact',once:1,own:['learner','eager','casual
    [출처: 수조 이사 시 여과재 보존(질화세균 생존), 대형어 운반 용기 권장] */
 function trd31(b){
   const s=season();b=(b||0)+(s==='summer'||s==='winter'?-10:0)+(isSp('pleco')?20:0);
-  if(!trd_r('g',35,b))return trd_k(.2,'TRD-31-D',{t:'대야는 상자들 사이에서 두 번 기울었습니다. 물이 반쯤 쏟아진 대야 바닥에서 {n}의 옆구리는 플라스틱에 쓸려 비늘이 한 줄로 떨어져 나갔고, 그 자리의 점막이 벗겨져 근육의 분홍빛이 비쳤습니다. 트럭은 새 집에 도착했습니다.'+(isKind('expert')?'':' 짐 사이에서 여과재는 말라 있었습니다.'),c:'bad',fx:{h:-18,st:.15,fin:.08},set:{inj_skin:1,slime_loss:1},run:()=>{if(!isKind('expert')){S.f.cycled=0;S.f.wq-=10}}});
+  if(!trd_r('g',35,b))return trd_k(.2,'TRD-31-D',{t:'대야는 상자들 사이에서 두 번 기울었습니다. 물이 반쯤 쏟아진 대야 바닥에서 {n}의 옆구리는 플라스틱에 쓸려 비늘이 한 줄로 떨어져 나갔고, 그 자리의 점막이 벗겨져 근육의 분홍빛이 비쳤습니다. 트럭은 새 집에 도착했습니다.'+(isKind('expert')?'':' 짐 사이에서 여과재는 말라 있었습니다.'),c:'bad',fx:{h:-18,st:.15,fin:.08},set:{inj_skin:1,slime_loss:1},run:()=>{if(!isKind('expert')){S.f.cycled=0;S.f.wq-=10;setFl('drymedia',1)}}});
   const big=isSp('gar','koi')?' 대야가 몸보다 작아 등이 반쯤 물 밖으로 나왔습니다. 등 피부의 점막이 말랐습니다.':'';
   return {t:'트럭은 새 집에 도착했습니다.'+big+(isKind('expert')?' 주인은 여과재를 물에 담가 따로 옮겨 왔습니다.':' 짐 사이에서 여과재는 말라 있었습니다.'),c:big?'bad':'sub',fx:{h:big?-12:-5,st:.1},
-    run:()=>{if(!isKind('expert')){S.f.cycled=0;S.f.wq-=10}}};
+    run:()=>{if(!isKind('expert')){S.f.cycled=0;S.f.wq-=10;setFl('drymedia',1)}}};
 }
 fev([{id:'TRD-31',stage:'home',tier:'fact',once:1,w:.5,
   p:'수조의 물이 호스로 빠져나갑니다. 바닥이 가까워지고, 그물이 들어옵니다. {n}은 뚜껑 없는 대야로 옮겨집니다. 대야는 상자들 사이에 놓이고, 사람들이 무거운 것을 들고 그 위를 지나갑니다. {n}은…',

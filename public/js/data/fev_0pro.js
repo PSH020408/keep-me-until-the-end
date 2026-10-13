@@ -10,7 +10,21 @@
 
 /* ---------- which track ---------- */
 /* share of each species that comes from a home breeder (rest of the non-wild ones: farms) */
-const PRO_BREEDER={betta:.35,guppy:.3,apisto:.35,oranda:.25,ryukin:.25,koi:.2,platy:.2,cory:.12,peapuffer:.08,altum:.05,oscar:.08,comet:.05};
+const PRO_BREEDER={betta:.45,guppy:.45,apisto:.45,oranda:.35,ryukin:.35,koi:.3,platy:.35,cory:.2,peapuffer:.12,altum:.08,oscar:.15,comet:.1,fig8:.08,pleco:.15,neon:.06};
+/* v0.12: the fixed lines of the prologue, several of each (the same four lines opened two lives in three) */
+const PRO_L={
+ crew:r=>pick(['채집꾼들이 그물을 들고 '+r+'에 들어왔습니다.','건기가 되자 '+r+'의 물이 얕아졌습니다. 그 무렵 채집꾼들이 들어왔습니다.',r+' 물가에 작은 배 두 척이 대어졌습니다. 배 바닥에는 빈 양동이가 쌓여 있었습니다.','새벽, '+r+' 위로 손전등 불빛 몇 개가 흔들렸습니다. 채집꾼들이었습니다.']),
+ middle:()=>pick(['{n}은 채집꾼 마을의 대야에서 중간상인에게, 중간상인에게서 수출업자에게 넘겨졌습니다. 주인이 바뀔 때마다 물도 바뀌었습니다.','{n}은 강가 마을의 시멘트 수조에서 몇 주를 지냈습니다. 수출업자의 트럭이 올 때까지 같은 물에 수백 마리가 있었습니다.','{n}은 중간상인의 오토바이 뒤에 실린 비닐봉지 안에서 비포장도로를 세 시간 달렸습니다.']),
+ fly:()=>pick(['{n}은 물이 반쯤 찬 비닐봉지에 산소와 함께 담겨 스티로폼 상자에 실렸습니다. 비행기 화물칸은 어둡고 추웠습니다.','{n}의 봉지는 상자 맨 아래 칸에 놓였습니다. 그 위로 상자 다섯 개가 더 쌓였습니다. 비행기 화물칸은 어두웠습니다.','{n}은 산소를 채운 봉지에 담겨 테이프로 봉한 상자 안에서 이틀을 보냈습니다. 경유지 공항의 창고는 더웠습니다.']),
+ qt:()=>pick(['인천의 수입업체 검역 수조. 기생충을 잡는 약을 탄 물에서 {n}은 며칠을 보냈습니다.','수입업체 직원이 상자를 열고 봉지째 수조에 띄웠습니다. 죽은 것을 건져 내고 남은 것을 약을 탄 물에 옮겼습니다. {n}은 남은 쪽이었습니다.','{n}은 "야생 개체 · 입고 2주 후 판매"라는 종이가 붙은 수조에서 약 냄새 나는 물속에 지냈습니다.']),
+ hatch:farm=>isSp('@livebearer')?pick(['{n}은 '+farm+'의 어미 수조에서 태어났습니다. 어미는 한 번에 수십 마리를 낳았고, 낳자마자 몇 마리를 다시 먹었습니다.','{n}은 '+farm+'의 산란통 그물 아래로 떨어지며 태어났습니다. 그물 위의 어미 입이 닿지 않는 쪽이었습니다.'])
+   :pick(['{n}은 '+farm+'에서 수천 개의 알 중 하나로 깨어났습니다.',farm+'의 연못에 알이 붙은 수초 다발이 옮겨졌습니다. 그 수초에서 {n}이 깨어났습니다.','{n}은 '+farm+'에서 깨어났습니다. 같은 날 같은 물에서 깬 치어가 수만 마리였습니다.']),
+ sort:()=>pick(['양식장 사람들이 치어를 체에 걸러 지느러미와 몸 모양을 하나씩 살폈습니다.','작업자가 치어를 하얀 대야에 쏟고, 손가락으로 한 마리씩 다른 그릇에 옮겼습니다. 옮겨지지 않은 쪽이 어디로 가는지는 아무도 말하지 않았습니다.','크기별로 구멍이 다른 체 세 개가 차례로 물에 들어갔습니다. 체에 남는 것과 빠져나가는 것이 나뉘었습니다.']),
+ kept:()=>pick(['{n}은 "팔 수 있는" 쪽에 남았습니다.','{n}은 대야의 "출하" 쪽에 담겼습니다.','작업자의 손이 {n}을 지나쳤습니다. {n}은 남았습니다.']),
+ ship:()=>pick(['출하 전 이틀 동안 먹이가 끊겼습니다. {n}은 수십 마리와 함께 비닐봉지에 담겼습니다.','{n}은 같은 크기의 형제 수십 마리와 함께 산소를 채운 봉지에 담겼습니다. 봉지 입구는 고무줄로 세 번 감겼습니다.','출하 날 아침 연못 물이 빠졌습니다. 그물에 걸려 올라온 {n}은 다른 수백 마리와 함께 큰 통에 부어졌습니다.']),
+ whole:()=>pick(['도매상 수조에서 {n}은 다른 양식장에서 온 물고기들과 같은 물을 나눠 썼습니다.','도매상 창고의 수조들은 배관 하나로 모두 이어져 있었습니다. {n}의 수조에도 옆 칸의 물이 흘러들었습니다.','도매상에 도착한 날, 직원이 봉지를 수조에 쏟고 죽은 것만 골라냈습니다. 나머지는 그날 저녁 소매점 주문대로 다시 나뉘었습니다.']),
+ bsell:()=>pick(['분양이 정해졌습니다. {n}은 작은 봉지에 담겨 새 주인에게 가는 길에 올랐습니다.','입금이 확인되자 {n}은 손바닥만 한 봉지에 담겼습니다. 봉지 겉에는 매직으로 이름 대신 번호가 적혔습니다.','{n}은 지하철역 출구 앞에서 봉지째 새 주인 손에 건네졌습니다. 거래는 일 분이 걸리지 않았습니다.'])
+};
 const PRO_TRACK={wild:{l:'야생 채집',mark:'🌊'},farm:{l:'양식장',mark:'🏭'},breeder:{l:'개인 브리더',mark:'🏠'}};
 (()=>{const _init=fishInit;
   fishInit=function(){_init();const f=S.f;
@@ -20,6 +34,9 @@ const PRO_TRACK={wild:{l:'야생 채집',mark:'🌊'},farm:{l:'양식장',mark:'
   };
 })();
 FLAG.track=()=>S.f.track||(S.f.wild?'wild':'farm');
+
+/* wild-origin moments that take place after the fish is already in the net */
+const PRO_POSTCATCH=['ORG-15','TRK-W09','TRK-W10'];
 
 /* ---------- escape ---------- */
 /* fevOut understands {escape:1}; the prologue reads f.escape after each moment */
@@ -51,16 +68,18 @@ function proChoice(stage){
   const e=wpick(pool);
   S.seen['ev'+e.id]=(S.seen['ev'+e.id]||0)+1;if(e.once)S.once['ev'+e.id]=1;S.cd['ev'+e.id]=S.tick+(e.cd||40);
   if(e.log)q(T(valOf(e.log)),'sub');
-  if(!e.o)return {who:null,p:null,auto:e};
+  if(!e.o)return {who:null,p:null,auto:e,ev:e};
   let opts=e.o.filter(o=>!o.when||o.when());
   const hasEsc=JSON.stringify(e.o,(k,v)=>typeof v==='function'?v.toString():v).includes('escape');
-  const esc=hasEsc?null:proEscapeOpt(stage);
+  const esc=hasEsc||PRO_POSTCATCH.includes(e.id)?null:proEscapeOpt(stage);
   if(esc&&opts.length<5)opts=opts.concat([esc]);
-  return {who:e.who||null,p:valOf(e.p),o:opts.map(o=>proOpt(o,e))};
+  return {who:e.who||null,p:valOf(e.p),o:opts.map(o=>proOpt(o,e)),ev:e};
 }
 function proOpt(o,e){
   /* escapes are possible but rare: a way out, not a habit */
   const isEsc=JSON.stringify(o,(k,v)=>typeof v==='function'?v.toString():v).includes('escape');
+  /* v0.12: a fry a few weeks old is netted with the leaves; it does not choose a way out */
+  if(isEsc&&S.ageM<1.5)return {l:valOf(o.l),d:'아직 너무 어려서 할 수 없다',dis:1,c:'neutral',r:''};
   const ch0=fevChance(o.chk),ch=ch0<0?ch0:isEsc?ch0*.2:ch0;
   if(ch<0)return {l:valOf(o.l),d:o.lockText||'{n}의 몸으로는 할 수 없다',dis:1,c:'neutral',r:''};
   const c=valOf(o.chk);
@@ -81,7 +100,8 @@ fishPrologue=function(){
   const die=(p,key)=>S.ending||R()<p*(f.odds&&f.odds[key]||1)*modeK('die')&&(fEnd(key),true);
   const grow=m=>{S.ageM+=m;S.month+=m;f.len=Math.max(f.len,x.cm*clamp(.05+S.ageM/(S.sp.life*.2),.05,x.start||.4))};
   /* a catalogue moment: the choice, or an automatic event, then whatever follows */
-  const moment=(stage)=>q(null,null,()=>{const c=proChoice(stage);if(!c)return;
+  const moment=(stage,before)=>q(null,null,()=>{const c=proChoice(stage);if(!c)return;
+    if(before)before(c.ev);
     if(c.auto){fevOut(c.auto.auto,c.auto);return}
     if(c.o.filter(o=>!o.dis).length)askChoice(c,()=>{})});
   /* after a capture or sorting moment: an escaped fish leaves the chain */
@@ -102,34 +122,36 @@ fishPrologue=function(){
   if(t==='wild'){
     step(()=>{q(T(x.region+'. 그곳의 물에서 {n}이 태어났습니다.'),'neutral',()=>{S.env='wildriver'});q(null,null,next)});
     step(()=>{q(null,null,()=>{S.ageM=f.capAge;S.month+=f.capAge;f.len=x.cm*clamp(f.capAge/(S.sp.life*.2),.08,.8)});
-      q(T(f.capAge>=1?'{n}은 그 물에서 '+josa(ageLabel(f.capAge),'을')+' 자랐습니다.':'{n}은 아직 손가락만 했습니다.'),'sub');
-      q(T('채집꾼들이 그물을 들고 '+x.region+'에 들어왔습니다.'),'bad',()=>{S.status='채집 중';S.scaredT=3});
-      moment('origin');
+      q(T(f.capAge>=1?'{n}은 그 물에서 '+josa(ageLabel(f.capAge),'을')+' 자랐습니다.':'{n}은 아직 몸길이가 쌀알 몇 개만 했습니다.'),'sub');
+      q(T(PRO_L.crew(x.region)),'bad',()=>{S.status='채집 중';S.scaredT=3});
+      /* v0.12: a moment that already happens after the catch (a bucket, a boat floor) gets the catch line first, and only once */
+      const caught=()=>{f.capShown=1;addLog(T(x.catch||'{n}은 '+x.region+'에서 채집꾼의 그물에 걸렸습니다.'),'bad');S.env='catch';S.status='포획됨';f.path.push('포획')};
+      moment('origin',ev=>{if(ev&&PRO_POSTCATCH.includes(ev.id))caught()});
       q(null,null,()=>{if(S.ending||escaped())return;
-        q(T(x.catch||'{n}은 '+x.region+'에서 채집꾼의 그물에 걸렸습니다.'),'bad',()=>{S.env='catch';S.status='포획됨';f.path.push('포획')});
+        if(!f.capShown)q(null,null,caught);
         q(null,null,()=>{if(!die(.03+.07*(1-x.hardy),'capture'))next()})})});
-    step(()=>{q(T('{n}은 채집꾼 마을의 대야에서 중간상인에게, 중간상인에게서 수출업자에게 넘겨졌습니다. 주인이 바뀔 때마다 물도 바뀌었습니다.'),'sub',()=>{S.env='holding';S.status='중간 유통';grow(.6);f.path.push('중간상인')});
+    step(()=>{q(T(PRO_L.middle()),'sub',()=>{S.env='holding';S.status='중간 유통';grow(.6);f.path.push('중간상인')});
       moment('trade');
       q(null,null,()=>{if(!die(.05+.13*(1-x.hardy),'holding'))next()})});
-    step(()=>{q(T('{n}은 물이 반쯤 찬 비닐봉지에 산소와 함께 담겨 스티로폼 상자에 실렸습니다. 비행기 화물칸은 어둡고 추웠습니다.'),'sub',()=>{S.env='box';S.status='항공 운송';grow(.1);f.path.push('항공 운송')});
+    step(()=>{q(T(PRO_L.fly()),'sub',()=>{S.env='box';S.status='항공 운송';grow(.1);f.path.push('항공 운송')});
       moment('trade');
       q(null,null,()=>{if(!die(.03+.1*(1-x.hardy),'transport'))next()})});
-    step(()=>{q(T('인천의 수입업체 검역 수조. 기생충을 잡는 약을 탄 물에서 {n}은 며칠을 보냈습니다.'),'sub',()=>{S.env='quarantine';S.status='수입 검역';grow(.4);f.path.push('수입 검역');
+    step(()=>{q(T(PRO_L.qt()),'sub',()=>{S.env='quarantine';S.status='수입 검역';grow(.4);f.path.push('수입 검역');
         if(R()<.6) f.carrier=S.sp.id==='clownloach'&&R()<.6?'skinny':'worms'});
       q(null,null,()=>{if(!die(.03+.08*(1-x.hardy)+(x.scaleless?.08:0),'quarantine'))next()})});
   } else if(t==='farm'){
     step(()=>{q(T(S.sp.id==='betta'?'{n}은 태국의 한 베타 농장에서 태어났습니다. 바닥에는 물이 담긴 유리병 수천 개가 줄지어 있었고, 다 자라면 {n}도 그중 한 병에 담길 차례였습니다.'
       :S.sp.id==='clownloach'?'양식장 사람들이 어미 로치에게 호르몬 주사를 놓았습니다. 그렇게 받아 낸 알에서 {n}이 깨어났습니다.'
       :S.sp.id==='gar'?'원산지에서 몰래 들여온 어미에게서, 아시아의 한 양식장이 치어를 받아 냈습니다. 그중 하나가 {n}이었습니다.'
-      :'{n}은 '+x.farm+'에서 수천 개의 알 중 하나로 깨어났습니다.'),'neutral',()=>{S.env='farm'});q(null,null,next)});
-    step(()=>{q(T(S.sp.id==='betta'?'선별 작업자가 병을 하나씩 들어 불빛에 비춰 보았습니다.':S.sp.id==='koi'?'양식장 사람들이 치어를 체에 걸러 무늬를 하나씩 살폈습니다.':'양식장 사람들이 치어를 체에 걸러 지느러미와 몸 모양을 하나씩 살폈습니다.'),'sub',()=>{grow(1.5);f.path.push('선별')});
+      :PRO_L.hatch(x.farm)),'neutral',()=>{S.env='farm'});q(null,null,next)});
+    step(()=>{q(T(S.sp.id==='betta'?'선별 작업자가 병을 하나씩 들어 불빛에 비춰 보았습니다.':S.sp.id==='koi'?'양식장 사람들이 치어를 체에 걸러 무늬를 하나씩 살폈습니다.':PRO_L.sort()),'sub',()=>{grow(1.5);f.path.push('선별')});
       moment('origin');
-      q(null,null,()=>{if(escaped())return;if(S.ending)return;if(R()<(x.cull||.03)*(f.odds.cull||1)){fEnd('cull');return}q(T('{n}은 "팔 수 있는" 쪽에 남았습니다.'),'sub');next()})});
+      q(null,null,()=>{if(escaped())return;if(S.ending)return;if(R()<(x.cull||.03)*(f.odds.cull||1)){fEnd('cull');return}q(T(PRO_L.kept()),'sub');next()})});
     step(()=>{const bot=S.sp.id==='betta';
-      q(T(bot?'{n}은 손바닥만 한 병에 혼자 담겼습니다. 출하 전 며칠은 먹이가 없었습니다.':'출하 전 이틀 동안 먹이가 끊겼습니다. {n}은 수십 마리와 함께 비닐봉지에 담겼습니다.'),'sub',()=>{S.env=bot?'bottles':'box';S.status='출하';S.health-=8;grow(clamp(S.sp.life*.04,1,5));f.path.push(bot?'병 사육':'출하')});
+      q(T(bot?'{n}은 손바닥만 한 병에 혼자 담겼습니다. 출하 전 며칠은 먹이가 없었습니다.':PRO_L.ship()),'sub',()=>{S.env=bot?'bottles':'box';S.status='출하';S.health-=8;grow(clamp(S.sp.life*.04,1,5));f.path.push(bot?'병 사육':'출하')});
       moment('trade');
       q(null,null,()=>{if(!die(.02+.06*(1-x.hardy),'transport'))next()})});
-    step(()=>{q(T('도매상 수조에서 {n}은 다른 양식장에서 온 물고기들과 같은 물을 나눠 썼습니다.'),'sub',()=>{S.env='quarantine';S.status='도매';grow(.3);f.path.push('도매');if(R()<.3)f.carrier=pick(['ich','ich','velvet',S.sp.id==='guppy'||S.sp.id==='platy'?'tetra':'finrot'])});
+    step(()=>{q(T(PRO_L.whole()),'sub',()=>{S.env='quarantine';S.status='도매';grow(.3);f.path.push('도매');if(R()<.3)f.carrier=pick(['ich','ich','velvet',S.sp.id==='guppy'||S.sp.id==='platy'?'tetra':'finrot'])});
       moment('trade');
       q(null,null,()=>{if(!die(.02+.05*(1-x.hardy),'quarantine'))next()})});
   } else {
@@ -146,14 +168,14 @@ fishPrologue=function(){
     const shop=f.preShop||wpick(x.shops);f.shop=shop;const sh=FSHOP[shop];
     if(shop==='breeder'||shop==='friend'){S.origin=sh.l;f.path.push(sh.l);
       q(T(shop==='friend'?'주인이 "치어 많이 태어났어요, 필요한 사람 가져가세요" 글을 올렸습니다. {n}은 그 형제들 중 한 마리였습니다.':'{n}은 브리더의 분양 글 사진 속 한 마리가 되었습니다.'),'sub',()=>{S.env='shop'});
-      moment('shop');q(T('분양이 정해졌습니다. {n}은 작은 봉지에 담겨 새 주인에게 가는 길에 올랐습니다.'),'sub',()=>{S.env='box'});moment('trade');q(null,null,next);return}
+      moment('shop');q(T(PRO_L.bsell()),'sub',()=>{S.env='box'});moment('trade');q(null,null,next);return}
     if(shop==='fair'){proFair();return}
     S.origin=sh.l;f.path.push(sh.l);
     q(T(shop==='mart'&&(x.cm>=25||f.wild)?'{n}은 대형마트 수족관 코너 끝 수조에 "이색 열대어"라는 이름표와 함께 넣어졌습니다. 다 자란 크기는 적혀 있지 않았습니다.':shop==='mart'?'{n}은 대형마트 수족관 코너의 작은 수조에 "특가" 가격표와 함께 넣어졌습니다. 같은 수조에 수십 마리가 있었습니다.'
       :shop==='vase'?'{n}은 꽃집 진열대의 꽃병에 담겼습니다. 꽃병 위에는 식물이 꽂혀 수면을 덮고 있었습니다.'
       :shop==='online'?'{n}은 판매 사이트 사진 속 한 마리가 되었습니다. "생물 택배 가능, 도착 후 사망 시 사진 필수".'
       :shop==='bigshop'?'{n}은 대형어 전문 숍 수조에 들어갔습니다. 가격표에는 다 자란 크기가 적혀 있지 않았습니다.'
-      :'{n}은 수족관 전문점 판매 수조에 들어갔습니다.'),'sub',()=>{S.env='shop';S.status='판매 중';S.ageM+=.5;S.month+=.5;if(shop==='mart'&&R()<.3&&!f.carrier)f.carrier='ich'});
+      :pick(['{n}은 수족관 전문점 판매 수조에 들어갔습니다.','{n}은 수족관 전문점 벽면 수조의 맨 아래 칸에 들어갔습니다. 가격표 글씨가 물기에 번져 있었습니다.','{n}의 판매 수조 앞에 "신규 입고"라는 종이가 붙었습니다. 다음 주에는 그 종이가 다른 수조 앞으로 옮겨졌습니다.'])),'sub',()=>{S.env='shop';S.status='판매 중';S.ageM+=.5;S.month+=.5;if(shop==='mart'&&R()<.3&&!f.carrier)f.carrier='ich'});
     if(shop!=='vase')moment('shop');
     q(null,null,()=>{if(!die((.02+.06*(1-x.hardy))*(shop==='mart'?1.6:1),'shop')&&!fShopFate())next()});
   });

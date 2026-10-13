@@ -43,7 +43,7 @@ function fishInit(){
     nameLater:S.name,path:[]};
   S.name=null;S.disp=sp.name;S.preOwner=1;S.tank=null;
   /* a wild fish is born at 0 and caught months later (the capture step sets its age); arowana and clown loach fry are taken young */
-  S.f.capAge=S.f.wild?clamp(sp.life*.06,.2,18):0;if(sp.id==='arowana'||sp.id==='clownloach') S.f.capAge=.15;
+  S.f.capAge=S.f.wild?clamp(sp.life*.06,.2,18):0;if(sp.id==='arowana') S.f.capAge=.15;if(sp.id==='clownloach') S.f.capAge=3;
   S.ageM=0;
   S.env=S.f.wild?'wildriver':'farm';S.status=S.f.wild?'야생':'양식장';
   S.origin=S.f.wild?x.region:x.farm;
@@ -254,7 +254,7 @@ function fLearn(m){
     [!f.waterOK&&x.water!=='any',()=>{say(x.water==='brack'?'"기수어는 소금이 필요하다." 주인은 해수염과 비중계를 사서 조금씩 염도를 올렸습니다.':'"수질도 맞춰야 하는구나." 주인은 pH를 재고 물을 '+(x.water==='soft'?'약산성 연수로':'경수로')+' 천천히 바꿔 나갔습니다.','good');f.waterOK=1}],
     [x.social==='school'&&fSameCount()<4&&L>=27,()=>{const n=5-fSameCount();say('"무리 지어 사는 물고기구나." 주인은 같은 종 '+n+'마리를 따로 2주 검역한 뒤 넣어 주었습니다.','good');const mm=f.mates.find(m=>m.id===S.sp.id);if(mm)mm.n+=n;else f.mates.push({id:S.sp.id,n,cm:x.cm*.5});remember('같은 무늬의 물고기들이 왔다. 무리가 생겼다.',1.4)}],
     [!!fPredMate(),()=>{const p=fPredMate();say('"'+mateName(p)+'는 작은 물고기를 먹는구나." 주인은 '+josa(mateName(p),'을')+' 다른 수조로 옮겼습니다.','good');p.n=0}],
-    [!f.lid&&f.tank!=='pond'&&((x.jump||0)>=.3||x.escape||f.cat),()=>{say('"물고기가 뛰쳐나와 죽는 일이 흔하대." 주인은 수조 크기에 맞춰 뚜껑을 맞췄습니다.','good');f.lid=1}],
+    [!f.lid&&f.tank!=='pond'&&((x.jump||0)>=.3||x.escape||f.cat),()=>{say(f.lidShift?'주인이 한쪽으로 밀려난 뚜껑을 발견하고 제자리에 닫았습니다. 그 뒤로 뚜껑 위에는 아무것도 올리지 않았습니다.':'"물고기가 뛰쳐나와 죽는 일이 흔하대." 주인은 수조 크기에 맞춰 뚜껑을 맞췄습니다.','good');f.lid=1;f.lidShift=0}],
     [FI.flow>.45&&(x.longfin||x.cm<5),()=>{say('주인은 출수구에 스펀지를 씌워 물살을 죽였습니다. "지느러미가 긴 애들은 센 물살이 힘들대."','good');f.stress-=.06}],
     [!f.hides,()=>{say(f.tank==='pond'?'"왜가리를 피할 곳이 있어야 한대." 주인은 연못 바닥에 굵은 토관과 수련을 넣어 주었습니다.':'"숨을 곳이 있어야 스트레스를 덜 받는대." 주인은 유목과 수초를 넣어 주었습니다.','good');f.hides=1;f.stress-=.05}],
     [f.tank==='pond'&&!f.net,()=>{say('"왜가리가 연못 물고기를 다 잡아간대." 주인은 연못 위에 그물을 쳤습니다.','good');f.net=1}],
@@ -262,7 +262,9 @@ function fLearn(m){
     [!!f.leak&&f.tank!=='pond',()=>{say('주인은 수평계를 대 보고서야 받침이 기운 걸 알았습니다. 받침을 바로잡았습니다.','good');f.leak=0}],
   ];
   const fx=fixes.find((z,i)=>z[0]&&!(f.learned&&f.learned[i]>S.tick));if(!fx)return false;
-  if(f.lazy&&R()<.72){S.cd.learn=S.tick+3;if(R()<.5)say(pick(['주인은 무엇을 고쳐야 하는지 알고 있었습니다. 귀찮아서 다음 주로 미뤘습니다.','"주말에 해야지." 주말은 세 번 지나갔습니다.','주인은 해야 할 일을 메모장에 적었습니다. 메모장은 거기까지였습니다.']),'bad');return false}
+  if(f.lazy&&R()<.72){S.cd.learn=S.tick+3;
+    /* v0.12: said at most every ~25 ticks, and not the same line twice in a row */
+    if(R()<.5&&!(f.lazySaid>S.tick)){const L=['주인은 무엇을 고쳐야 하는지 알고 있었습니다. 귀찮아서 다음 주로 미뤘습니다.','"주말에 해야지." 주말은 세 번 지나갔습니다.','주인은 해야 할 일을 메모장에 적었습니다. 메모장은 거기까지였습니다.','주인은 장바구니에 필요한 것을 담아 두었습니다. 결제는 하지 않았습니다.','"이번 달만 지나면." 주인은 지난달에도 그렇게 말했습니다.'].filter(x=>x!==f.lazyLast);f.lazyLast=pick(L);f.lazySaid=S.tick+25;say(f.lazyLast,'bad')}return false}
   (f.learned=f.learned||{})[fixes.indexOf(fx)]=S.tick+12;
   S.cd.learn=S.tick+(own==='learner'?2:3);fx[1]();f.lessons++;S.r=clamp(S.r+.035*persK('learn'),0,.97);S.interest=clamp(S.interest+.05,0,1);
   if(own==='casual'&&f.lessons>=2){f.own='learner';say('대충 키우던 주인이 물생활 카페에 가입했습니다. 첫 글의 제목은 "초보인데 물고기가 자꾸 아파요"였습니다.','sub')}
@@ -468,7 +470,7 @@ function fishTick(){
   /* disease */
   if(f.ill) fIllTick(care,m);
   else{
-    const rate=.008*(1+4*f.stress)*(f.wq<50?1+(50-f.wq)/15:1)*(f.carrier?6:1)*(f.coldShock?3:1)*(1.6-x.hardy)*(S.ageM>sp.life*.75?1.8:1);
+    const rate=.008*(1+4*f.stress)*(f.wq<50?1+(50-f.wq)/15:1)*(f.carrier?6:1)*(f.coldShock?3:1)*(1.6-x.hardy)*(S.ageM>sp.life*.75?1.8:1)*(typeof z_dzK==='function'?z_dzK():1);
     if(R()<1-Math.exp(-rate*m*lifeK()*modeK('dz'))) fSick(f.carrier&&R()<.7?f.carrier:fPickDz());
   }
   if(f.coldShock&&R()<.5) f.coldShock=0;
@@ -583,7 +585,7 @@ function fIllTick(care,m){
     } else {say('주인은 "물고기가 다 그렇지" 하며 지켜보기만 했습니다.','bad');breakP(1,'병든 물고기를 그냥 둠')}
   }
   if(ill.treating&&R()<d.cure*1.05*Math.min(1,m*1.5)*(ill.treating===1?1:.5)){
-    addLog(T(d.n+'이 나았습니다. {n}이 다시 지느러미를 폈습니다.').replace(d.n+'이',josa(d.n,'이')),'good');remember('아팠던 몸이 다시 가벼워졌다. 누군가 나를 돌봤다.',1.4);f.ill=null;S.health=clamp(S.health+12,0,100);return;
+    addLog(typeof Z_HEAL==='object'&&Z_HEAL[ill.id]?T(Z_HEAL[ill.id]):T(d.n+'이 나았습니다. {n}이 다시 지느러미를 폈습니다.').replace(d.n+'이',josa(d.n,'이')),'good');remember('아팠던 몸이 다시 가벼워졌다. 누군가 나를 돌봤다.',1.4);f.ill=null;S.health=clamp(S.health+12,0,100);return;
   }
   if(ill.incurable&&ill.sev>.75&&R()<.35){render();return fEnd('euth')}
   if(ill.sev>=1){render();
@@ -686,7 +688,7 @@ function fOutgrow(){
   const up=TANKS.filter(t=>t.k!=='pond'&&t.len>tankLen()&&t.L>=x.minL)[0]||TANKS.filter(t=>t.k!=='pond'&&t.len>tankLen()).slice(-1)[0];
   const next=TANKS.filter(t=>t.k!=='pond'&&t.len>tankLen())[R()<.6?0:1]||up;
   const say2=t=>q(T(t),'sub');
-  q(T('{n}의 몸이 '+tankOf(f.tank).l+'에 비해 너무 커졌습니다. 돌아설 때마다 꼬리가 유리에 닿습니다.'),'bad');
+  q(T((f.stunt>.2||(f.fl&&(f.fl.hlt_stunt||f.fl.stunted))?'{n}의 몸은 자라다 휘었는데도 '+tankOf(f.tank).l+'에는 너무 큽니다.':'{n}의 몸이 '+tankOf(f.tank).l+'에 비해 너무 커졌습니다.')+' 돌아설 때마다 꼬리가 유리에 닿습니다.'),'bad');
   if(own==='expert'){
     if(x.pond&&f.tank!=='pond'){q(T('주인은 마당을 파 연못을 만들었습니다. {n}은 처음으로 하늘이 보이는 물에 들어갔습니다.'),'good',()=>{f.tank='pond';f.filter='연못 여과기';S.env='pond';f.outgrown=0;remember('하늘이 보이는 물. 몸을 다 펴도 닿지 않았다.',1.6)});return true}
     if(up&&up.L>=x.minL&&up.k!==f.tank) return fUpgrade(up);
@@ -715,7 +717,7 @@ function fOutgrow(){
 }
 function fDispose(){
   const f=S.f,own=f.own;
-  const o=wpick([['release',own==='gift'?45:35],['rehome',30],['place',15],['shop',15],['ignore',20]]);
+  const o=wpick([['release',S.r>=.7?0:own==='gift'?45:35],['rehome',30],['place',15],['shop',15],['ignore',20]]);
   if(o==='ignore'){say(S.f.tank==='pond'?'주인은 연못 쪽으로 나가지 않게 되었습니다. 연못 위에 낙엽이 쌓여 갔습니다.':'주인은 수조 쪽을 보지 않게 되었습니다. 수조 조명은 몇 주째 꺼져 있습니다.','bad');S.interest=Math.max(.02,S.interest-.05);render();return true}
   if(o==='release'){q(T(pick(['수조 청소가 귀찮아진 주인은 "자연으로 돌려보내 준다"며 수조를 들고 하천으로 갔습니다.','주인은 "방생하면 복 받는다"는 말을 떠올리고 {n}을 근처 저수지로 데려갔습니다.'])),'bad');q(null,null,()=>fRelease());return true}
   if(o==='place') return fGiveAway();

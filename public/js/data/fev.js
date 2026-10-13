@@ -168,13 +168,18 @@ function fevOut(o,e){
     o=wpick(o.map(z=>{const out=z[1],w=valOf(z[0]);const kills=out&&typeof out==='object'&&out.end&&(FEVEND[out.end]||{}).kind==='bad';return [out,w*(kills?dk:1)]}));}
   o=valOf(o,e);if(!o)return;
   const f=S.f;
-  if(o.t)addLog(T(valOf(o.t)),o.c||'sub');
+  /* v0.12: a disease shows itself before what the owner or the fish does about it;
+     a line that tells the cause ("썩은 사료가…") comes first and the symptom after */
+  const ot=o.t?T(valOf(o.t)):null;
+  const symFirst=o.sick&&DZ[o.sick]&&!f.ill&&!(ot&&/품평회|옮아 붙|새 집에서|흔들림|부풀어|가루를/.test(ot));
+  if(symFirst)fSick(o.sick);
+  if(ot)addLog(ot,o.c||'sub');
   const d=o.fx||{};
   if(d.h)S.health+=d.h;if(d.st)f.stress+=d.st;if(d.wq)f.wq+=d.wq;if(d.i)S.interest+=d.i;if(d.fin)f.fin+=d.fin;if(d.fat)f.fat=(f.fat||0)+d.fat;
   ['p','g','w','c'].forEach(k=>{if(d[k])fStat(k,d[k])});
   if(o.set)for(const k in o.set)setFl(k,valOf(o.set[k]));
   if(o.add)for(const k in o.add)addFl(k,o.add[k]);
-  if(o.sick&&DZ[o.sick]&&!f.ill)fSick(o.sick);
+  if(!symFirst&&o.sick&&DZ[o.sick]&&!f.ill)fSick(o.sick);
   if(o.pl)o.pl.forEach(p=>breakP(p[0],p[1]));
   if(o.mem)remember(o.mem,o.mw||1.2);
   if(o.run)o.run();
@@ -187,7 +192,7 @@ function fevOut(o,e){
 /* ---------- 6. owners who learn after a near miss ---------- */
 /* what a lesson fixes; key → [does it need fixing?, the fix, the line] */
 const FEV_FIX={
- lid:[()=>!S.f.lid&&S.f.tank!=='pond',()=>{S.f.lid=1},'주인은 그날 밤 수조에 맞는 뚜껑을 주문했습니다.'],
+ lid:[()=>!S.f.lid&&S.f.tank!=='pond',()=>{S.f.lid=1;S.f.lidShift=0},()=>S.f.lidShift?'주인은 밀려나 있던 뚜껑을 제자리에 닫고, 그 위에 아무것도 올리지 않기로 했습니다.':'주인은 그날 밤 수조에 맞는 뚜껑을 주문했습니다.'],
  heater_cover:[()=>S.f.heater&&!fl('heater_cover'),()=>setFl('heater_cover',1),'주인은 히터에 덮개를 씌웠습니다.'],
  heater:[()=>!S.f.heater&&isSp('@tropical'),()=>{S.f.heater=1},'주인은 히터와 수온계를 사 왔습니다.'],
  intake_guard:[()=>!fl('intake_guard'),()=>setFl('intake_guard',1),'주인은 여과기 흡입구에 스펀지를 씌웠습니다.'],
@@ -206,7 +211,7 @@ function fevNear(key){
   if(!fx||!fx[0]())return;
   let p=K.learn;if(f.lazy)p*=.4;if(f.stubborn)p=0;
   if(p<0){addLog(T('주인은 이번 일로 약을 하나 더 사 두었습니다.'),'bad');addFl('meds');return}
-  if(R()<p){fx[1]();addLog(T(fx[2]),'good');f.lessons=(f.lessons||0)+1;S.r=clamp(S.r+.02,0,.97)}
+  if(R()<p){const ln=T(valOf(fx[2]));fx[1]();addLog(ln,'good');f.lessons=(f.lessons||0)+1;S.r=clamp(S.r+.02,0,.97)}
   else if(!skipping&&R()<.5)addLog(T(pick(LAZY_NEAR)),'bad');
 }
 
@@ -257,12 +262,12 @@ function fevFinish(ref){
   /* v0.11: no near-miss save — a catalogue death is a death */
   const f=S.f;f.endKey='ev:'+id;
   const lines=valOf(E.l).map(t=>T(valOf(t)));
-  if(E.kind==='bad'&&!S.preOwner&&f.own){const a=E.after===false?null:valOf(E.after)||AFTER[kindOf()];if(a)lines.push(T(a))}
+  if(E.kind==='bad'&&!S.preOwner&&f.own){const a=E.after===false?null:valOf(E.after)||valOf(AFTER[kindOf()]);if(a)lines.push(T(a))}
   const mark=TIER_MARK[E.tier||'likely'];
   const happy=E.kind==='happy';
   let fact=valOf(E.fact)||null;if(fact&&F[fact])fact=F[fact];
   render();
-  endLife(lines,(E.kind==='release'?'보내 줌':E.cat||'사고')+(mark&&E.kind==='happy'?' '+mark:''),fact,S.preOwner?null:valOf(E.pl)||null,happy,E.fx||(happy?'f-rest':'f-bottom'),E.pred||null);
+  endLife(lines,(E.kind==='release'?'보내 줌':E.cat||'사고')+(mark&&E.kind==='happy'?' '+mark:''),fact,S.preOwner?null:valOf(E.pl)||null,happy,valOf(E.fx)||(happy?'f-rest':'f-bottom'),E.pred||null);
 }
 FEND.euth.cat='보내 줌';
 

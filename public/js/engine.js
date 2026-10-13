@@ -378,7 +378,7 @@ function wildSurvived(){
    :id==='raccoon'?[T('{n}은 야산에서 살아남았습니다.'),'이듬해 봄, 그 산에서 새끼 라쿤 네 마리가 목격되었습니다.']
    :w.med==='street'?[T('{n}은 길 위에서 늙었습니다.'),T('어느 겨울 아침, 할머니의 밥그릇 옆에서 {n}은 깨어나지 않았습니다.')]
    :[T('{n}은 끝내 살아남아 수명을 다했습니다.'),'원래 살 곳은 아니었지만, 끝까지 버텼습니다.'];
-  endLife(lines,'야생 생존',S.f?(S.sp.carassius?F.goldfishWild:F.fRelease):id==='goldfish'?F.goldfishWild:id==='slider'?F.slider:id==='raccoon'?F.raccoon:w.med==='street'?F.street:F.release,null,true,'ghost');
+  endLife(lines,'야생 생존',S.f?((S.f.endKey='wildlife'),S.sp.carassius?F.goldfishWild:F.fRelease):id==='goldfish'?F.goldfishWild:id==='slider'?F.slider:id==='raccoon'?F.raccoon:w.med==='street'?F.street:F.release,null,true,'ghost');
 }
 
 /* smuggling prologue */
@@ -431,6 +431,8 @@ function askChoice(c,cb){
   const resolve=o=>{
     S.pending=null;S.waiting=false;$('choice').hidden=true;
     const before=typeof statSnap==='function'&&!skipping?statSnap():null;
+    /* v0.12: what was chosen stays in the log, so the memorial reads as a story */
+    if(c.p&&o.l&&!c.noEcho&&!/기질/.test(c.p)){const ll=typeof o.l==='function'?o.l():o.l;if(ll)addLog('▸ '+T(ll),'pick')}
     if(o.r)addLog(T(o.r),o.c);
     if(o.m)remember(o.m,o.mw);
     if(o.fx)o.fx();

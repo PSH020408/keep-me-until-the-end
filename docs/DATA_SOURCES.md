@@ -68,6 +68,17 @@ Every line in `F.f…` (the "실제로는" box for fish, `js/data/fish.js`) trac
 
 | Piranhas (3) and a red pacu (1) found in Maok Reservoir, Hoengseong, 2015; reservoir drained; Ministry of Environment to designate both as 위해우려종 while unable to rule out establishment (fact `fApex`, v0.9.20) | 3 + 1, 2015 | 🟢 | 서울신문 2015-07-08 — https://m.go.seoul.co.kr/news/2015/07/08/20150708014026 |
 
+### Diseases added in v0.12 (facts `fLernaea`, `fLympho`, `fGas`; symptoms and ending lines)
+
+| Shown in game | Value | Status | Source |
+|---|---|---|---|
+| Anchor worm (*Lernaea*) and fish louse (*Argulus*) are crustacean parasites that come in with pond or wild fish and live food; the wounds they leave are invaded by bacteria; *Lernaea* females embed an anchor-shaped head in the muscle and carry two egg sacs | — | 🟢 | Noga, *Fish Disease: Diagnosis and Treatment* (2nd ed.), crustacean parasites; Merck Veterinary Manual, "Parasitic Diseases of Fish" |
+| Lymphocystis is caused by an iridovirus that enlarges skin fibroblasts into white nodules; no treatment, usually regresses on its own; lesions at the mouth stop feeding | — | 🟢 | Roberts, *Fish Pathology* (4th ed.), viral diseases; Merck Veterinary Manual, "Viral Diseases of Fish" |
+| Gas bubble disease comes from gas-supersaturated water (cold water warmed suddenly, water under pressure); bubbles form in blood vessels, fins and behind the eye | — | 🟢 | Noga, environmental diseases; Merck Veterinary Manual, "Environmental Diseases of Fish" |
+| A fish that has recovered from white spot (*Ichthyophthirius*) is partly protected against it later (line in the healed-ich text) | — | 🟢 | Noga, *Ichthyophthirius*; Dickerson & Clark, *Ichthyophthirius multifiliis* immunity reviews |
+| Two-step humane killing by a vet: anaesthetic overdose, then a second method once breathing has stopped (KEEP-BIG-E, euthanasia versions) | — | 🟢 | AVMA Guidelines for the Euthanasia of Animals (2020), finfish |
+| Recurrence damping (×0.2 for a disease already had, ×0.6 per earlier bout), health-event damping (×0.55 per health event seen) | — | 🟡 | mechanics only, for variety; never shown as fact |
+
 ### Balance anchors for fish (v0.9.12, mechanics only — never shown as fact)
 
 Hard data on how long home aquarium fish live is scarce, so the simulation is tuned against the few anchors that exist and checked with `node tools/sim.mjs` (line "first owner: deaths per fish-year at home · died within 1st year").

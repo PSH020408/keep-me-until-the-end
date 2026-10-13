@@ -469,6 +469,8 @@ fev([{id:'MAT-16',tier:'fact',sp:['motoro'],need:{sandbed:1,barb_cut:0,learned_g
    [출처: 국내 생태계교란종 지정(앨리게이터 가아) 및 방류 금지] */
 function mat_17big(){const t=TANKS.find(t=>t.k!=='pond'&&t.L>=fx_().minL)||TANKS.find(t=>t.k==='t240');S.f.tank=isSp('koi')&&R()<.5?'pond':t.k;setFl('cramped',0);S.f.outgrown=0}
 function mat_17fate(){
+  /* v0.12: a keeper who knows better does not dump the fish in a river */
+  if(S.r>=.7&&!isKind('release'))return R()<.55?{t:'주인은 몇 달 동안 {n}을 받아 줄 곳을 찾아 전화를 돌렸습니다. 마지막에 연락이 닿은 곳은 대형어를 기르는 지방의 한 체험 수족관이었습니다.',c:'sub',run:()=>fRehome('주인은 {n}을 체험 수족관에 기증했습니다. 기증 확인서에는 "관람용"이라고 적혀 있었습니다.',{own:'expert',note:'기증'})}:{end:'KEEP-BIG-E'};
   if(isSp('gar')&&(isKind('release')||R()<.6))return {t:'수족관도, 아쿠아리움도 {n}을 받지 않았습니다. 주인은 밤에 {n}을 큰 통에 담아 차에 실었습니다.',c:'bad',run:()=>fRelease()};
   if(isKind('release'))return {t:'주인은 "넓은 데서 살라"며 {n}을 강으로 데려갔습니다.',c:'bad',run:()=>fRelease()};
   if(isKind('expert','learner','content','staff')&&R()<.6)return {t:isKind('content')?'주인은 "1,000L 수조 만들기" 영상을 찍기 시작했습니다. 새 수조가 들어왔습니다.':'주인은 거실 한쪽을 비우고 큰 수조를 들였습니다.',c:'good',fx:{st:-.1,i:.08},run:mat_17big};

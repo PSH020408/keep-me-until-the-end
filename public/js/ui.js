@@ -283,6 +283,7 @@ function saveMem(m){mem.unshift(m);mem=mem.slice(0,200);storeMem()}
 /* what 주마등 keeps of one life: the story as it was logged, the broken promises, the end */
 function lifeRecord(cat,calm,fact,kept,al,pct){
   let st=(S.story||[]).filter(x=>x.t);
+  if(st.length>32){const keep=st.slice(-14);st=st.slice(0,-14).filter(x=>x.c!=='pick').concat(keep)}
   if(st.length>32){const head=st.slice(0,8),tail=st.slice(-14),mid=st.slice(8,-14),k=mid.length/10;st=head.concat(Array.from({length:10},(_,i)=>mid[Math.floor(i*k)]),tail)}
   const pls=S.preOwner||S.noPledge||S.flags.fac?[]:pledgeList().map((p,i)=>S.pl[i]?{p,n:[S.pl[i]].concat(S.pl[i].more||[]).map(r=>r.note+(r.mended?' → '+r.mended.label:'')),a:ageLabel(S.pl[i].age)}:null).filter(Boolean);
   return {id:S.memId,n:S.name?S.name+' · '+S.sp.name:S.sp.name,sp:S.sp.id,lived:al,pot:ageLabel(S.sp.life),pct,cat,calm:!!calm,

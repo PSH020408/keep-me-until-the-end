@@ -14,7 +14,7 @@ A browser life-simulation about the promises we make to the animals we keep.
 > signed six promises. You choose its temperament, make its choices when it matters, raise it
 > through the seasons — and watch which promises are struck out in red pen.
 
-**Status:** public beta (v0.11.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.12.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
@@ -42,7 +42,10 @@ A browser life-simulation about the promises we make to the animals we keep.
    four the owner keeps — skill, water temperature, water quality and care. Each species has its own
    ceiling and training speed (a neon tetra never gets strong, a gar does), and its own training,
    each with a hidden cost (an arowana that practises jumping jumps more). Every few months a schedule
-   card decides how the weeks are spent; every choice shows what it changed.
+   card decides how the weeks are spent; every choice shows what it changed. A training repeated goes
+   up to Lv.3, and the training level opens ★ special trainings (staring down a tankmate, playing
+   dead, a double jump, surfing the filter outlet…). The stat the player builds opens a route —
+   star, tyrant, genius, survivor — and each route has a climax that can end the life either way.
 5. **Events.** About 370 catalogue events across the whole chain — capture, export, air cargo,
    shop tanks, the home, water and disease, tankmates and breeding, each kind of owner, and Korean
    rivers after a release. Choices describe only what the fish senses; the stat being checked and
@@ -153,6 +156,7 @@ decisions, in short:
 | v0.9.34 | 2026-10-13 | difficulty renamed 쉬움 / 어려움 |
 | v0.10.0 | 2026-10-13 | event layer: species ceilings, hidden checks, 22 owner kinds, 372 catalogue events, 415 endings, truth tiers, no inner voice |
 | v0.11.0 | 2026-10-13 | prologue rebuilt with three visible origin tracks and escapes, 54 track events, all old endings rewritten, near-miss save removed, ~10 catalogue events per life |
+| v0.12.0 | 2026-10-13 | playtest fixes: picked options kept in the log, disease order fixed, training levels and ★ special trainings, stat routes with climaxes, fewer relapses and four new diseases, several versions of the common endings and of the prologue |
 
 Every row is expanded in [LOG.md](LOG.md).
 
@@ -174,7 +178,8 @@ public/            the site (index.html, css/, js/, img/, og.png, favicon)
   js/data/fishgrow.js    stats, schedule, breeding modes, learning/lazy owners, context checks
   js/fish.js             the fish life loop, hazards, endings
   js/data/fev.js         event layer: species ceilings, owner kinds, hidden checks, flags, endings, truth tiers
-  js/data/fev_*.js       the catalogue as data (origin, trade, home, health, mates, owners A/B, wild + happy endings)
+  js/data/fev_*.js       the catalogue as data (origin, trade, home, health, mates, owners A/B, wild + happy endings;
+                         fev_zgrow.js: training levels, ★ trainings, route climaxes, ending versions)
   js/art/fish.js         painted fish in a tank drawn to scale
   js/share.js            shared memorial (Supabase REST, opt-in, sanitised)
 tools/sim.mjs      headless balance simulation (prints endings, owner anchors, learning vs. not)

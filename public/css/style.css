@@ -125,6 +125,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--ink);outline-of
 .log li.bad .t::after{content:" ▼";color:var(--pen)}
 .log li.good .t::after{content:" ▲";color:var(--calm)}
 .log li.sub p{color:var(--muted)}
+.log li.pick p{color:var(--muted);font-style:italic;font-size:13.5px}
 .log li.end p{font-weight:600}
 .log li.mile{border-bottom:1px solid var(--ink)}
 .log li.mile p{font-family:var(--display);font-weight:700}
