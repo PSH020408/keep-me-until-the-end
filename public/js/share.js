@@ -35,7 +35,7 @@ const api=(path,opt)=>fetch(SHARE_CFG.url.replace(/\/$/,'')+'/rest/v1/'+path,Obj
 
 async function sharePost(rec){
   if(!shareOn())return false;
-  const body={nick:clean(S.o&&S.o.name||'익명',12)||'익명',species:rec.sp||'',cause:clean(rec.cat,20),calm:!!rec.calm,kept:rec.kept,ver:SHARE_VER,
+  const body={nick:clean((typeof NICK==='string'&&NICK)||S.o&&S.o.name||'익명',12)||'익명'   /* v0.12: the signer, not whoever owns the fish at the end */,species:rec.sp||'',cause:clean(rec.cat,20),calm:!!rec.calm,kept:rec.kept,ver:SHARE_VER,
     rec:Object.assign({},rec,{id:undefined,n:clean(rec.n,40),own:rec.own?clean(rec.own,40):null,lw:clean(rec.lw,80),story:(rec.story||[]).slice(0,40)})};
   try{const r=await api('lives',{method:'POST',headers:shareHeaders({Prefer:'return=minimal'}),body:JSON.stringify(body)});
     if(r.ok)setTimeout(shareLoad,600);return r.ok}catch(e){return false}
