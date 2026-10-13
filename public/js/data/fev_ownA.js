@@ -10,10 +10,32 @@ const owa_scl=()=>isSp('@scaleless');
 const owa_new=()=>S.f.tankAge<=S.dt*2+.01;
 const owa_long=n=>S.f.tankAge>=S.dt*(n||6);
 const owa_roll=(k,need)=>R()<clamp(Math.pow(fst()[k]/Math.max(5,need),2),.05,.95);
-/* enduring what cannot be dodged: 근성 against need, a skilled owner helps a little */
-function owa_hold(need,end,ok){
+/* enduring what cannot be dodged: 근성 against need, a skilled owner helps a little.
+   A failed hold is not always the end: most failures leave tissue damage (owa_scar) and the life goes on.
+   df = share of failures that end the life (default by owner kind: harsh owners kill more often). */
+const OWA_HARSH=['mill','neglect','cult','alchemist','bait','touch','release'];
+const owa_df=()=>OWA_HARSH.includes(kindOf())?.38:.3;
+function owa_hold(need,end,ok,df){
   const ch=clamp(Math.pow(fst().g/Math.max(5,need),2)*(.8+S.r*.4),.05,.93);
-  return R()<ch?ok:{end};
+  if(R()<ch)return ok;
+  return R()<(df===undefined?owa_df():df)?{end}:owa_scar(ok,end);
+}
+/* the damage a failed hold leaves behind, by what the ending would have been */
+const OWA_SCAR={
+ gill:{t:'아가미 새엽 몇 줄이 끝부터 하얗게 죽어 떨어져 나갔습니다. 남은 새엽으로 {n}은 몇 주 동안 숨을 몰아쉬었습니다.',fx:{h:-8,st:.08},set:{inj_gill:1}},
+ skin:{t:'점막이 벗겨진 옆구리에 붉은 궤양이 패었습니다. 궤양은 몇 주에 걸쳐 비늘 없는 거친 흉터로 덮였습니다.',fx:{h:-8,st:.06},set:{inj_skin:1,slime_loss:1}},
+ fin:{t:'지느러미 막이 기조 사이마다 녹아 내려, 지느러미 끝이 기조만 남은 채 짧아졌습니다.',fx:{h:-6,fin:.12},set:{inj_fin:1}},
+ thin:{t:'등 근육이 빠져 드러난 척추 선은 그 뒤로도 다시 덮이지 않았습니다.',fx:{h:-8,fat:-.2},set:{thin:1}},
+ cold:{t:'차가운 물에 오래 있던 지느러미 끝이 하얗게 괴사해 떨어져 나갔습니다.',fx:{h:-8,fin:.1},set:{inj_fin:1}},
+ spine:{t:'눌린 척추 마디가 비뚜름하게 굳었습니다. {n}은 그 뒤로 몸을 조금 기울인 채 헤엄쳤습니다.',fx:{h:-8},set:{inj_spine:1}},
+ burn:{t:'열에 익은 비늘이 하얗게 떨어져 나가고, 그 자리 피부가 쭈글쭈글한 흉터로 굳었습니다.',fx:{h:-8},set:{inj_burn:1}}
+};
+const OWA_SCAR_CAT={'질병':'skin','합사':'skin','학대':'skin','번식':'skin','도태':'spine','굶주림':'thin','번식 소모':'thin','노화':'thin','동사':'cold','택배':'cold','과열':'burn','경품':'gill'};
+function owa_scar(ok,end){
+  const E=FEVEND[end]||{},s=OWA_SCAR[OWA_SCAR_CAT[E.cat]]||OWA_SCAR.gill;
+  ok=valOf(ok)||{};if(ok.end)return {t:s.t,c:'bad',fx:s.fx,set:s.set};
+  const fx=Object.assign({},ok.fx||{});for(const k in s.fx)fx[k]=(fx[k]||0)+s.fx[k];
+  return Object.assign({},ok,{c:'bad',fx,set:Object.assign({},ok.set||{},s.set),run:()=>{addLog(T(s.t),'bad');if(ok.run)ok.run()}});
 }
 /* the owner learns one thing (by kind); an alchemist learns the wrong thing */
 function owa_learn(flag,line){
@@ -463,7 +485,7 @@ function owa21(o,need){
   addFl('breeding_count');
   if(fl('owa21s'))return {t:'주인이 아침 일찍 와서 {n}을 다른 통으로 옮겼습니다.',c:'good',fx:{h:-3}};
   if(o)return o;
-  const male=!fem()&&isSp('betta','wildbetta');
+  const male=!fem()&&isSp('betta');
   if(male)return isSp('wildbetta')?{t:'{n}은 알을 입에 품고 몇 주를 굶었습니다. 몸이 눈에 띄게 말랐습니다.',fx:{h:-10,fat:-.3},set:{thin:1}}
     :{t:'{n}은 거품집 밑을 지키며 상대를 쫓았습니다. 주인은 늦게 와서 거품집만 챙겼습니다. 상대는 다음 날 보이지 않았습니다.',c:'bad',fx:{st:.05}};
   if(isSp('cory'))return {t:'산란은 조용히 끝났습니다. {n}은 조금 지쳤습니다.',fx:{h:-3}};
@@ -471,7 +493,7 @@ function owa21(o,need){
   return owa_hold(need,'OWA-21-D',hurt);
 }
 fev([{id:'OWA-21',tier:'fact',own:['breeder'],cd:30,sp:['betta','wildbetta','apisto','guppy','platy','oranda','ryukin','cory'],w:()=>fl('age')<.15?0:isSp('betta')?4:2,
-  p:()=>{setFl('owa21s',R()<S.r*.85?1:0);const male=!fem()&&isSp('betta','wildbetta');
+  p:()=>{setFl('owa21s',R()<S.r*.85?1:0);const male=!fem()&&isSp('betta');
     return male?'작은 수조 안에 다른 개체 하나가 들어옵니다. {n}은 몸을 크게 펴고 수면에 거품을 쌓습니다. 밤새 몸을 감싸고 알을 받은 뒤, 상대가 거품집 근처를 맴돕니다. 주인은 아직 오지 않았습니다. {n}은…'
       :isSp('apisto')?'굴 하나를 사이에 두고 상대가 들어옵니다. 굴 안에 알이 붙자, 굴을 지키는 쪽이 다른 쪽을 향해 돌진하기 시작합니다. 주인은 아직 오지 않았습니다. {n}은…'
       :'작은 수조 안에 다른 개체가 들어옵니다. 상대는 몸을 크게 펴고, 밤새 {n}을 쫓습니다. 알이 바닥과 수초에 붙은 뒤에도 쫓기는 멈추지 않습니다. 주인은 아직 오지 않았습니다. {n}은…'},
@@ -491,7 +513,9 @@ function owa22_judge(){
     if(R()<.4)return {t:'{n}은 "같은 배 최상급"으로 사진이 찍혔습니다. 같은 배에서 난 형제 중 사진이 찍힌 건 셋이었습니다. 나머지는 그날 오스카가 먹었습니다.',c:'good',fx:{c:2},set:{graded:'top'}};
     return {t:'{n}은 판매 등급을 받았습니다. 며칠 뒤 수족관으로 가는 봉지에 담겼습니다.',c:'sub',set:{graded:'sale'},run:()=>owa_rehome('{n}은 수족관 판매 수조를 거쳐 새 주인에게 팔렸습니다.',null,null,{note:'번식장에서 판매'})};
   }
-  setFl('graded','cull');return {end:'OWA-22-D'};
+  setFl('graded','cull');
+  if(R()<.2)return {end:'OWA-22-D'};
+  return {t:'{n}은 "등급 외"로 분류되었습니다. 그물에 눌린 꼬리지느러미 기조 몇 개가 꺾여 굳었습니다. 며칠 뒤 {n}은 헐값 봉지에 담겨 마트 수조로 갔습니다.',c:'bad',fx:{fin:.15,h:-8,st:.1},set:{inj_fin:1},run:()=>owa_rehome('{n}은 마트 수조에서 "혼합 구피·베타 떨이" 가격표를 달고 팔렸습니다.',null,null,{note:'번식장 등급 외'})};
 }
 fev([{id:'OWA-22',tier:'fact',own:['breeder'],once:1,sp:['betta','guppy','oranda','ryukin','apisto','platy'],w:()=>fl('age')<.3?5:0,
   p:'치어통에 수백 마리가 함께 헤엄칩니다. 매일 저녁 그물이 들어와 몇 마리씩 떠서 다른 통으로 옮깁니다. 옮겨진 통의 물고기들은 다시 보이지 않습니다. 오늘 그물이 {n}이 있는 쪽으로 천천히 내려옵니다. 주인은 확대경을 들고 있습니다. {n}은…',
@@ -687,7 +711,7 @@ fevEnd({'OWA-31-D':{kind:'bad',cat:'택배',tier:'fact',fx:'f-box',fact:'fChain'
 
 /* EV-OWA-32 단속 다음 날 (주인 교체 또는 사망) [출처: 관상어 번식장 폐업·단속 후 처리 실태(국내 보도 확인 필요)] */
 function owa32(b){
-  const r=owa_next([['dealer',4.5],['rescue',2+b*2.5],['staff',1.5],['dump',2]]);
+  const r=owa_next([['dealer',4.5],['rescue',2+b*2.5],['staff',1.5],['dump',1.3]]);
   if(r==='dump')return {end:'OWA-32-D'};
   if(r==='rescue')return {t:'구조하러 온 동호인이 {n}을 봉지에 담았습니다. 구조 카페 글에는 "백 마리 넘게 구조했습니다"라고 쓰여 있었습니다. 그 아래 댓글은 "그 번식장 어디예요? 싸게 사고 싶어요"였습니다.',c:'good',run:()=>owa_to(R()<.6?'learner':'expert','{n}은 구조한 사람의 집으로 갔습니다.',{note:'번식장 단속 후 구조'})};
   if(r==='staff')return {t:'수족관 직원이 대야에서 몇 마리를 골라 갔습니다. {n}도 그중 하나였습니다.',c:'sub',run:()=>owa_to('staff','{n}은 수족관 직원의 집으로 갔습니다.',{note:'번식장 단속 후 위탁'})};
@@ -823,11 +847,11 @@ function owa38_take(b){
 fev([{id:'OWA-38',tier:'likely',own:['neglect'],once:1,w:()=>owa_long(6)?1:.3,
   p:'현관 쪽에서 열쇠 소리가 나고, 여러 사람의 발소리가 들어옵니다. 누군가 코를 막으며 창문을 엽니다. 한 사람이 녹색 수조 앞에 멈춰 섭니다. "이거 아직 살아 있는 거 아냐?" {n}은…',
   o:[
-   {l:'남은 힘으로 유리 앞까지 나와 몸을 보인다',chk:['c',45],ok:()=>owa38_take(1),no:()=>R()<.5?owa38_take(-1):{end:'OWA-38-D'}},
-   {l:'녹조 사이에서 천천히 움직인다',ok:()=>R()<.5?owa38_take(-1):{end:'OWA-38-D'}},
+   {l:'남은 힘으로 유리 앞까지 나와 몸을 보인다',chk:['c',45],ok:()=>owa38_take(1),no:()=>R()<.8?owa38_take(-1):{end:'OWA-38-D'}},
+   {l:'녹조 사이에서 천천히 움직인다',ok:()=>R()<.8?owa38_take(-1):{end:'OWA-38-D'}},
    {l:'바닥 구석에서 움직이지 않는다',ok:()=>isSp('clownloach')&&owa_roll('w',50)?{t:'수조를 비우려던 직원이 옆으로 누운 {n}을 건지려는 순간, {n}이 몸을 뒤집어 헤엄쳤습니다. 직원은 비명을 지르고, 웃고, 생수병을 찾았습니다.',c:'good',run:()=>q(null,null,()=>fevOut(owa38_take(0)))}
       :isSp('@escaper')&&R()<.3?{t:'수조는 이미 비어 있었습니다. 일주일 뒤, 소파를 들어낸 직원이 먼지를 뒤집어쓴 채 아가미를 움직이는 {n}을 찾았습니다.',c:'good',fx:{h:-15},run:()=>q(null,null,()=>fevOut(owa38_take(0)))}
-      :R()<.2?owa38_take(-1):{end:'OWA-38-D'}}
+      :R()<.85?owa38_take(-1):{end:'OWA-38-D'}}
   ]}]);
 fevEnd({'OWA-38-D':{kind:'bad',cat:'버려짐',tier:'likely',fx:'f-trash',fact:'fFlush',pl:[[0,'수조째 방치하고 떠남']],
   after:'원래 주인은 보증금 정산 문자에만 답장했습니다.',

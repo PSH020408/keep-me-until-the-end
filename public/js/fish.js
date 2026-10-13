@@ -497,9 +497,9 @@ function fishTick(){
   if(fTrainDue()){fTrain();render();return}
   /* catalogue events (data/fev_*.js) */
   if(typeof fevHappyTry==='function'&&fevHappyTry('home'))return;
-  if(!(S.cd.choice>S.tick)&&typeof fevTry==='function'&&R()<.32*FEV_HOME_P&&fevTry('home')){S.cd.choice=S.tick+3;return}
+  if(!(S.cd.choice>S.tick)&&typeof fevTry==='function'&&R()<FEV_HOME_P&&fevTry('home')){S.cd.choice=S.tick+3;return}
   /* choices and everyday events */
-  if(!(S.cd.choice>S.tick)&&R()<.32){
+  if(!(S.cd.choice>S.tick)&&R()<.12){
     /* situations whose options depend on temperament and species (FSIT), and the fixed ones (FCH) */
     const sit=FSIT.filter(c=>!(S.cd['fs'+c.id]>S.tick)&&(!c.when||c.when())&&pondOK(c.p)).map(c=>[c,1.6/(1+1.5*(S.seen['fs'+c.id]||0))]);
     const fix=FCH.filter(c=>pondOK(c.p)&&c.o.filter(o=>pondOK(o.l,o.r)).length>=2&&(!c.once||!S.once['fc'+c.i])&&!(S.cd['fc'+c.i]>S.tick)&&(!c.when||c.when())).map(c=>[c,1/(1+2*(S.seen['fc'+c.i]||0))]);
@@ -508,7 +508,7 @@ function fishTick(){
       if(c.o&&FSIT.includes(c)){const opts=fBuildOpts(c);if(opts.length>=2){if(c.log)addLog(T(c.log),'sub');S.seen['fs'+c.id]=(S.seen['fs'+c.id]||0)+1;S.cd['fs'+c.id]=S.tick+12;askChoice({p:c.p,o:opts});render();return}}
       else{S.seen['fc'+c.i]=(S.seen['fc'+c.i]||0)+1;S.cd['fc'+c.i]=S.tick+30;if(c.once)S.once['fc'+c.i]=1;askChoice(Object.assign({},c,{o:c.o.filter(o=>(!o.when||o.when())&&pondOK(o.l,o.r))}));render();return}}
   }
-  if(R()<.55){
+  if(R()<.28){
     const pool=FFL.filter(e=>pondOK(e.t)&&(!e.once||!S.once['ff'+e.once])&&!(S.cd['ff'+e.i]>S.tick)&&(!e.when||e.when()));
     if(pool.length){const e=wpick(pool.map(p=>[p,(p.w||1)/(1+1.6*(S.seen['ff'+p.i]||0))]));
       S.seen['ff'+e.i]=(S.seen['ff'+e.i]||0)+1;if(e.once)S.once['ff'+e.once]=1;S.cd['ff'+e.i]=S.tick+30;
@@ -554,7 +554,7 @@ function fPickDz(){
     if(f.coldShock&&['ich','fungus','velvet'].includes(id))k*=3;
     if(f.wq<50&&['aero','finrot','columnaris'].includes(id))k*=2.5;
     if(f.fin>.3&&['finrot','fungus'].includes(id))k*=2.5;
-    if(S.ageM>S.sp.life*.6&&id==='tb')k*=3;
+    if(S.ageM>S.sp.life*.6&&id==='tb')k*=1.5;
     if(id==='swimb'&&(f.fat||0)>.2)k*=2;
     if(id==='irido'&&season()==='summer')k*=2;
     return [id,k]});
@@ -568,7 +568,7 @@ function fSick(id){
 }
 function fIllTick(care,m){
   const f=S.f,ill=f.ill,d=DZ[ill.id],x=fx_(),own=f.own;
-  ill.sev+=d.prog*m*(ill.treating?.35:1)*(.6+f.stress)*(f.wq<50?1.3:1);
+  ill.sev+=d.prog*m*(ill.treating?.25:1)*(.6+f.stress)*(f.wq<50?1.3:1)*(typeof modeK==='function'?(modeK('dz')+1)/2:1);
   if(ill.id==='swimb') ill.sev=Math.min(ill.sev,.92);
   const watch={expert:1,breeder:.9,content:.85,learner:.7,casual:.35,gift:.2}[own]||.4,vis=d.ov?1.2:.55;
   if(!ill.noticed&&R()<clamp(watch*vis*(.35+ill.sev)*(.45+.55*S.interest)*(.6+.4*S.r),0,1)*Math.min(1,m*2)){
@@ -582,10 +582,10 @@ function fIllTick(care,m){
       ill.treating=.5;
     } else {say('주인은 "물고기가 다 그렇지" 하며 지켜보기만 했습니다.','bad');breakP(1,'병든 물고기를 그냥 둠')}
   }
-  if(ill.treating&&R()<d.cure*.75*Math.min(1,m*1.5)*(ill.treating===1?1:.5)){
+  if(ill.treating&&R()<d.cure*1.05*Math.min(1,m*1.5)*(ill.treating===1?1:.5)){
     addLog(T(d.n+'이 나았습니다. {n}이 다시 지느러미를 폈습니다.').replace(d.n+'이',josa(d.n,'이')),'good');remember('아팠던 몸이 다시 가벼워졌다. 누군가 나를 돌봤다.',1.4);f.ill=null;S.health=clamp(S.health+12,0,100);return;
   }
-  if(ill.incurable&&ill.sev>.6&&R()<.5){render();return fEnd('euth')}
+  if(ill.incurable&&ill.sev>.75&&R()<.35){render();return fEnd('euth')}
   if(ill.sev>=1){render();
     if(['casual','gift'].includes(own)&&R()<.45) return fEnd(R()<.7?'flushalive':R()<.5?'trash':'freezer','sick');
     if(!ill.crisis){ill.crisis=1;return void fCr('disease')}

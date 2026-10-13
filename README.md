@@ -14,7 +14,7 @@ A browser life-simulation about the promises we make to the animals we keep.
 > signed six promises. You choose its temperament, make its choices when it matters, raise it
 > through the seasons — and watch which promises are struck out in red pen.
 
-**Status:** public beta (v0.10.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.11.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
@@ -85,7 +85,7 @@ browser (static site on Render)                 Supabase (Postgres, Seoul)
 
 Two difficulties (v0.10.0): **어려움** (hard) is tuned to the anchors below; **쉬움** (easy, the default)
 makes owners kinder, the fish's checks a little likelier and black comedy commoner. With random
-choices, 15.2% of lives are lived out in 어려움 and 24.4% in 쉬움; happy endings are 4% and 7% of lives.
+choices, 14% of lives are lived out in 어려움 and 20% in 쉬움; happy endings are 9% and 14% of lives.
 `node tools/sim.mjs 6000` plays thousands of lives with random choices (`MODE=story` for 쉬움), and
 `node tools/fevtest.mjs` forces every catalogue event on every species it fits and plays the life out.
 
@@ -152,6 +152,7 @@ decisions, in short:
 | v0.9.27–0.9.33 | 2026-10-12 | one-screen play, the player as owner, facts checked per species, shared memorial on Supabase |
 | v0.9.34 | 2026-10-13 | difficulty renamed 쉬움 / 어려움 |
 | v0.10.0 | 2026-10-13 | event layer: species ceilings, hidden checks, 22 owner kinds, 372 catalogue events, 415 endings, truth tiers, no inner voice |
+| v0.11.0 | 2026-10-13 | prologue rebuilt with three visible origin tracks and escapes, 54 track events, all old endings rewritten, near-miss save removed, ~10 catalogue events per life |
 
 Every row is expanded in [LOG.md](LOG.md).
 

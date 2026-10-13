@@ -109,7 +109,7 @@ fev([{id:'ORG-06',stage:'origin',tier:'fact',sp:['apisto','cory'],when:org_wild,
   ]}]);
 
 /* EV-ORG-07 건기의 모래톱 — [출처: 민물가오리(Potamotrygonidae) 포획 스트레스에 의한 조산·유산 기록] */
-const org_premature=[[4,{t:'{n}은 어미의 몸 밖으로 일찍 밀려 나왔습니다. 배 아래에는 다 흡수되지 않은 난황이 매달려 있었습니다. 어부가 {n}을 어미와 같은 통에 담았습니다.',c:'bad',fx:{h:-10,g:-10},set:{premature:1}}],[1,{end:'ORG-07-D'}]];
+const org_premature=[[4,{t:'{n}은 어미의 몸 밖으로 일찍 밀려 나왔습니다. 배 아래에는 다 흡수되지 않은 난황이 매달려 있었습니다. 어부가 {n}을 어미와 같은 통에 담았습니다.',c:'bad',fx:{h:-10,g:-10},set:{premature:1}}],[3,{t:'{n}은 어미의 몸 밖으로 일찍 밀려 나와 모래 위에 떨어졌습니다. 배 쪽 피부가 모래에 쓸려 점막이 벗겨졌고, 난황 주머니 표면에 긁힌 자국이 남았습니다. 어부가 {n}을 어미와 같은 통에 담았습니다.',c:'bad',fx:{h:-12,g:-8},set:{premature:1,slime_loss:1,inj_skin:1},run:()=>org_carry('fungus')}],[1,{end:'ORG-07-D'}]];
 fev([{id:'ORG-07',stage:'origin',tier:'fact',sp:['motoro'],when:org_wild,once:1,w:2,
   p:'물이 빠진 강가, 얕은 모래 바닥입니다. 어미의 몸이 갑자기 들어 올려집니다. 어미가 몸을 크게 뒤틉니다. 어미의 배 속이 한꺼번에 조여 옵니다. {n}은…',
   o:[
@@ -198,7 +198,9 @@ fev([{id:'ORG-12',stage:'trade',tier:'fact',sp:['clownloach','ghost','cory','mot
    [출처: 복어를 물 밖에서 부풀게 하면 공기를 삼켜 배출하지 못할 수 있다는 사육 자료] */
 function org_air(){
   if(org_roll('g',40)) return {t:'몇 시간 뒤, {n}은 삼킨 공기를 조금씩 뱉어 내고 가라앉았습니다.',c:'sub',fx:{h:-5,g:-2}};
-  return R()<.35?{end:'ORG-16-D'}:{t:'{n}은 한나절 배를 위로 한 채 떠 있다가 겨우 가라앉았습니다. 그 뒤로도 몸이 자꾸 한쪽으로 기울었습니다.',c:'bad',fx:{h:-15},set:{swimb:1}};
+  if(R()<.12) return {end:'ORG-16-D'};
+  return R()<.5?{t:'{n}은 한나절 배를 위로 한 채 떠 있다가 겨우 가라앉았습니다. 그 뒤로도 몸이 자꾸 한쪽으로 기울었습니다.',c:'bad',fx:{h:-15},set:{swimb:1}}
+    :{t:'부푼 배가 그물 바닥에 눌린 채 한참 들려 있었습니다. 배 쪽 피부가 그물코 모양대로 쓸려 점막이 벗겨졌습니다. 물에 돌아온 뒤에도 그 자리가 하얗게 들떠 있었습니다.',c:'bad',fx:{h:-12},set:{slime_loss:1,inj_skin:1},run:()=>org_carry('fungus')};
 }
 
 /* EV-ORG-13 케랄라 수로의 족대 — [출처: IUCN 레드리스트 Carinotetraodon travancoricus 취약(VU) 지정 사유 — 관상어 남획 · 케랄라 채집 지역] */
@@ -251,7 +253,7 @@ fev([{id:'ORG-16',stage:['origin','trade'],tier:'fact',sp:['@puffer'],once:1,w:1
   ]}]);
 
 /* EV-ORG-17 이탄 습지의 물 — [출처: 야생 베타(입 부화종) 이탄 습지 서식지 pH · 이탄 습지 배수·화재로 인한 서식지 소실] */
-const org_17caught=t=>()=>R()<.15?{end:'ORG-17-D'}:{t:t+(org_roll('g',30)?' {n}은 입에 문 알을 끝까지 놓지 않았습니다.':' 놀란 {n}이 입에 문 알을 뱉어 냈습니다.'),c:'bad',set:{inj_gill:1}};
+const org_17caught=t=>()=>R()<.03?{end:'ORG-17-D'}:{t:t+(org_roll('g',30)?' {n}은 입에 문 알을 끝까지 놓지 않았습니다.':' 놀란 {n}이 입에 문 알을 뱉어 냈습니다.'),c:'bad',set:{inj_gill:1}};
 fev([{id:'ORG-17',stage:'origin',tier:'fact',sp:['wildbetta'],when:org_wild,once:1,w:3,
   p:'검은 물, 썩은 잎이 두껍게 깔린 웅덩이입니다. 물이 시고 차갑습니다. {n}의 입 안에는 알이 있습니다. 위에서 손뜰채가 잎을 헤치고 내려옵니다. {n}은…',
   o:[
@@ -260,13 +262,13 @@ fev([{id:'ORG-17',stage:'origin',tier:'fact',sp:['wildbetta'],when:org_wild,once
     no:org_17caught('뜰채가 잎째 {n}을 떠 올렸습니다.')},
    {l:'웅덩이 밖 다른 물길로 뛰어오른다',chk:['p',35],
     ok:org_free('{n}은 웅덩이 가장자리를 넘어 옆 물길로 떨어졌습니다.'),
-    no:()=>R()<.15?{end:'ORG-17-D'}:{t:'{n}은 젖은 잎 위에 떨어졌습니다. 채집인이 손으로 집어 통에 넣었습니다. 옆구리 비늘이 잎에 쓸렸습니다.',c:'bad',fx:{h:-6},set:{inj_skin:1}}},
+    no:()=>R()<.03?{end:'ORG-17-D'}:{t:'{n}은 젖은 잎 위에 떨어졌습니다. 채집인이 손으로 집어 통에 넣었습니다. 옆구리 비늘이 잎에 쓸렸습니다.',c:'bad',fx:{h:-6},set:{inj_skin:1}}},
    {l:'입을 다문 채 그 자리에 멈춘다',ok:org_17caught('뜰채가 {n}을 떠 올렸습니다.')}
   ]}]);
 
 /* EV-ORG-18 불타는 이탄 숲 — [출처: 동남아 이탄 습지 화재(2015 인도네시아 등)와 이탄 습지 어류 서식지 소실] */
 const org_18fail=()=>isSp('wildbetta')?{t:'물이 손가락 한 마디 깊이까지 줄었습니다. {n}은 수면 공기를 마시며 버텼고, 비가 오기 직전 웅덩이를 뒤지던 채집인의 손에 잡혔습니다.',c:'bad',fx:{h:-15}}
-  :R()<.5?{end:'ORG-18-D'}:{t:'{n}은 줄어드는 물에서 다른 물고기들 틈에 끼어 버텼습니다. 웅덩이를 퍼 가던 사람들의 양동이에 함께 담겼습니다.',c:'bad',fx:{h:-15}};
+  :R()<.1?{end:'ORG-18-D'}:R()<.5?{t:'재가 섞인 물이 아가미를 지나갔습니다. {n}의 아가미 새엽 끝이 회색으로 상했고, 아가미 뚜껑이 한동안 빠르게 움직였습니다. 웅덩이를 퍼 가던 사람들의 양동이에 함께 담겼습니다.',c:'bad',fx:{h:-14},set:{inj_gill:1}}:{t:'{n}은 줄어드는 물에서 다른 물고기들 틈에 끼어 버텼습니다. 웅덩이를 퍼 가던 사람들의 양동이에 함께 담겼습니다.',c:'bad',fx:{h:-15}};
 fev([{id:'ORG-18',stage:'origin',tier:'fact',sp:['wildbetta','clownloach','fig8'],when:org_wild,once:1,w:()=>isSp('wildbetta')?2:.8,
   p:'물이 평소보다 얕고 미지근합니다. 수면 위 공기에서 탄 냄새가 납니다. 위에서 재가 떨어져 수면을 덮습니다. {n}은…',
   o:[
@@ -275,7 +277,7 @@ fev([{id:'ORG-18',stage:'origin',tier:'fact',sp:['wildbetta','clownloach','fig8'
    {l:'가장 깊은 웅덩이 바닥으로 내려간다',chk:['w',30],
     ok:org_free('{n}은 웅덩이 바닥에서 비를 기다렸습니다. 그해 첫 비가 왔을 때, 웅덩이에 남은 물고기는 많지 않았습니다.'),no:org_18fail},
    {l:'잎 아래 가만히 있는다',
-    ok:()=>R()<(isSp('wildbetta')?.6:.3)?{t:'재가 섞인 물에서 {n}은 며칠을 버텼습니다. 채집인이 웅덩이 바닥을 손으로 훑어 {n}을 꺼냈습니다.',c:'sub',fx:{h:-8}}:org_18fail()}
+    ok:()=>R()<(isSp('wildbetta')?.7:.6)?{t:'재가 섞인 물에서 {n}은 며칠을 버텼습니다. 채집인이 웅덩이 바닥을 손으로 훑어 {n}을 꺼냈습니다.',c:'sub',fx:{h:-8}}:org_18fail()}
   ]}]);
 
 /* EV-ORG-19 브라마푸트라의 논 — [출처: 인도 북동부(아삼) 야생 관상어 채집과 Channa bleheri 수출 경로] */
@@ -394,12 +396,13 @@ fev([{id:'ORG-26',stage:'origin',tier:'fact',sp:['koi'],when:org_farm,once:1,w:2
   p:'같은 날 부화한 치어 수만 마리가 한 연못에 있습니다. 몇 마리는 이미 다른 치어보다 두세 배 큽니다. 그 큰 것들의 입가에 작은 치어의 꼬리가 걸려 있습니다. 위에서 고운 그물이 내려옵니다. {n}은…',
   o:[
    {l:'가장 큰 무리를 따라다니며 먹이를 먼저 문다',chk:['p',30],
-    ok:()=>R()<.5?{end:'ORG-26-D'}:{t:'{n}은 먹이를 먼저 물며 빨리 자랐습니다. 그물은 {n}보다 조금 더 큰 것들만 떠 갔습니다.',c:'good',fx:{p:3}},
+    ok:()=>R()<.1?{end:'ORG-26-D'}:R()<.6?{t:'{n}은 먹이를 먼저 물며 빨리 자랐습니다. 그물은 {n}보다 조금 더 큰 것들만 떠 갔습니다.',c:'good',fx:{p:3}}
+      :{t:'먹이를 다투던 큰 치어의 입이 {n}의 눈을 스쳤습니다. 한쪽 각막에 하얀 흠이 남았습니다. 그물은 {n}보다 조금 더 큰 것들만 떠 갔습니다.',c:'bad',fx:{h:-8,p:2},set:{inj_eye:1}},
     no:{t:'큰 치어들이 {n}을 밀쳐 냈습니다. {n}은 무리 가장자리로 밀려났습니다.',c:'sub'}},
    {l:'수초 가장자리로 피한다',chk:['w',30],
     ok:{t:'{n}은 수초 사이에서 큰 치어들의 입을 피했습니다.',c:'good',fx:{w:1}},
-    no:[[2,{t:'큰 치어 하나가 {n}의 꼬리를 물었다가 놓쳤습니다. 꼬리지느러미 끝이 뜯겨 나갔습니다.',c:'bad',fx:{fin:.2,h:-6},set:{inj_fin:1}}],[1,{end:'ORG-26-D2'}]]},
-   {l:'무리 속에 그대로 섞인다',ok:[[8,{t:'{n}은 수만 마리 속에 섞여 그물을 피했습니다.'}],[1,{end:'ORG-26-D2'}]]}
+    no:[[2,{t:'큰 치어 하나가 {n}의 꼬리를 물었다가 놓쳤습니다. 꼬리지느러미 끝이 뜯겨 나갔습니다.',c:'bad',fx:{fin:.2,h:-6},set:{inj_fin:1}}],[2,{t:'큰 치어의 입이 {n}의 옆구리를 물었다가 놓았습니다. 비늘이 줄지어 떨어지고 그 자리의 점막이 벗겨졌습니다.',c:'bad',fx:{h:-10},set:{slime_loss:1,inj_skin:1},run:()=>org_carry('aero')}],[1,{end:'ORG-26-D2'}]]},
+   {l:'무리 속에 그대로 섞인다',ok:[[14,{t:'{n}은 수만 마리 속에 섞여 그물을 피했습니다.'}],[1,{end:'ORG-26-D2'}]]}
   ]}]);
 
 /* EV-ORG-27 무늬 선별 (B-4 심화) — [출처: 비단잉어 선별(센베츠) 단계와 도태 비율, 도태어 처리 방식] */
@@ -431,18 +434,22 @@ fev([{id:'ORG-28',stage:'origin',tier:'fact',sp:['koi','comet'],when:org_farm,ne
 
 /* EV-ORG-29 홑꼬리 — tail shape is fixed at birth; no stat changes it.
    [출처: 팬시 금붕어 치어 선별(홑꼬리·기형 도태) 관행] */
-const org_single=()=>{if(!fl('tail'))setFl('tail',R()<.3?'single':'double');return fl('tail')==='single'};
+const org_single=()=>{if(!fl('tail'))setFl('tail',R()<.25?'single':'double');return fl('tail')==='single'};
+/* a single tail is graded down; only part of them go to the cull bucket, the rest are sold cheap as feeders */
+const org_29cut=()=>R()<.25?{end:'ORG-29-D'}:R()<.5
+  ?{t:'사람은 {n}의 꼬리를 한 번 보고 "홑꼬리"라며 먹이용 통에 던졌습니다. 통 가장자리에 부딪힌 옆구리의 점막이 벗겨져 하얗게 들떴습니다.',c:'bad',fx:{h:-10},set:{grade:'feeder',slime_loss:1},run:()=>{org_carry('fungus');org_odds(1.3)}}
+  :{t:'홑꼬리인 {n}은 싸게 넘길 "C급" 통에 다른 치어들과 몰려 담겼습니다. 좁은 통에서 서로 부딪히다 꼬리지느러미 막이 기조를 따라 갈라졌습니다.',c:'bad',fx:{h:-6,fin:.2},set:{grade:'C',inj_fin:1},run:()=>org_odds(1.3)};
 fev([{id:'ORG-29',stage:'origin',tier:'fact',sp:['oranda','ryukin'],when:org_farm,once:1,w:3,
   p:'얕은 대야에 치어들이 담깁니다. 사람이 위에서 하나씩 꼬리를 봅니다. 위에서 보면 꼬리가 두 갈래로 펼쳐진 것과 한 갈래인 것이 갈립니다. {n}은…',
   o:[
    {l:'꼬리를 활짝 펴고 천천히 헤엄친다',chk:['c',35],
-    ok:()=>org_single()?{end:'ORG-29-D'}:{t:'두 갈래로 펼쳐진 꼬리가 불빛 아래에서 반짝였습니다. {n}은 "A급" 대야로 옮겨졌습니다.',c:'good',set:{grade:'A'},run:()=>org_odds(.3)},
-    no:()=>org_single()?{end:'ORG-29-D'}:{t:'꼬리는 두 갈래였지만 펼쳐지지 않았습니다. {n}은 "C급" 대야로 옮겨졌습니다.',c:'sub',set:{grade:'C'},run:()=>org_odds(1.3)}},
+    ok:()=>org_single()?org_29cut():{t:'두 갈래로 펼쳐진 꼬리가 불빛 아래에서 반짝였습니다. {n}은 "A급" 대야로 옮겨졌습니다.',c:'good',set:{grade:'A'},run:()=>org_odds(.3)},
+    no:()=>org_single()?org_29cut():{t:'꼬리는 두 갈래였지만 펼쳐지지 않았습니다. {n}은 "C급" 대야로 옮겨졌습니다.',c:'sub',set:{grade:'C'},run:()=>org_odds(1.3)}},
    {l:'대야 바닥에서 빠르게 맴돈다',
-    ok:()=>org_single()?(R()<.5?{end:'ORG-29-D'}:{t:'{n}이 너무 빨리 돌아 사람은 꼬리를 보지 못했습니다. 다음 대야로 미뤄졌고, 다음 대야에서는 아무도 꼬리를 다시 보지 않았습니다.',c:'good'})
+    ok:()=>org_single()?(R()<.5?org_29cut():{t:'{n}이 너무 빨리 돌아 사람은 꼬리를 보지 못했습니다. 다음 대야로 미뤄졌고, 다음 대야에서는 아무도 꼬리를 다시 보지 않았습니다.',c:'good'})
       :{t:'{n}이 너무 빨리 돌아 사람은 꼬리를 보지 못했습니다. {n}은 다음 대야로 미뤄졌습니다.',c:'sub'}},
    {l:'움직이지 않고 가라앉아 있는다',
-    ok:()=>org_single()?{end:'ORG-29-D'}:{t:'사람은 가라앉은 {n}의 꼬리를 한 번 보고 지나갔습니다. 두 갈래였습니다.',set:{grade:'B'}}}
+    ok:()=>org_single()?org_29cut():{t:'사람은 가라앉은 {n}의 꼬리를 한 번 보고 지나갔습니다. 두 갈래였습니다.',set:{grade:'B'}}}
   ]}]);
 
 /* EV-ORG-30 먹이 붕어 — [출처: 먹이용 금붕어(피더 골드피시) 대량 양식·무게 단위 판매] */
@@ -475,9 +482,9 @@ fev([{id:'ORG-31',stage:['trade','origin'],tier:'fact',sp:['gar'],when:org_farm,
 function org_inbred(lv){
   setFl('inbred',lv);
   if(lv<2) return {t:'같은 배의 형제들보다 {n}의 몸은 조금 더 튼튼했습니다.',c:'sub'};
-  if(isSp('oranda')) return R()<.2?{end:'ORG-32-D'}:{t:'{n}의 머리 혹이 형제들보다 빨리 자랐습니다. 혹 가장자리가 눈 위로 내려오기 시작했습니다.',c:'bad',set:{inj_eye:1,deformity:'wen'}};
-  if(isSp('ryukin')) return R()<.2?{end:'ORG-32-D2'}:{t:'{n}의 몸통은 형제들보다 짧고 둥글었습니다. 먹이를 먹고 나면 꼬리 쪽이 떠올랐습니다.',c:'bad',set:{swimb:1}};
-  return R()<.2?{end:'ORG-36-D'}:{t:'자라면서 {n}의 척추가 조금 옆으로 휘었습니다.',c:'bad',set:{deformity:'spine'}};
+  if(isSp('oranda')) return R()<.1?{end:'ORG-32-D'}:{t:'{n}의 머리 혹이 형제들보다 빨리 자랐습니다. 혹 가장자리가 눈 위로 내려오기 시작했습니다.',c:'bad',set:{inj_eye:1,deformity:'wen'}};
+  if(isSp('ryukin')) return R()<.1?{end:'ORG-32-D2'}:{t:'{n}의 몸통은 형제들보다 짧고 둥글었습니다. 먹이를 먹고 나면 꼬리 쪽이 떠올랐습니다.',c:'bad',set:{swimb:1}};
+  return R()<.06?{end:'ORG-36-D'}:{t:'자라면서 {n}의 척추가 조금 옆으로 휘었습니다.',c:'bad',set:{deformity:'spine'}};
 }
 fev([{id:'ORG-32',stage:'origin',tier:'fact',sp:['oranda','ryukin','guppy'],when:()=>org_farm()&&fl('grade')!=='C'&&fl('grade')!=='feeder',once:1,w:2,
   p:()=>'같은 부모의 자식들끼리 다시 짝이 지어집니다. {n}은 그 세 번째 대에서 태어났습니다. '+(isSp('oranda')?'머리의 혹이 같은 배의 다른 형제보다 큽니다.':isSp('ryukin')?'몸통이 같은 배의 다른 형제보다 짧습니다.':'꼬리 색이 같은 배의 다른 형제보다 진합니다.')+' {n}은…',
@@ -533,16 +540,17 @@ fev([{id:'ORG-35',stage:'origin',tier:'fact',sp:['betta'],when:org_farm,once:1,w
 /* EV-ORG-36 구피 농장의 굽은 등 — [출처: 팬시 구피 근친 교배에 따른 척추 기형·번식력 저하 · 난태생어 어미의 치어 포식] */
 const org_36after=()=>{
   if(isSp('platy')) return {t:'{n}은 형제들 사이에서 튼튼하게 자랐습니다. 색으로만 등급이 매겨졌습니다.',c:'sub'};
-  if(R()<.25) return R()<.35?{end:'ORG-36-D'}:{t:'자라면서 {n}의 척추가 조금 옆으로 휘었습니다.',c:'bad',set:{deformity:'spine',inbred:1}};
+  if(R()<.2) return R()<.1?{end:'ORG-36-D'}:{t:'자라면서 {n}의 척추가 조금 옆으로 휘었습니다.',c:'bad',set:{deformity:'spine',inbred:1}};
   return fem()?{t:'암컷인 {n}은 꼬리 색이 수컷만 못했습니다. 대량 판매 통으로 갔습니다.',c:'sub',set:{grade:'feeder',sex:'f'}}:{t:'{n}의 꼬리 색이 진하게 올랐습니다.',c:'good',set:{grade:'A',sex:'m'},run:()=>org_odds(.4)};
 };
-const org_mom=()=>R()<.15?{end:'ORG-36-D2'}:org_36after();
+const org_mom=()=>R()<.05?{end:'ORG-36-D2'}:R()<.5?{t:'어미의 입이 {n}의 꼬리를 물었다가 놓았습니다. 꼬리지느러미 절반이 떨어져 나갔고, 남은 가장자리가 하얗게 일어났습니다.',c:'bad',fx:{h:-8,fin:.3},set:{inj_fin:1},run:()=>org_carry('finrot')}
+  :{t:'어미의 입이 {n}의 머리를 물었다가 뱉어 냈습니다. 한쪽 눈의 각막이 하얗게 흐려졌습니다.',c:'bad',fx:{h:-8},set:{inj_eye:1}};
 fev([{id:'ORG-36',stage:'origin',tier:'fact',sp:['guppy','platy'],when:org_farm,once:1,w:()=>isSp('guppy')?2.5:1.2,
   p:'어미의 배에서 막 태어났습니다. 바로 옆에서 어미의 입이 다가옵니다. 수조에는 같은 꼬리 색의 형제들만 있습니다. {n}은…',
   o:[
    {l:'수초 덩어리 안으로 들어간다',chk:['w',25],ok:org_36after,no:org_mom},
    {l:'수면 가장자리로 빠르게 올라간다',chk:['p',15],ok:org_36after,no:org_mom},
-   {l:'바닥 구석에서 움직이지 않는다',ok:()=>R()<.25?{end:'ORG-36-D2'}:org_36after()}
+   {l:'바닥 구석에서 움직이지 않는다',ok:()=>R()<.3?org_mom():org_36after()}
   ]}]);
 
 /* EV-ORG-37 노천 양식장의 새 — [출처: 노천 관상어 양식장의 조류 포식 피해와 그물망 설치] */
@@ -556,7 +564,7 @@ fev([{id:'ORG-37',stage:['origin','trade'],tier:'fact',sp:['platy','guppy','neon
   ]}]);
 
 /* EV-ORG-38 네온병이 나온 수조 — [출처: 네온병(Pleistophora hyphessobryconis) — 치료제가 없어 감염 개체·수조 처분이 권장된다는 자료 · 네온 양식 대부분이 아시아산] */
-const org_neonFail=[[1,{end:'ORG-38-D'}],[2,{t:'작업자는 수조를 처분하지 않고 그대로 출하하기로 했습니다. {n}은 병든 무리와 같은 물에서 봉지에 담겼습니다.',c:'bad',set:{neon_dz:1},run:()=>org_carry('neond')}]];
+const org_neonFail=[[1,{end:'ORG-38-D'}],[3,{t:'작업자가 뜰채로 무리를 두 수조로 나누었습니다. 뜰채 테두리가 {n}의 옆구리를 긁고 지나가 비늘 몇 장과 점막이 벗겨졌습니다. {n}은 병든 무리와 같은 물에서 봉지에 담겼습니다.',c:'bad',fx:{h:-8},set:{slime_loss:1,neon_dz:1},run:()=>org_carry('neond')}],[4,{t:'작업자는 수조를 처분하지 않고 그대로 출하하기로 했습니다. {n}은 병든 무리와 같은 물에서 봉지에 담겼습니다.',c:'bad',set:{neon_dz:1},run:()=>org_carry('neond')}]];
 fev([{id:'ORG-38',stage:['origin','trade'],tier:'fact',sp:['neon'],when:org_farm,once:1,w:3,
   p:'수조 안 같은 무리 중 몇 마리의 파란 줄이 끊겨 하얗게 바랬습니다. 그 몇 마리는 무리에서 떨어져 비틀거리며 헤엄칩니다. 사람이 수조 앞에 오래 서 있습니다. {n}은…',
   o:[

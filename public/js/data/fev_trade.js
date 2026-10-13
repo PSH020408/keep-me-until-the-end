@@ -19,6 +19,8 @@ const trd_tough=()=>isSp('@big','@koi','@gold');
 const trd_carry=id=>{if(!S.f.carrier)S.f.carrier=id};
 /* owner learns a transport lesson (flags in S.f.fl) */
 function trd_learn(flag,kinds,p,line){if(S.preOwner||fl(flag))return;if(isKind(kinds)&&R()<p){setFl(flag,1);addLog(T(line),'good');S.r=clamp(S.r+.02,0,.97)}}
+/* a failed roll: share p ends the life with the catalogue ending, the rest leaves survivable tissue damage (inj) */
+const trd_k=(p,end,inj)=>R()<p?{end:end}:valOf(inj);
 
 /* ======================= TRADE (box moment: holding, export, air cargo, customs, wholesale) ======================= */
 
@@ -45,7 +47,7 @@ fev([{id:'TRD-01',stage:'trade',tier:'fact',once:1,
 function trd02corner(){
   if(isSp('peapuffer'))return {t:'겁에 질린 {n}이 물을 삼켜 몸을 부풀렸습니다. 둥글어진 몸은 틈에 들어가지 않았습니다.',c:'sub',fx:{h:-5,st:.1}};
   if(isSp('guppy','platy')&&S.f.len>fx_().cm*.5&&R()<.5)return {t:'{n}의 몸은 틈보다 두꺼웠습니다. 머리만 들어갔다가 빠져나왔습니다.',c:'sub',fx:{h:-4}};
-  return {end:'TRD-02-D'};
+  return trd_k(.3,'TRD-02-D',{t:'{n}의 몸이 모서리 틈에 끼어 상자가 열릴 때까지 눌려 있었습니다. 꺼내진 {n}의 옆구리는 비늘이 한 줄로 떨어져 나가 있었고, 눌린 자리의 점막이 벗겨져 근육의 분홍빛이 비쳤습니다. 꼬리지느러미 막은 비닐 주름을 따라 세로로 찢어져 있었습니다.',c:'bad',fx:{h:-18,fin:.12},set:{slime_loss:1,inj_skin:1}});
 }
 const trd02ok={t:'봉지가 열릴 때까지 {n}은 가운데에서 버텼습니다. 같은 봉지의 두 마리는 모서리에서 납작하게 나왔습니다.',c:'good',add:{bag_nh3:1},mem:'좁은 틈이 있었다. 들어가지 않았다.'};
 fev([{id:'TRD-02',stage:'trade',tier:'fact',sp:['neon','guppy','platy','peapuffer','apisto','cory'],
@@ -58,13 +60,14 @@ fev([{id:'TRD-02',stage:'trade',tier:'fact',sp:['neon','guppy','platy','peapuffe
 
 /* EV-TRD-03 가시가 봉지를 뚫다 — [출처: 플레코·코리 가시의 봉지 천공, 이중 포장 권장]
    spined fish make the hole; small fish in the same bag only lose the water */
+const trd03dry=()=>trd_k(.15,'TRD-03-D',{t:'물이 거의 다 빠졌습니다. 젖은 비닐에 닿아 있던 쪽 피부는 점막이 말라 비닐에 들러붙었고, 상자가 열려 떼어 낼 때 그 자리의 표피가 함께 벗겨졌습니다. 공기에 드러난 아가미 새엽 끝은 말라 하얗게 엉겨 있었습니다.',c:'bad',fx:{h:-22},set:{slime_loss:1,inj_gill:1,inj_skin:1}});
 function trd03leak(p){
   const sp=isSp('pleco','cory','clownloach','@puffer');
   if(sp&&R()>p)return {t:'상자가 열렸을 때 봉지는 멀쩡했습니다. 새던 물은 옆 봉지의 것이었습니다.',c:'good'};
-  if(isSp('pleco'))return trd_r('g',40)?{t:'물이 다 빠진 봉지 속에서 {n}은 젖은 비닐에 배를 붙이고 하루를 버텼습니다. 수입업자는 "물 없는 봉지에서 산 놈"이라며 {n}을 따로 표시해 두었습니다. 함께 봉지에 있던 네온 여섯 마리는 마른 채 바닥에 붙어 있었습니다.',c:'good',fx:{h:-10,g:2},set:{slime_loss:1},mem:'물이 없었다. 젖은 비닐에 붙어 버텼다.'}:{end:'TRD-03-D'};
-  if(isSp('cory'))return trd_r('g',40,10)?{t:'물이 반 넘게 빠졌습니다. {n}은 남은 물 위로 입을 내밀어 공기를 삼키며 버텼습니다.',c:'sub',fx:{h:-12},set:{slime_loss:1}}:{end:'TRD-03-D'};
-  if(isSp('clownloach'))return trd_r('g',55)?{t:'눈 밑 가시가 비닐에 걸린 채 {n}은 남은 물에 몸을 담그고 버텼습니다.',c:'sub',fx:{h:-15,fin:.05}}:{end:'TRD-03-D'};
-  return trd_r('g',40)?{t:'수위가 몸높이 가까이 내려갔지만, 상자는 그 전에 열렸습니다.',c:'sub',fx:{h:-10}}:{end:'TRD-03-D'};
+  if(isSp('pleco'))return trd_r('g',40)?{t:'물이 다 빠진 봉지 속에서 {n}은 젖은 비닐에 배를 붙이고 하루를 버텼습니다. 수입업자는 "물 없는 봉지에서 산 놈"이라며 {n}을 따로 표시해 두었습니다. 함께 봉지에 있던 네온 여섯 마리는 마른 채 바닥에 붙어 있었습니다.',c:'good',fx:{h:-10,g:2},set:{slime_loss:1},mem:'물이 없었다. 젖은 비닐에 붙어 버텼다.'}:trd03dry();
+  if(isSp('cory'))return trd_r('g',40,10)?{t:'물이 반 넘게 빠졌습니다. {n}은 남은 물 위로 입을 내밀어 공기를 삼키며 버텼습니다.',c:'sub',fx:{h:-12},set:{slime_loss:1}}:trd03dry();
+  if(isSp('clownloach'))return trd_r('g',55)?{t:'눈 밑 가시가 비닐에 걸린 채 {n}은 남은 물에 몸을 담그고 버텼습니다.',c:'sub',fx:{h:-15,fin:.05}}:trd03dry();
+  return trd_r('g',40)?{t:'수위가 몸높이 가까이 내려갔지만, 상자는 그 전에 열렸습니다.',c:'sub',fx:{h:-10}}:trd03dry();
 }
 fev([{id:'TRD-03',stage:'trade',tier:'fact',sp:['pleco','cory','clownloach','@puffer','neon','guppy','platy'],
   w:()=>isSp('pleco','cory','clownloach','@puffer')?1:.5,
@@ -85,7 +88,7 @@ function trd04gulp(){
     const r={t:'부푼 {n}이 한참 떠 있다가 공기 방울 하나를 내보내고 쑥 가라앉았습니다. 그걸 본 사람은 웃으며 영상을 찍었고, 다음 복어도 뜰채로 떴습니다.',c:'good',fx:{h:-6,w:2},mem:'몸이 공기로 부풀었다. 한참 뒤에야 가라앉았다.'};
     r.run=()=>trd_learn('cup_puffer',['expert','learner','staff'],.6,'주인은 "복어는 컵으로 옮긴다"는 글을 찾아 읽었습니다. 그 뒤로 뜰채는 쓰지 않았습니다.');
     return r}
-  return {end:'TRD-04-D'};
+  return trd_k(.1,'TRD-04-D',{t:'부푼 {n}은 공기를 내보내지 못한 채 반나절 동안 배를 위로 하고 수면에 떠 있었습니다. 늘어났던 배 피부에는 실핏줄이 터진 붉은 줄이 그물처럼 남았고, 수면 위로 나와 있던 쪽 피부는 말라 하얗게 일어났습니다. 이튿날에야 {n}은 바닥으로 내려갔습니다.',c:'bad',fx:{h:-20,st:.1},set:{inj_skin:1,air_bloat:1},mem:'몸이 공기로 부풀었다. 내려갈 수 없었다.'});
 }
 fev([{id:'TRD-04',stage:['shop','home'],tier:'fact',sp:['@puffer'],cd:50,
   when:()=>!fl('cup_puffer')&&!isKind('expert'),w:()=>S.preOwner?1:.5,
@@ -98,9 +101,10 @@ fev([{id:'TRD-04',stage:['shop','home'],tier:'fact',sp:['@puffer'],cd:50,
   ]}]);
 
 /* EV-TRD-05 봉지 안의 독 — 코리 — [출처: 코리도라스 스트레스 시 피부 분비물의 독성, 단독 포장 권장] */
+const trd05gill=()=>trd_k(.08,'TRD-05-D',{t:'봉지가 열렸을 때 {n}의 아가미 새엽은 점액에 덮여 서로 엉겨 붙어 있었습니다. 아가미 뚜껑 안쪽 가장자리는 하얗게 짓물렀고, 몸 표면의 점막은 군데군데 실처럼 풀려 떨어졌습니다. {n}은 바닥에 기울어진 채 아가미 뚜껑을 빠르게 여닫았습니다.',c:'bad',fx:{h:-22,st:.1},set:{inj_gill:1,slime_loss:1,toxin:'cory_mucus'},add:{bag_nh3:1}});
 function trd05(){
-  if(isSp('cory'))return trd_r('g',45)?{t:'봉지가 열렸을 때 {n}은 살아 있었습니다. 손님은 "코리는 튼튼하네요"라고 말했습니다. 같은 봉지의 네온은 두 마리가 줄어 있었습니다.',c:'sub',fx:{h:-8},set:{toxin:'cory_mucus'},add:{bag_nh3:1}}:{end:'TRD-05-D'};
-  return trd_r('g',45,isSp('ghost','clownloach')?-15:0)?{t:'봉지가 열렸을 때 {n}은 아가미가 부은 채 살아 있었습니다. 같은 봉지의 다른 몇 마리는 바닥에 누워 있었습니다.',c:'bad',fx:{h:-15},add:{bag_nh3:1}}:{end:'TRD-05-D'};
+  if(isSp('cory'))return trd_r('g',45)?{t:'봉지가 열렸을 때 {n}은 살아 있었습니다. 손님은 "코리는 튼튼하네요"라고 말했습니다. 같은 봉지의 네온은 두 마리가 줄어 있었습니다.',c:'sub',fx:{h:-8},set:{toxin:'cory_mucus'},add:{bag_nh3:1}}:trd05gill();
+  return trd_r('g',45,isSp('ghost','clownloach')?-15:0)?{t:'봉지가 열렸을 때 {n}은 아가미가 부은 채 살아 있었습니다. 같은 봉지의 다른 몇 마리는 바닥에 누워 있었습니다.',c:'bad',fx:{h:-15},add:{bag_nh3:1}}:trd05gill();
 }
 fev([{id:'TRD-05',stage:'trade',tier:'fact',sp:['cory','neon','guppy','apisto','altum','ghost','clownloach','platy'],w:()=>isSp('cory')?1.2:.6,
   p:()=>isSp('cory')?'봉지가 좁습니다. 다른 물고기의 꼬리가 계속 얼굴에 닿습니다. 물이 조금씩 뿌옇게 흐려집니다. {n}은…'
@@ -109,7 +113,7 @@ fev([{id:'TRD-05',stage:'trade',tier:'fact',sp:['cory','neon','guppy','apisto','
    {l:'가슴 가시를 세우고 봉지 벽 쪽으로 몸을 밀어붙인다',when:()=>isSp('cory'),ok:{t:'{n}의 피부에서 점액이 더 나왔습니다. 물이 희뿌옇게 변했습니다.',c:'bad',run:()=>q(null,null,()=>fevOut(trd05()))}},
    {l:'수면 쪽으로 올라가 공기를 한 모금 삼킨다',when:()=>isSp('cory'),chk:['g',40],
     ok:{t:'{n}은 장으로 공기를 삼키며 버텼습니다. 봉지가 열렸을 때 {n}은 움직이고 있었습니다. 같은 봉지의 네온은 두 마리가 줄어 있었습니다.',c:'sub',fx:{h:-6,g:2},set:{toxin:'cory_mucus'}},no:()=>trd05()},
-   {l:'수면 쪽으로 올라가 입을 벌린다',when:()=>!isSp('cory'),ok:()=>trd_r('g',40,isSp('ghost','clownloach')?-15:0)?{t:'수면 쪽 물은 조금 덜 뿌옜습니다. 봉지가 열릴 때까지 {n}은 거기서 버텼습니다.',c:'sub',fx:{h:-12}}:{end:'TRD-05-D'}},
+   {l:'수면 쪽으로 올라가 입을 벌린다',when:()=>!isSp('cory'),ok:()=>trd_r('g',40,isSp('ghost','clownloach')?-15:0)?{t:'수면 쪽 물은 조금 덜 뿌옜습니다. 봉지가 열릴 때까지 {n}은 거기서 버텼습니다.',c:'sub',fx:{h:-12}}:trd05gill()},
    {l:()=>isSp('cory')?'봉지 바닥에 배를 붙이고 수염만 움직인다':'봉지 바닥 가까이에서 지느러미를 접는다',
     ok:()=>isSp('cory')?(trd_r('g',50)?{t:'{n}은 끝까지 가만히 있었습니다. 점액은 나오지 않았고, 봉지 물은 맑았습니다.',c:'good',fx:{g:2}}:trd05()):trd05()}
   ]}]);
@@ -121,7 +125,7 @@ fev([{id:'TRD-06',stage:'trade',tier:'likely',w:.7,
   auto:()=>{
     if(isSp('@big','@koi','@gold'))return {t:'{n}의 몸이 조금 무거워졌습니다. {n}은 이틀 내내 거의 움직이지 않은 채 도착했습니다. 수입업자의 기록에는 "상태 양호"라고 적혔습니다.',c:'sub',set:{sedated:1}};
     const b=(trd_sens()?-20:0)+(isSp('@labyrinth','@airbreather')?10:0)+(isSp('@small','@schooling')?-5:0);
-    if(!trd_r('g',40,b))return {end:'TRD-06-D'};
+    if(!trd_r('g',40,b))return trd_k(.15,'TRD-06-D',{t:'{n}은 도착할 때까지 봉지 바닥에 옆으로 누워 있었습니다. 아가미 뚜껑만 몇 분에 한 번 들렸습니다. 약에 오래 닿은 아가미 새엽 가장자리는 갈색으로 말려 있었고, 눈동자는 빛에 늦게 움직였습니다. 수입업자의 기록에는 "상태 양호"라고 적혔습니다.',c:'bad',fx:{h:-22,st:.1},set:{sedated:1,inj_gill:1,slime_loss:isSp('@scaleless')?1:0}});
     return {t:'{n}은 이틀 내내 거의 움직이지 않은 채 도착했습니다. 수입업자의 기록에는 "상태 양호"라고 적혔습니다.'+(isSp('@scaleless')?' {n}의 피부 점막은 군데군데 벗겨져 있었습니다.':''),c:'sub',fx:{h:isSp('@scaleless')?-15:-6},set:{sedated:1,slime_loss:isSp('@scaleless')?1:0}};
   }}]);
 
@@ -129,7 +133,8 @@ fev([{id:'TRD-06',stage:'trade',tier:'likely',w:.7,
 function trd07(b){
   const s=season(),hot=s==='summer',cold=s==='winter';
   b=(b||0)+(cold&&isSp('@koi','@gold','gar')?20:0)+(cold&&isSp('@tropical')?-10:0)+(!hot&&!cold?20:0)+(hot&&isSp('@schooling','@small')?-5:0);
-  if(!trd_r('g',35,b))return {end:cold&&isSp('@tropical')?'TRD-07-W':'TRD-07-S'};
+  if(!trd_r('g',35,b))return trd_k(.25,cold&&isSp('@tropical')?'TRD-07-W':'TRD-07-S',cold?{t:'상자는 하루 늦게 도착했습니다. 식은 물 속에서 {n}의 지느러미는 몸에 붙은 채 펴지지 않았고, 피부 점막은 뿌옇게 일어나 손끝으로 밀면 벗겨질 만큼 들떠 있었습니다. 새 물에 들어간 뒤에도 {n}은 반나절 동안 바닥에 옆으로 누워 있었습니다.',c:'bad',fx:{h:-20,st:.15},set:{slime_loss:1},add:{transit_delay:1},run:()=>{S.f.coldShock=1}}
+    :{t:'상자는 하루 늦게 도착했습니다. 공기층이 바닥난 봉지에서 {n}의 아가미 새엽 끝은 피가 몰려 검붉게 부었고, 일부는 끝이 녹아 짧아졌습니다. 봉지 비닐에 쓸린 주둥이 끝의 피부는 벗겨져 있었습니다.',c:'bad',fx:{h:-20,st:.1},set:{inj_gill:1,inj_skin:1},add:{transit_delay:1,bag_nh3:1}});
   return {t:'상자는 예정보다 열네 시간 늦게 도착했습니다. 송장에는 "지연 사유: 없음"이라고 적혀 있었습니다.',c:'sub',fx:{h:-8},add:{transit_delay:1,bag_nh3:1},run:()=>{if(hot||cold)S.f.coldShock=1}};
 }
 fev([{id:'TRD-07',stage:'trade',tier:'fact',
@@ -144,7 +149,8 @@ fev([{id:'TRD-07',stage:'trade',tier:'fact',
 /* EV-TRD-08 검역 대기 — [출처: 수입 관상어(잉어과) 검역 절차 — 국립수산물품질관리원 수산생물 검역 대상 질병·표본 검사 방식. 실제 표본 수·처분 기준 확인 필요] */
 const trd08pass={t:'{n}은 통관 서류의 한 줄이 되었습니다. 품목: 관상어. 수량: 1.',c:'good',set:{quarantined:1}};
 function trd08sample(){
-  if(isSp('koi','@gold'))return R()<.25?{end:'TRD-08-C'}:{end:'TRD-08-B'};
+  if(isSp('koi','@gold'))return R()<.3?(R()<.3?{end:'TRD-08-C'}:{end:'TRD-08-B'})
+    :{t:'검사관이 {n}을 통에 옮겨 아가미 뚜껑을 젖혔습니다. 아가미 새엽 끝 몇 가닥이 가위로 잘려 나갔고, 옆구리 점액은 유리판 끝으로 긁혀 나갔습니다. 잘린 새엽 자리에서 피가 실처럼 풀려 나왔습니다. {n}은 봉지로 돌아왔고, 상자는 다음 날 통관되었습니다.',c:'bad',fx:{h:-15,st:.1},set:{inj_gill:1,slime_loss:1,quarantined:1},add:{transit_delay:1}};
   return {t:'{n}은 표본 통에 옮겨졌다가 서류 확인 뒤 봉지로 돌아왔습니다. 그동안 봉지 물은 더 탁해졌습니다.',c:'sub',fx:{h:-5},add:{bag_nh3:1,transit_delay:1}};
 }
 fev([{id:'TRD-08',stage:'trade',tier:'fact',w:()=>isSp('koi','@gold')?1.5:.2,
@@ -153,7 +159,7 @@ fev([{id:'TRD-08',stage:'trade',tier:'fact',w:()=>isSp('koi','@gold')?1.5:.2,
    {l:'빛 쪽으로 몸을 돌려 지느러미를 넓게 편다',chk:['c',50],ok:{t:'{n}의 상자는 "상태 양호"로 분류되어 그날 통관되었습니다.',c:'good',fx:{c:2},set:{quarantined:1}},no:()=>trd08sample()},
    {l:'봉지 구석으로 몸을 숨긴다',chk:['w',40],ok:{t:'{n}은 표본에서 빠졌습니다. 대기는 길어졌습니다.',c:'sub',add:{transit_delay:1,bag_nh3:1},set:{quarantined:1}},no:()=>trd08sample()},
    {l:'가만히 바닥에 머문다',ok:()=>{
-     if(isSp('koi','@gold')&&R()<.12)return {end:'TRD-08-C'};
+     if(isSp('koi','@gold')&&R()<.04)return {end:'TRD-08-C'};
      return trd_r('g',40)?trd08pass:{t:'검역 창고에서의 대기는 이틀이 되었습니다. {n}은 버텼지만 몸이 축났습니다.',c:'bad',fx:{h:-10},add:{bag_nh3:1,transit_delay:1}}}}
   ]}]);
 
@@ -161,7 +167,7 @@ fev([{id:'TRD-08',stage:'trade',tier:'fact',w:()=>isSp('koi','@gold')?1.5:.2,
 function trd09(b){
   b=(b||0)+(isSp('betta','wildbetta','channa','bichir','gar')?15:0)+(isSp('oscar','koi','@gold','pleco')?15:0)-(fl('sedated')?10:0)
     -(fl('bag_nh3')>=2&&isSp('neon','altum','ghost','clownloach')?20:0)-(fl('bag_nh3')||0)*3;
-  if(!trd_r('g',45,b))return {end:'TRD-09-D'};
+  if(!trd_r('g',45,b))return trd_k(.1,'TRD-09-D',{t:'{n}은 새 물로 옮겨졌습니다. 아가미 새엽은 부어 서로 달라붙었고, 가장자리는 암모니아에 데어 하얗게 벗겨져 있었습니다. 아가미 뚜껑 틈으로 엉긴 점액이 실처럼 늘어져 나왔습니다. {n}은 한나절 동안 수면에 입을 대고 빠르게 숨을 쉬었습니다.',c:'bad',fx:{h:-22,st:.15},set:{inj_gill:1,inj_burn:1}});
   const gill=R()<.3;
   return {t:'{n}은 새 물로 옮겨졌습니다. 같은 봉지에서 함께 온 것들 중 절반은 건져지지 않았습니다.'+(gill?' {n}의 아가미 새엽 끝은 부어 있었습니다.':''),c:'sub',fx:{h:gill?-14:-6},set:{inj_gill:gill?1:0}};
 }
@@ -178,22 +184,23 @@ function trd10bucket(){
   if(isSp('clownloach'))return trd_r('g',40)?{t:'양동이에 던져진 {n}이 사체 더미 위로 펄쩍 튀어 올랐습니다. 직원이 비명을 지르고 {n}을 다시 수조로 돌려놓았습니다. 보상 청구서의 "도착 사망" 숫자는 고쳐지지 않았습니다.',c:'good',fx:{h:-8,g:2},set:{doa_survivor:1},mem:'죽은 것들 사이에 던져졌다. 뛰어올라 돌아왔다.'}:{end:'TRD-10-D'};
   return trd_r('g',85)?{t:'양동이를 비우기 직전, 직원이 아가미를 움직이는 {n}을 보고 건져 냈습니다.',c:'sub',fx:{h:-12}}:{end:'TRD-10-D'};
 }
+const trd10net=p=>R()<p?trd10bucket():{t:'그물이 {n}을 들어 올렸습니다. 공기 속에서 {n}이 몸을 튕기자 꼬리지느러미 막이 그물코에 걸려 기조 사이로 찢어졌고, 옆구리 비늘 몇 장이 그물에 남았습니다. 직원은 움직이는 것을 확인하고 {n}을 원래 통에 털어 넣었습니다.',c:'bad',fx:{h:-12,fin:.15},set:{inj_fin:1,inj_skin:1}};
 fev([{id:'TRD-10',stage:'trade',tier:'fact',w:()=>fl('sedated')?1.5:1,
   p:'물통 위로 그물이 하나씩 지나갑니다. 움직이지 않는 것들이 다른 양동이로 옮겨집니다. 그물이 {n}의 위에서 멈춥니다. {n}은…',
   o:[
-   {l:'꼬리를 세게 쳐서 그물 아래로 빠져나간다',chk:['p',35],ok:{t:'{n}이 그물 아래로 빠져나갔습니다. 직원은 "살아 있네" 하고 다음 칸으로 넘어갔습니다.',c:'good',fx:{p:2}},no:()=>trd10bucket()},
+   {l:'꼬리를 세게 쳐서 그물 아래로 빠져나간다',chk:['p',35],ok:{t:'{n}이 그물 아래로 빠져나갔습니다. 직원은 "살아 있네" 하고 다음 칸으로 넘어갔습니다.',c:'good',fx:{p:2}},no:()=>trd10net(.15)},
    {l:'그물 쪽으로 몸을 돌려 지느러미를 편다',chk:['c',45],ok:{t:'그물이 {n}을 들었다가 다시 놓았습니다.',c:'good',fx:{c:2}},
-    no:()=>fl('sedated')?trd10bucket():{t:'그물이 {n}을 툭 건드리고 지나갔습니다. {n}은 수조 구석으로 밀려났습니다.',c:'sub',fx:{h:-3}}},
+    no:()=>fl('sedated')?trd10net(.25):{t:'그물이 {n}을 툭 건드리고 지나갔습니다. {n}은 수조 구석으로 밀려났습니다.',c:'sub',fx:{h:-3}}},
    {l:'바닥에 옆으로 누운 채 가만히 있는다',ok:()=>{
-     if(isSp('clownloach'))return trd_r('w',50)?{t:'직원이 "얘는 원래 이래" 하고 {n}을 그냥 두었습니다.',c:'good',fx:{w:2}}:trd10bucket();
-     return R()<(isSp('altum','ghost')||fl('sedated')?.7:.5)?trd10bucket():{t:'그물이 {n} 옆의 다른 몸을 떠 갔습니다.',c:'sub'}}}
+     if(isSp('clownloach'))return trd_r('w',50)?{t:'직원이 "얘는 원래 이래" 하고 {n}을 그냥 두었습니다.',c:'good',fx:{w:2}}:trd10net(.3);
+     return R()<(isSp('altum','ghost')||fl('sedated')?.12:.06)?trd10bucket():{t:'그물이 {n} 옆의 다른 몸을 떠 갔습니다.',c:'sub'}}}
   ]}]);
 
 /* EV-TRD-11 도매상의 약욕 — the drug spreads anyway; only a staff member who notices can take the fish out
    [출처: 관상어 도매 예방 약욕(포르말린·말라카이트 그린·구리) 관행과 무비늘어 민감도, 포르말린의 용존산소 감소] */
 function trd11(){
   const b=(isSp('motoro','ghost','clownloach','cory')?-25:0)+(isSp('altum','neon','peapuffer')?-15:0)+(isSp('koi','@gold','oscar','arowana','gar')?20:0)+(isSp('@airbreather')?10:0);
-  if(!trd_r('g',40,b))return {end:'TRD-11-D'};
+  if(!trd_r('g',40,b))return trd_k(.12,'TRD-11-D',{t:'약이 {n}의 피부 점막을 녹였습니다. 벗겨진 점막은 물속에 하얀 막처럼 떠다녔고, 그 아래 표피가 붉게 드러났습니다. 아가미 새엽 가장자리는 약에 타서 하얗게 말렸고, 지느러미 막 끝은 녹아 기조만 빗살처럼 남았습니다. {n}은 며칠 동안 수면에 입을 대고 숨을 쉬었습니다.',c:'bad',fx:{h:-24,st:.15,fin:.15},set:{slime_loss:1,inj_gill:1,inj_burn:1},run:()=>trd_carry(R()<.5?'fungus':'columnaris')});
   return {t:'{n}의 피부는 몇 주에 걸쳐 다시 덮였습니다. 그 사이에 가게로 출고되었습니다.',c:'sub',fx:{h:isSp('@scaleless')?-15:-8},set:{slime_loss:1},run:()=>trd_carry(R()<.5?'fungus':'columnaris')};
 }
 const trd11save=()=>R()<.55?{t:'직원이 "얘들은 약에 약한 애들"이라며 {n}을 다른 통으로 뺐습니다.',c:'good',fx:{h:-3}}:{t:'직원은 유리 앞의 {n}을 한 번 보고 지나갔습니다.',c:'sub',run:()=>q(null,null,()=>fevOut(trd11()))};
@@ -207,7 +214,7 @@ fev([{id:'TRD-11',stage:'trade',tier:'fact',w:()=>trd_sens()?1.3:1,
 
 /* EV-TRD-30 넓은 상자 속의 가오리 — trade and, after purchase, the trip home
    [출처: 담수 가오리 운송 시 독침 보호(튜브 씌우기)·넓은 운송 용기 권장, 가오리 숨구멍(분수공) 위치] */
-function trd30leak(){return trd_r('g',40,-20)?{t:'봉지의 물이 독침 구멍으로 조금씩 빠져나갔습니다. 상자가 열렸을 때 {n}의 등 피부는 군데군데 말라 있었습니다.',c:'bad',fx:{h:-20},set:{slime_loss:1}}:{end:'TRD-30-D'}}
+function trd30leak(){return trd_r('g',40,-20)?{t:'봉지의 물이 독침 구멍으로 조금씩 빠져나갔습니다. 상자가 열렸을 때 {n}의 등 피부는 군데군데 말라 있었습니다.',c:'bad',fx:{h:-20},set:{slime_loss:1}}:trd_k(.25,'TRD-30-D',{t:'독침 구멍으로 물이 빠져 봉지 바닥에는 몸을 겨우 적실 만큼만 남았습니다. 상자가 열렸을 때 {n}의 원반 가장자리는 말라 하얗게 오그라들어 있었고, 등 쪽 숨구멍 둘레의 피부는 점막이 벗겨져 붉게 드러나 있었습니다.',c:'bad',fx:{h:-24,st:.15},set:{slime_loss:1,inj_skin:1}})}
 function trd30fold(){return R()<.3?trd30leak():{t:'몸이 말린 채 아래쪽 아가미구멍이 비닐에 눌렸습니다. {n}은 숨을 얕게 쉬며 버텼습니다.',c:'bad',fx:{h:-12}}}
 const trd30ok={t:'{n}은 원반을 반쯤 접은 채 도착했습니다. 물에 넣자 몇 분 동안 가장자리를 펴지 못했습니다. 이튿날 {n}은 모래를 덮고 숨었습니다.',c:'sub',fx:{h:-5}};
 fev([{id:'TRD-30',stage:['trade','home'],tier:'fact',sp:['motoro'],cd:60,w:()=>S.preOwner?1.5:2,
@@ -224,7 +231,8 @@ fev([{id:'TRD-30',stage:['trade','home'],tier:'fact',sp:['motoro'],cd:60,w:()=>S
 /* EV-TRD-20 금붕어 잡기 노점 — fish bound for a fair stall, at the box moment before the stall
    [출처: 축제 금붕어 잡기 노점 운영 실태 — 국내 보도·동물단체 자료] */
 function trd20(){
-  return trd_r('g',40,isSp('guppy')?-10:0)?{t:'{n}은 다섯 번째 뜰채에 떠졌습니다. 아이는 환호했고, 부모는 "집에 어항 없잖아"라고 말했습니다.',c:'sub',fx:{h:-8},set:{carry_bag:1,slime_loss:1}}:{end:'TRD-20-D'};
+  return trd_r('g',40,isSp('guppy')?-10:0)?{t:'{n}은 다섯 번째 뜰채에 떠졌습니다. 아이는 환호했고, 부모는 "집에 어항 없잖아"라고 말했습니다.',c:'sub',fx:{h:-8},set:{carry_bag:1,slime_loss:1}}
+    :trd_k(.3,'TRD-20-D',{t:'{n}은 해 질 녘까지 대야에 남았습니다. 종이 뜰채 테두리에 수십 번 쓸린 옆구리는 점막이 벗겨져 비늘 밑 붉은 살이 비쳤고, 꼬리지느러미 막은 가장자리부터 너덜너덜하게 찢어져 있었습니다. 마지막 손님의 뜰채가 {n}을 떴습니다.',c:'bad',fx:{h:-20,fin:.15,st:.15},set:{carry_bag:1,slime_loss:1,inj_skin:1}});
 }
 fev([{id:'TRD-20',stage:'trade',tier:'fact',sp:['comet','ryukin'],w:.5,when:()=>trd_shop()==='fair',
   log:'{n}이 담긴 상자는 도매상이 아니라 축제장 천막으로 갔습니다. 낮 장터에도 대야가 하나 놓였습니다.',
@@ -260,7 +268,7 @@ function trd13(b){
   b=(b||0)+(isSp('pleco','bichir','gar')?15:0)+(col&&season()==='summer'?-10:0);
   const slime=isSp('@scaleless')?' 다른 수조에 부은 약이 섬프를 타고 섞여 들어와, 비늘 없는 {n}의 피부가 따끔거렸습니다.':'';
   if(trd_r('g',45,b))return {t:'{n}의 수조는 병이 돌기 직전에 비워졌습니다. {n}은 할인 스티커와 함께 팔려 갔습니다.'+slime,c:'sub',fx:{h:slime?-8:0},set:{shared_system:1}};
-  if(col&&R()<.4)return {end:'TRD-13-D'};
+  if(col&&R()<.15)return {end:'TRD-13-D'};
   return {t:'며칠 뒤 {n}의 수조에도 병이 돌기 시작했습니다. {n}은 그 전에 팔려 나갔습니다.'+slime,c:'bad',fx:{h:slime?-8:-3},set:{shared_system:1},run:()=>trd_carry(dz)};
 }
 fev([{id:'TRD-13',stage:'shop',tier:'fact',when:()=>['mart','shop','bigshop'].includes(trd_shop()),
@@ -293,10 +301,12 @@ fev([{id:'TRD-14',stage:'shop',tier:'fact',notSp:['koi','oscar','motoro','gar','
   ]}]);
 
 /* EV-TRD-15 판매 수조 밖으로 — [출처: 아로와나·가물치류 점프·탈출 습성] */
+const trd15lid=()=>({t:'{n}이 틈을 향해 뛰어올랐다가 뚜껑 모서리에 머리를 부딪히고 물로 떨어졌습니다. 아래턱의 피부가 찢어져 하얀 뼈 끝이 비쳤고, 주둥이 위 비늘 몇 장이 뚜껑 모서리에 붙어 남았습니다.',c:'bad',fx:{h:-14,st:.1},set:{inj_skin:1,inj_jaw:1},near:'lid'});
+const trd15try=()=>R()<.2?trd15jump():trd15lid();
 function trd15jump(){
   const p=fst().p,cap=capOf('p');
   if(p>=cap*.92&&cap>=60)return {t:'{n}은 틈으로 튀어 나와 두 칸 옆 수조에 정확히 떨어졌습니다. 그 수조의 가격표는 {n}보다 세 배 비쌌습니다. 아침에 직원은 그 수조에서 {n}을 찾아냈고, 가격표를 바꾸지 않았습니다.',c:'good',fx:{h:-5},mem:'유리벽을 넘었다. 다른 물에 떨어졌다.'};
-  if(isSp('channa','bichir'))return trd_r('g',50)?{t:'{n}은 진열대 뒤 바닥에 떨어졌습니다. 공기로 숨을 쉬며 밤을 버텼고, 아침에 출근한 직원이 {n}을 주워 수조에 넣었습니다.',c:'sub',fx:{h:-15},set:{inj_skin:1}}:{end:'TRD-15-D'};
+  if(isSp('channa','bichir'))return trd_r('g',50)||R()<.6?{t:'{n}은 진열대 뒤 바닥에 떨어졌습니다. 공기로 숨을 쉬며 밤을 버텼고, 아침에 출근한 직원이 {n}을 주워 수조에 넣었습니다.',c:'sub',fx:{h:-15},set:{inj_skin:1}}:{end:'TRD-15-D'};
   if(p>=cap*.6){
     if(R()<.5)return {t:'{n}은 옆 수조 뚜껑 위에 떨어져 퍼덕이다 원래 수조로 미끄러져 들어갔습니다.'+(isSp('arowana')?' 아래턱이 먼저 부딪혔습니다.':''),c:'bad',fx:{h:-10},set:{inj_skin:1}};
     if(fx_().cm<15)return {t:'{n}은 옆 수조로 떨어졌습니다. 그 수조에는 큰 물고기들이 있었습니다.',c:'bad',run:()=>q(null,null,()=>fEnd('shopmate',pick(['oscar','arowana','channa'].filter(s=>s!==S.sp.id))))};
@@ -307,9 +317,9 @@ function trd15jump(){
 fev([{id:'TRD-15',stage:'shop',tier:'fact',sp:['@jumper','@escaper','guppy','platy'],w:()=>isSp('guppy','platy')?.2:1,
   p:'매장 불이 꺼집니다. 위쪽 형광등 하나만 깜빡입니다. 뚜껑과 유리 사이에 손가락 두 개만 한 틈이 있습니다. 그 틈으로 바깥 공기가 들어옵니다. {n}은…',
   o:[
-   {l:'틈 아래에서 수면을 향해 몸을 띄운다',chk:['w',50],ok:{t:'{n}은 수면 아래에서 밤을 보냈습니다. 틈으로는 형광등 불빛만 들어왔습니다.',c:'good',fx:{w:2}},no:()=>trd15jump()},
+   {l:'틈 아래에서 수면을 향해 몸을 띄운다',chk:['w',50],ok:{t:'{n}은 수면 아래에서 밤을 보냈습니다. 틈으로는 형광등 불빛만 들어왔습니다.',c:'good',fx:{w:2}},no:()=>trd15try()},
    {l:'틈 쪽 유리벽을 따라 천천히 헤엄친다',when:()=>isSp('@escaper'),chk:['w',50],ok:{t:'{n}은 틈을 지나쳐 다시 아래로 내려갔습니다.',c:'good',fx:{w:2}},
-    no:()=>isSp('channa','bichir')?trd15jump():{end:'TRD-15-D'}},
+    no:()=>isSp('channa','bichir')?trd15jump():trd15try()},
    {l:'바닥 장식 뒤로 내려간다',ok:{t:'{n}은 장식 뒤에서 아침을 기다렸습니다.',fx:{g:1}}}
   ]}]);
 
@@ -330,7 +340,7 @@ fev([{id:'TRD-16',stage:'shop',tier:'fact',sp:['comet','guppy','platy','oranda']
 
 /* EV-TRD-17 마트 수족관 코너 — [출처: 대형마트 관상어 판매 관리 실태 — 보도·조사 자료 확인 필요] (tier likely until sourced) */
 function trd17night(b){
-  if(!trd_r('g',35,b))return R()<.5?{end:'TRD-17-D'}:{t:'밤사이 물이 나빠졌습니다. {n}의 아가미는 붉게 부었지만, 아침 청소 때 {n}은 움직이고 있었습니다.',c:'bad',fx:{h:-15}};
+  if(!trd_r('g',35,b))return R()<.15?{end:'TRD-17-D'}:{t:'밤사이 물이 나빠졌습니다. {n}의 아가미는 붉게 부었지만, 아침 청소 때 {n}은 움직이고 있었습니다.',c:'bad',fx:{h:-15}};
   const x=isSp('peapuffer')?' 마트는 달팽이나 냉동 장구벌레를 주지 않았습니다. {n}의 배가 꺼지고, 부리가 길어졌습니다.':isSp('oscar')?' 작은 수조에서 {n}의 몸은 더 자라지 않았습니다.':'';
   return {t:'{n}은 마트 수조에서 몇 주를 버텼습니다. 장 보러 온 가족이 아이 손에 이끌려 {n}을 장바구니에 넣었습니다. 계산대에서 {n}은 두부 옆에 놓였습니다.'+x,c:'sub',set:{thin:isSp('peapuffer')?1:0,stunted:isSp('oscar')?1:0}};
 }
@@ -379,7 +389,7 @@ fev([{id:'TRD-19',stage:'shop',tier:'fact',sp:['@labyrinth'],when:()=>['mart','s
 /* EV-TRD-21 하루 종일 들고 다닌 봉지 — [출처: 없음 — 메커니즘만 사용(산소·온도)] */
 function trd21(b){
   if(isSp('oranda','ryukin')&&R()<.2)return {t:'짧은 몸이 흔들림에 몇 번 뒤집혔습니다. 집에 도착한 {n}은 몸이 한쪽으로 기울어 있었습니다.',c:'bad',sick:'swimb'};
-  if(!trd_r('g',38,(b||0)+(isSp('guppy')?-10:0)))return {end:'TRD-21-D'};
+  if(!trd_r('g',38,(b||0)+(isSp('guppy')?-10:0)))return trd_k(.25,'TRD-21-D',{t:'햇볕에 데워진 봉지 물 속에서 {n}의 아가미 새엽 끝은 검붉게 부었고, 바닥에 떨어질 때 비닐에 부딪힌 주둥이 끝은 피부가 벗겨져 하얗게 일어났습니다. 집에 어항이 없어서, 그날 밤 {n}은 국그릇 바닥에 옆으로 누워 아가미만 움직였습니다.',c:'bad',fx:{h:-20,st:.15},set:{inj_gill:1,inj_skin:1},pl:[[2,'어항 없이 데려옴']]});
   return {t:'{n}은 집에 도착했습니다. 집에는 어항이 없어서, 그날 밤 {n}은 국그릇에서 잤습니다.',c:'sub',fx:{h:-8},pl:[[2,'어항 없이 데려옴']]};
 }
 fev([{id:'TRD-21',stage:'home',tier:'likely',once:1,w:2,own:['gift','casual','eager','breakup','shared'],sp:['comet','oranda','ryukin','guppy'],
@@ -395,7 +405,7 @@ fev([{id:'TRD-21',stage:'home',tier:'likely',once:1,w:2,own:['gift','casual','ea
 const trd_shipLog='{n}이 이 집에 오기까지, 택배 상자 안에서 보낸 하루가 있었습니다.';
 function trd22(b){
   b=(b||0)+(isSp('@gold','koi','gar')?15:0)+(isSp('@labyrinth')?10:0)-(R()<.2?10:0);
-  if(!trd_r('g',35,b))return {end:'TRD-22-D'};
+  if(!trd_r('g',35,b))return trd_k(.3,'TRD-22-D',{t:'{n}은 도착했습니다. 미지근해진 봉지 물 속에서 아가미 새엽 끝은 피가 몰려 검붉게 부었고, 몸 표면의 점막은 뿌옇게 일어나 손끝에 묻어날 만큼 들떠 있었습니다. 판매자는 "여름 발송은 책임지지 않습니다"라는 문구를 상세페이지 맨 아래에 적어 두었습니다.',c:'bad',fx:{h:-20,st:.15},set:{inj_gill:1,slime_loss:1}});
   return {t:'{n}은 도착했습니다. 판매자는 "여름 발송은 책임지지 않습니다"라는 문구를 상세페이지 맨 아래에 적어 두었습니다.',c:'sub',fx:{h:-8},
     run:()=>trd_learn('shipping_season',['expert','learner','techbro'],.7,'주인은 다음부터 한여름과 한겨울에는 생물 택배를 주문하지 않기로 했습니다.')};
 }
@@ -413,7 +423,7 @@ fev([{id:'TRD-22',stage:'home',tier:'fact',once:1,w:2,need:{season:'summer'},whe
 /* EV-TRD-23 겨울 택배와 핫팩 — [출처: 동절기 관상어 택배 핫팩 사용과 직접 접촉 금지 안내] */
 function trd23cold(b){
   if(!isSp('@tropical'))return {t:'{n}은 차가운 상자 안에서 하루를 넘겼습니다. 추위는 {n}의 몸에 익숙한 것이었습니다.',c:'good'};
-  if(!trd_r('g',40,b))return {end:'TRD-23-C'};
+  if(!trd_r('g',40,b))return trd_k(.1,'TRD-23-C',{t:'식은 물 속에서 {n}은 바닥에 옆으로 누운 채 도착했습니다. 지느러미는 몸에 붙어 펴지지 않았고, 피부 점막은 뿌옇게 일어나 들떠 있었습니다. 새 물에 옮겨진 뒤에도 하루 동안 {n}은 몸을 세우지 못했습니다. 주인은 상자 사진을 찍어 후기에 "꼼꼼한 포장 감사합니다"라고 남겼습니다.',c:'bad',fx:{h:-20,st:.15},set:{slime_loss:1},run:()=>{S.f.coldShock=1}});
   return {t:'{n}은 미지근한 상태로 도착했습니다. 주인은 상자 사진을 찍어 후기에 "꼼꼼한 포장 감사합니다"라고 남겼습니다.',c:'sub',fx:{h:-10},run:()=>{S.f.coldShock=1;trd_learn('shipping_season',['expert','learner','techbro'],.7,'주인은 다음부터 한겨울에는 생물 택배를 주문하지 않기로 했습니다.')}};
 }
 fev([{id:'TRD-23',stage:'home',tier:'fact',once:1,w:2,need:{season:'winter'},when:()=>trd_fresh()&&trd_ship(),log:trd_shipLog,
@@ -421,7 +431,7 @@ fev([{id:'TRD-23',stage:'home',tier:'fact',once:1,w:2,need:{season:'winter'},whe
   o:[
    {l:'따뜻한 벽 쪽으로 다가간다',when:()=>fl('trd_hp'),ok:()=>{
      if(trd_r('w',45))return {t:'벽이 너무 뜨거워지자 {n}은 몸을 떼고 한 뼘 물러났습니다. 그 자리가 가장 알맞은 온도였습니다.',c:'good',fx:{w:2}};
-     if(isSp('@scaleless')||R()<.5)return {end:'TRD-23-B'};
+     if(R()<(isSp('@scaleless')?.15:.06))return {end:'TRD-23-B'};
      return {t:'핫팩이 닿은 쪽 피부가 하얗게 변했습니다. 주인은 상자 사진을 찍어 후기에 "꼼꼼한 포장 감사합니다"라고 남겼습니다. 핫팩 자국은 다음 주에 나타났습니다.',c:'bad',fx:{h:-15},set:{inj_burn:1},run:()=>trd_carry('fungus')}}},
    {l:'봉지의 반대쪽 차가운 구석으로 간다',when:()=>fl('trd_hp'),ok:()=>trd23cold(-10)},
    {l:'봉지 벽을 따라 천천히 돌며 몸을 데운다',when:()=>!fl('trd_hp'),ok:()=>trd23cold(-10)},
@@ -432,7 +442,7 @@ fev([{id:'TRD-23',stage:'home',tier:'fact',once:1,w:2,need:{season:'winter'},whe
 function trd24(b){
   const d=Math.floor(R()*3)*5;
   b=(b||0)+(fl('fasted')?10:0)+(isSp('koi','oscar','arowana')?-10:0);
-  if(!trd_r('g',50+d,b))return {end:'TRD-24-D'};
+  if(!trd_r('g',50+d,b))return trd_k(.1,'TRD-24-D',{t:'{n}은 나흘 만에 도착했습니다. 탁해진 물 속에서 아가미 새엽은 가장자리부터 하얗게 썩어 들어가 있었고, 몸 표면의 점막은 넝마처럼 풀려 지느러미 끝에 걸려 있었습니다. 봉지 바닥에는 함께 온 것들이 녹아 있었습니다. 판매자는 "연휴 기간은 생존 보장 불가"라고 답장했습니다.',c:'bad',fx:{h:-25,st:.15,fin:.1},set:{slime_loss:1,inj_gill:1}});
   return {t:isSp('@schooling','@small')?'{n}은 나흘 만에 도착했습니다. 같은 봉지의 다섯 마리 중 {n}만 움직였습니다. 판매자는 "연휴 기간은 생존 보장 불가"라고 답장했습니다. 주문하기 전에 적혀 있던 문장입니다.'
     :'{n}은 나흘 만에 도착했습니다. 아가미 끝이 하얗게 엉겨 있었습니다. 판매자는 "연휴 기간은 생존 보장 불가"라고 답장했습니다. 주문하기 전에 적혀 있던 문장입니다.',c:'bad',fx:{h:-15},set:{slime_loss:1,inj_gill:1},
     run:()=>trd_learn('shipping_season',['expert','learner','breeder'],.6,'주인은 다음부터 연휴 앞에는 생물 택배를 주문하지 않기로 했습니다.')};
@@ -448,7 +458,7 @@ fev([{id:'TRD-24',stage:'home',tier:'fact',once:1,w:.8,when:()=>trd_fresh()&&trd
 /* EV-TRD-25 문 앞의 상자 — [출처: 없음 — 메커니즘만] */
 function trd25(b){
   b=(b||0)+(isKind('neglect')?-15:isKind('expert','learner','techbro')?15:isKind('casual','breakup')?-5:0)+(isSp('@small')?-10:0);
-  if(!trd_r('g',40,b))return {end:'TRD-25-D'};
+  if(!trd_r('g',40,b))return trd_k(.3,'TRD-25-D',{t:'주인은 밤 열한 시에 상자를 열었습니다. 하루 종일 '+(season()==='winter'?'식어 간':'데워진')+' 봉지 물 속에서 {n}의 아가미 새엽 끝은 검붉게 부어 있었고, 봉지 바닥에 닿아 있던 쪽 피부는 점막이 벗겨져 하얗게 일어나 있었습니다. 주인은 "역시 튼튼하네"라고 말했습니다.',c:'bad',fx:{h:-20,st:.15},set:{inj_gill:1,slime_loss:1},add:{bag_nh3:1}});
   return {t:'주인은 밤 열한 시에 상자를 열었습니다. {n}은 살아 있었습니다. 주인은 "역시 튼튼하네"라고 말했습니다.'+(isSp('arowana')?' 고속버스 짐칸에서 몸을 튕긴 {n}의 옆구리 비늘이 몇 장 빠져 있었습니다.':''),c:'sub',fx:{h:isSp('arowana')?-12:-6},add:{bag_nh3:1},
     run:()=>trd_learn('parcel_home',['expert','learner'],.7,'주인은 다음부터 택배 받는 날에는 집에 있기로 했습니다.')};
 }
@@ -461,11 +471,12 @@ fev([{id:'TRD-25',stage:'home',tier:'likely',once:1,w:1.2,when:()=>trd_fresh()&&
   ]}]);
 
 /* EV-TRD-26 언박싱 — [출처: 없음 — 메커니즘만. 공기 노출 시 아가미 새엽 붕괴는 어병학 교재로 확인] */
+const trd26air=()=>trd_k(.25,'TRD-26-D',{t:'{n}은 카메라 앞에서 손바닥 위에 한참 놓여 있다가 물로 돌아갔습니다. 공기에 드러난 아가미 새엽은 서로 달라붙어 끝이 하얗게 말랐고, 손가락이 쥐었던 옆구리에는 점막이 벗겨진 손자국이 남았습니다. {n}은 바닥에 옆으로 누운 채 아가미 뚜껑만 빠르게 움직였습니다. 영상의 제목에는 "기절"이라는 단어가 들어갔습니다.',c:'bad',fx:{h:-20,st:.15},set:{inj_gill:1,slime_loss:1}});
 function trd26grab(){
   if(isSp('@puffer'))return trd04gulp();
-  if(isSp('motoro'))return trd_r('g',45)?{t:'손에 잡히는 순간 {n}의 꼬리가 반사적으로 휘었습니다. 독침이 주인 손등에 박혔습니다. 주인이 비명을 지르며 {n}을 수조 위로 떨어뜨렸습니다. 영상은 올라가지 않았습니다.',c:'bad',fx:{h:-15},set:{stung_owner:1}}:{end:'TRD-26-D'};
-  if(isSp('arowana','channa'))return trd_r('g',45)?{t:'{n}은 손 안에서 몸을 튕겨 빠져나갔고, 바닥에 떨어졌다가 다시 주워져 수조에 들어갔습니다. 비늘 몇 장이 바닥에 남았습니다.',c:'bad',fx:{h:-15},set:{inj_skin:1}}:{end:'TRD-26-D'};
-  return trd_r('g',45)?{t:'30초 뒤 물에 돌아간 {n}은 한참 바닥에 옆으로 누워 있다가 다시 헤엄쳤습니다. 영상의 제목에는 "기절"이라는 단어가 들어갔습니다.',c:'bad',fx:{h:-15},set:{slime_loss:1}}:{end:'TRD-26-D'};
+  if(isSp('motoro'))return trd_r('g',45)?{t:'손에 잡히는 순간 {n}의 꼬리가 반사적으로 휘었습니다. 독침이 주인 손등에 박혔습니다. 주인이 비명을 지르며 {n}을 수조 위로 떨어뜨렸습니다. 영상은 올라가지 않았습니다.',c:'bad',fx:{h:-15},set:{stung_owner:1}}:trd26air();
+  if(isSp('arowana','channa'))return trd_r('g',45)?{t:'{n}은 손 안에서 몸을 튕겨 빠져나갔고, 바닥에 떨어졌다가 다시 주워져 수조에 들어갔습니다. 비늘 몇 장이 바닥에 남았습니다.',c:'bad',fx:{h:-15},set:{inj_skin:1}}:trd26air();
+  return trd_r('g',45)?{t:'30초 뒤 물에 돌아간 {n}은 한참 바닥에 옆으로 누워 있다가 다시 헤엄쳤습니다. 영상의 제목에는 "기절"이라는 단어가 들어갔습니다.',c:'bad',fx:{h:-15},set:{slime_loss:1}}:trd26air();
 }
 fev([{id:'TRD-26',stage:'home',tier:'likely',once:1,own:['unbox','content'],
   w:()=>(isKind('unbox')?5:1.5)*(isSp('betta','@puffer','motoro','arowana','channa')?1:.4),when:()=>trd_fresh(),
@@ -481,7 +492,7 @@ fev([{id:'TRD-26',stage:'home',tier:'likely',once:1,own:['unbox','content'],
 /* EV-TRD-27 큰 봉지, 긴 귀갓길 — [출처: 없음 — 메커니즘만] */
 function trd27(b){
   b=(b||0)+(isSp('oscar','koi')?-15:0)+(isSp('betta')?20:0)-(R()<.5?10:0);
-  if(!trd_r('g',40,b))return {end:'TRD-27-D'};
+  if(!trd_r('g',40,b))return trd_k(.2,'TRD-27-D',{t:'{n}은 집에 도착했습니다. 검은 봉지 속에서 공기가 바닥나는 동안 아가미 새엽 끝은 검붉게 부었고, 몸을 펼 때마다 비닐에 쓸린 꼬리지느러미 막은 가장자리부터 너덜너덜하게 갈라졌습니다. 주인은 피곤해서 봉지를 수조 옆에 둔 채 씻으러 갔습니다.',c:'bad',fx:{h:-20,fin:.12,st:.1},set:{inj_gill:1,acclimation:'float'},add:{bag_nh3:1}});
   return {t:'{n}은 집에 도착했습니다. 주인은 피곤해서 봉지를 수조 옆에 둔 채 씻으러 갔습니다.',c:'sub',fx:{h:-6},set:{acclimation:'float'},add:{bag_nh3:1},
     run:()=>trd_learn('o2_bag',['learner','expert'],.6,'주인은 다음부터 가게에 아이스박스를 들고 가서 산소 포장을 부탁하기로 했습니다.')};
 }
@@ -504,7 +515,7 @@ function trd28(b){
   const need=45+(fl('bag_nh3')||0)*5+(S.f.coldShock?15:0);
   b=(b||0)+(isSp('neon','altum','ghost','apisto','clownloach')?-15:0)+(isSp('@gold','koi','gar','pleco')?20:0);
   const learn=()=>trd_learn('acclimation_ok',['learner'],.7,'주인은 "물맞이"를 검색했습니다. 다음부터는 봉지를 띄워 온도를 맞추고, 물을 조금씩 섞기로 했습니다.');
-  if(!trd_r('g',need,b))return R()<.5?{end:'TRD-28-D'}:{t:'이틀 뒤 {n}의 몸에 하얀 점이 돋기 시작했습니다.',c:'bad',fx:{h:-10,st:.15},set:{acclimation:'dump'},run:()=>{fSick('ich');learn()}};
+  if(!trd_r('g',need,b))return R()<.15?{end:'TRD-28-D'}:{t:'이틀 뒤 {n}의 몸에 하얀 점이 돋기 시작했습니다.',c:'bad',fx:{h:-10,st:.15},set:{acclimation:'dump'},run:()=>{fSick('ich');learn()}};
   const m=S.f.carrier&&S.f.mates.some(x=>x.n>0);
   return {t:m?'{n}은 쏟아진 다음 날 아침에도 헤엄쳤습니다. 수조에 원래 있던 물고기 두 마리는 일주일 뒤 하얀 점을 달고 떠올랐습니다. 주인은 그 두 마리가 왜 죽었는지 몰랐습니다.':'{n}은 쏟아진 다음 날 아침에도 헤엄쳤습니다.',c:'sub',fx:{st:.1},set:{acclimation:'dump'},run:learn};
 }
@@ -519,7 +530,7 @@ fev([{id:'TRD-28',stage:'home',tier:'fact',once:1,w:.5,when:()=>trd_fresh()&&!is
 /* EV-TRD-29 띄워 둔 채 잊힌 봉지 — [출처: 봉지 띄우기 물맞이 권장 시간과 조명 아래 과열 주의] */
 function trd29(b){
   b=(b||0)+(isSp('oscar','koi','arowana')?-20:0)+(isSp('neon','altum','apisto')?-10:0)+(isSp('@labyrinth')?15:0);
-  if(!trd_r('g',40,b))return {end:'TRD-29-D'};
+  if(!trd_r('g',40,b))return trd_k(.15,'TRD-29-D',{t:'주인은 한 시간 반 만에 돌아와 봉지를 열었습니다. 조명 아래에서 데워진 물 속에서 {n}의 아가미 새엽 끝은 피가 몰려 검붉게 부었고, 조명 쪽 등 피부는 점막이 말라 하얗게 일어나 있었습니다. 넓은 물에 쏟아진 {n}은 한참 동안 수면에 입을 대고 숨을 몰아쉬었습니다.',c:'bad',fx:{h:-20,st:.15},set:{inj_gill:1,slime_loss:1,acclimation:'float'}});
   return {t:'주인은 40분 만에 돌아와 봉지를 열었습니다. 인터넷에서 읽은 "15분"보다 길었지만, {n}은 살아 있었습니다.',c:'sub',fx:{h:-6},set:{acclimation:'float'},
     run:()=>trd_learn('float_timer',['learner','expert','techbro'],.6,'주인은 다음부터 봉지를 띄울 때 휴대폰 타이머를 맞춰 두었습니다.')};
 }
@@ -538,7 +549,7 @@ fev([{id:'TRD-29',stage:'home',tier:'fact',once:1,own:['learner','eager','casual
    [출처: 수조 이사 시 여과재 보존(질화세균 생존), 대형어 운반 용기 권장] */
 function trd31(b){
   const s=season();b=(b||0)+(s==='summer'||s==='winter'?-10:0)+(isSp('pleco')?20:0);
-  if(!trd_r('g',35,b))return {end:'TRD-31-D'};
+  if(!trd_r('g',35,b))return trd_k(.2,'TRD-31-D',{t:'대야는 상자들 사이에서 두 번 기울었습니다. 물이 반쯤 쏟아진 대야 바닥에서 {n}의 옆구리는 플라스틱에 쓸려 비늘이 한 줄로 떨어져 나갔고, 그 자리의 점막이 벗겨져 근육의 분홍빛이 비쳤습니다. 트럭은 새 집에 도착했습니다.'+(isKind('expert')?'':' 짐 사이에서 여과재는 말라 있었습니다.'),c:'bad',fx:{h:-18,st:.15,fin:.08},set:{inj_skin:1,slime_loss:1},run:()=>{if(!isKind('expert')){S.f.cycled=0;S.f.wq-=10}}});
   const big=isSp('gar','koi')?' 대야가 몸보다 작아 등이 반쯤 물 밖으로 나왔습니다. 등 피부의 점막이 말랐습니다.':'';
   return {t:'트럭은 새 집에 도착했습니다.'+big+(isKind('expert')?' 주인은 여과재를 물에 담가 따로 옮겨 왔습니다.':' 짐 사이에서 여과재는 말라 있었습니다.'),c:big?'bad':'sub',fx:{h:big?-12:-5,st:.1},
     run:()=>{if(!isKind('expert')){S.f.cycled=0;S.f.wq-=10}}};
@@ -550,16 +561,16 @@ fev([{id:'TRD-31',stage:'home',tier:'fact',once:1,w:.5,
    {l:'대야 바닥 가운데에서 몸을 낮춘다',ok:()=>trd31(0)},
    {l:'수면 쪽에서 위를 올려다본다',when:()=>isSp('@jumper','@escaper'),chk:['w',50],ok:()=>{const r=trd31(5);r.t='{n}은 끝까지 뛰지 않았습니다. '+(r.t||'');return r},
     no:()=>{
-      if(isSp('channa','bichir'))return trd_r('g',70)?{t:'새 집에서 짐을 풀던 주인이 "주방" 상자를 열었습니다. 냄비 사이에서 먼지를 뒤집어쓴 {n}이 아가미를 움직이고 있었습니다. 주인은 그날 저녁 뚜껑 있는 수조를 주문했습니다. 이사 업체 견적서에는 "생물 운송 불가"라고 적혀 있었습니다.',c:'good',fx:{h:-15},set:{lid:1},mem:'상자 속 어둠. 냄비 사이에서 버텼다.'}:{end:'TRD-31-D'};
-      return R()<.5?{t:'{n}이 대야 밖으로 튀어 장판 위에 떨어졌습니다. 이삿짐센터 직원이 맨손으로 {n}을 집어 대야에 던져 넣었습니다.',c:'bad',fx:{h:-15},near:'lid'}:{end:'TRD-31-D'}}},
+      if(isSp('channa','bichir'))return trd_r('g',70)||R()<.7?{t:'새 집에서 짐을 풀던 주인이 "주방" 상자를 열었습니다. 냄비 사이에서 먼지를 뒤집어쓴 {n}이 아가미를 움직이고 있었습니다. 주인은 그날 저녁 뚜껑 있는 수조를 주문했습니다. 이사 업체 견적서에는 "생물 운송 불가"라고 적혀 있었습니다.',c:'good',fx:{h:-15},set:{lid:1},mem:'상자 속 어둠. 냄비 사이에서 버텼다.'}:{end:'TRD-31-D'};
+      return R()<.8?{t:'{n}이 대야 밖으로 튀어 장판 위에 떨어졌습니다. 이삿짐센터 직원이 맨손으로 {n}을 집어 대야에 던져 넣었습니다.',c:'bad',fx:{h:-15},near:'lid'}:{end:'TRD-31-D'}}},
    {l:'수면 쪽에서 위를 올려다본다',when:()=>!isSp('@jumper','@escaper'),ok:()=>trd31(0)}
   ]}]);
 
 /* EV-TRD-32 당근 나눔 — 생수병 운송 — [출처: 없음 — 메커니즘만. 당근 나눔 운송 방식은 실제 거래글 예시로 확인] */
 function trd32go(dmg){
   if(isSp('@puffer'))return trd04gulp();
-  if(isSp('pleco','oscar','gar','koi')&&!trd_r('g',45,-20))return {end:'TRD-32-D'};
-  if(dmg&&isSp('@longfin')&&R()<.4)return {end:'TRD-32-D'};
+  if(isSp('pleco','oscar','gar','koi')&&!trd_r('g',45,-20))return trd_k(.15,'TRD-32-D',{t:'김장 비닐 속에서 {n}의 몸이 접힌 채 지하철을 탔습니다. 눌린 쪽 아가미 뚜껑 가장자리는 비닐에 쓸려 피가 배었고, 옆구리 비늘은 접힌 선을 따라 일어나 떨어졌습니다. 거래 후기에는 "친절하세요, 물고기 상태 좋아요"라고 적혔습니다.',c:'bad',fx:{h:-20,st:.1},set:{inj_skin:1,inj_gill:1},run:()=>fRehome('주인은 중고거래 앱에 "물고기 나눔" 글을 올렸습니다. {n}은 김장 비닐에 담겨 지하철을 탔습니다.',{note:'비닐에 담아 나눔'})});
+  if(dmg&&isSp('@longfin')&&R()<.12)return {end:'TRD-32-D'};
   return {t:dmg?'병 입구에 걸린 지느러미가 찢어졌습니다. 거래 후기에는 "친절하세요, 물고기 상태 좋아요"라고 적혔습니다.':'{n}은 무사히 병을 통과했습니다. 거래 후기에는 "친절하세요, 물고기 상태 좋아요"라고 적혔습니다. 병뚜껑은 거래하는 동안 닫혀 있었습니다.',
     c:dmg?'bad':'sub',fx:{fin:dmg?.2:0,h:dmg?-8:-3},run:()=>{if(dmg&&isSp('@longfin'))trd_carry('finrot');fRehome('주인은 중고거래 앱에 "물고기 나눔" 글을 올렸습니다. {n}은 생수병에 담겨 지하철을 탔습니다.',{note:'생수병에 담아 나눔'})}};
 }
@@ -576,7 +587,7 @@ fev([{id:'TRD-32',stage:'home',tier:'likely',own:['relay'],w:3,cd:30,
 function trd33(b){
   const h=Math.floor(R()*3)*5;
   b=(b||0)+(isSp('comet','guppy')?-10:0)+(isSp('@labyrinth')?15:0);
-  if(!trd_r('g',40+h,b))return {end:'TRD-33-D'};
+  if(!trd_r('g',40+h,b))return trd_k(.2,'TRD-33-D',{t:'모임이 끝났을 때 {n}은 어항 바닥에 옆으로 누워 아가미 뚜껑을 빠르게 여닫고 있었습니다. 아가미 새엽 끝은 검붉게 부어 있었고, 비닐 아래 공기를 찾아 수면을 쪼던 입 가장자리는 피부가 하얗게 벗겨져 있었습니다. 받은 사람은 "원래 이렇게 누워 자?"라고 물었습니다.',c:'bad',fx:{h:-20,st:.15},set:{inj_gill:1}});
   return {t:'{n}은 리본을 단 채 새 집에 도착했습니다. 받은 사람은 "어떻게 키우는 거야?"라고 물었고, 준 사람은 "물만 갈아 주면 돼"라고 답했습니다.',c:'sub',fx:{h:-8}};
 }
 fev([{id:'TRD-33',stage:'home',tier:'likely',once:1,own:['gift'],w:()=>isSp('betta','comet','oranda','guppy')?3:.3,when:()=>trd_fresh(),
@@ -589,7 +600,7 @@ fev([{id:'TRD-33',stage:'home',tier:'likely',once:1,own:['gift'],w:()=>isSp('bet
 
 /* EV-TRD-34 수조째 넘겨받기 — [출처: 물 채운 수조 운반 금지(이음새 파손) 권장] */
 function trd34(){
-  const pb=.12*(isSp('oscar','arowana','koi','gar')?2:1)*(isKind('relay','breakup')?1.5:1);
+  const pb=.04*(isSp('oscar','arowana','koi','gar')?2:1)*(isKind('relay','breakup')?1.5:1);
   if(R()<pb)return {end:'TRD-34-D'};
   return {t:'수조는 새 집에 도착했습니다. 물은 절반이 계단에 남았습니다.',c:'sub',run:()=>{
     fRehome('수조째 넘겨받은 사람은 비어 있는 절반을 수돗물로 채웠습니다.',{note:'수조째 넘김'});
@@ -609,7 +620,7 @@ fev([{id:'TRD-34',stage:'home',tier:'likely',once:1,own:['relay','breakup','gran
 /* EV-TRD-35 가게에 돌려주러 간 날 — a winter river kills a tropical fish without a check (rule 7)
    [출처: 국내 대형 관상어(앨리게이터 가아·플레코 등) 하천 유기 사례, 겨울 하천 수온] */
 function trd35refuse(){
-  if(isSp('@tropical')&&season()==='winter'&&R()<.6)return {t:'가게는 {n}을 받지 않았습니다. 집에 가는 길, 주인이 다리 위에서 멈췄습니다.',c:'bad',end:'TRD-35-D'};
+  if(isSp('@tropical')&&season()==='winter'&&R()<.35)return {t:'가게는 {n}을 받지 않았습니다. 집에 가는 길, 주인이 다리 위에서 멈췄습니다.',c:'bad',end:'TRD-35-D'};
   if(isSp('motoro')&&isKind('content'))return {t:'가게는 {n}을 받지 않았습니다. 주인은 "분양합니다" 영상을 올렸습니다.',c:'bad',run:()=>fRehome('영상을 본 사람이 {n}을 데려갔습니다.',{note:'감당 못 해 분양'})};
   if(R()<.5)return {t:'가게는 {n}을 받지 않았습니다. 주인은 "강에 놓아주자"고 말했습니다.',c:'bad',run:()=>q(null,null,()=>fRelease())};
   return {t:'가게는 {n}을 받지 않았습니다. 주인은 {n}을 다시 집으로 데려왔습니다. 수조는 그대로였습니다.',c:'bad',fx:{st:.1,h:-5}};
@@ -629,7 +640,7 @@ fev([{id:'TRD-35',stage:'home',tier:'fact',once:1,w:2,own:['casual','eager','gif
 /* EV-TRD-36 품평회 가는 길 — 비단잉어 — [출처: 코이 헤르페스바이러스(KHV) 증상·발병 수온, 품평회·딜러 거래를 통한 전파] */
 function trd36inf(b){
   if(trd_r('g',50,b))return {t:'{n}은 품평회 물에서 아무것도 묻혀 오지 않았습니다.',c:'good',near:'qt'};
-  if(isSp('koi'))return R()<.4?{end:'TRD-36-D'}:{t:'품평회에서 돌아온 지 열흘 뒤, {n}의 아가미 색이 얼룩덜룩해졌습니다.',c:'bad',sick:'khv',near:'qt'};
+  if(isSp('koi'))return R()<.2?{end:'TRD-36-D'}:{t:'품평회에서 돌아온 지 열흘 뒤, {n}의 아가미 색이 얼룩덜룩해졌습니다.',c:'bad',sick:'khv',near:'qt'};
   return {t:'품평회에서 돌아온 뒤 {n}의 아가미가 부어올랐습니다.'+(isSp('oranda','ryukin')?' 비닐 통으로 옮겨질 때 쓸린 지느러미도 낫지 않았습니다.':''),c:'bad',sick:'cyhv2',fx:{fin:isSp('oranda','ryukin')?.1:0},near:'qt'};
 }
 fev([{id:'TRD-36',stage:'home',tier:'fact',cd:60,own:['expert','breeder','decor','grandma'],sp:['koi','@gold'],need:{season:['spring','autumn']},

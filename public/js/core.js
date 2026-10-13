@@ -7,7 +7,7 @@ const hb=w=>{const c=w.charCodeAt(w.length-1);return c>=0xAC00&&c<=0xD7A3&&(c-0x
 const rl=w=>{const c=w.charCodeAt(w.length-1);return c>=0xAC00&&c<=0xD7A3&&(c-0xAC00)%28===8};
 const PAIR={'이':'이가','가':'이가','은':'은는','는':'은는','을':'을를','를':'을를','와':'과와','과':'과와','아':'아야','야':'아야'};
 function josa(n,p){if(p==='으로'||p==='로')return n+(hb(n)&&!rl(n)?'으로':'로');const pr=PAIR[p];return n+(hb(n)?pr[0]:pr[1])}
-function T(s){const n=S.disp;return s.replace(/\{n\}(으로|이|가|은|는|을|를|와|과|로|아|야)?/g,(_,p)=>p?josa(n,p):n).replace(/\{a\}/g,S.sp.adult||'').replace(/\{d\}/g,S.sp.dish||'')}
+function T(s){const n=S.disp;return s.replace(/\{n\}이었/g,()=>n+(hb(n)?'이었':'였')).replace(/\{n\}이라/g,()=>n+(hb(n)?'이라':'라')).replace(/\{n\}(으로|이|가|은|는|을|를|와|과|로|아|야)?/g,(_,p)=>p?josa(n,p):n).replace(/\{a\}/g,S.sp.adult||'').replace(/\{d\}/g,S.sp.dish||'')}
 
 const PLEDGE_BREED='번식시킨다면 태어난 생명까지 책임지겠습니다';
 /* fish, reptiles and insects are often bred on purpose, so their fifth promise is about the young */

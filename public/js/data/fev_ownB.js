@@ -6,9 +6,29 @@
 
 /* ---------- helpers ---------- */
 /* 근성 endurance: (g/need)², 5–95%; success → ok, failure → the ending */
-function owb_hold(need,end,ok){need=Math.max(8,need);
+/* a failed hold mostly leaves tissue damage (owb_scar); df = share of failures that end the life */
+const OWB_HARSH=['mill','neglect','cult','alchemist','bait','touch','release'];
+const owb_df=()=>OWB_HARSH.includes(kindOf())?.27:.2;
+function owb_hold(need,end,ok,df){need=Math.max(8,need);
   if(R()<clamp(Math.pow(fst().g/need,2),.05,.95))return valOf(ok)||{t:'{n}은 버텼습니다.',c:'sub',fx:{h:-8}};
-  return {end:valOf(end)}}
+  if(R()<(df===undefined?owb_df():df))return {end:valOf(end)};
+  return owb_scar(ok,valOf(end))}
+const OWB_SCAR={
+ gill:{t:'아가미 새엽 몇 줄이 끝부터 하얗게 죽어 떨어져 나갔습니다. 남은 새엽으로 {n}은 몇 주 동안 숨을 몰아쉬었습니다.',fx:{h:-8,st:.08},set:{inj_gill:1}},
+ skin:{t:'점막이 벗겨진 옆구리에 붉은 궤양이 패었습니다. 궤양은 몇 주에 걸쳐 비늘 없는 거친 흉터로 덮였습니다.',fx:{h:-8,st:.06},set:{inj_skin:1,slime_loss:1}},
+ fin:{t:'지느러미 막이 기조 사이마다 녹아 내려, 지느러미 끝이 기조만 남은 채 짧아졌습니다.',fx:{h:-6,fin:.12},set:{inj_fin:1}},
+ thin:{t:'등 근육이 빠져 드러난 척추 선은 그 뒤로도 다시 덮이지 않았습니다.',fx:{h:-8,fat:-.2},set:{weight:'thin'}},
+ cold:{t:'차가운 물에 오래 있던 지느러미 끝이 하얗게 괴사해 떨어져 나갔습니다.',fx:{h:-8,fin:.1},set:{inj_fin:1}},
+ throat:{t:'찢긴 목구멍 점막은 아물며 두꺼운 흉터가 되었습니다. {n}은 그 뒤로 큰 먹이를 삼키다 자주 뱉어 냈습니다.',fx:{h:-8},set:{inj_gill:1}}
+};
+const OWB_SCAR_CAT={'질병':'skin','학대':'skin','체험':'skin','뜰채 체험':'skin','먹이':'skin','미끼':'skin','굶주림':'thin','동사':'cold','택배':'cold','스트레스':'fin'};
+const OWB_SCAR_ID={'OWB-35-D':'fin','OWB-37-D':'thin','OWB-12-D':'cold','OWB-21-D':'throat','OWB-29-D':'skin','OWB-18-D':'thin'};
+function owb_scar(ok,end){
+  const E=FEVEND[end]||{},s=OWB_SCAR[OWB_SCAR_ID[end]||OWB_SCAR_CAT[E.cat]]||OWB_SCAR.gill;
+  ok=valOf(ok)||{t:'{n}은 버텼습니다.',c:'sub',fx:{h:-8}};if(ok.end)return {t:s.t,c:'bad',fx:s.fx,set:s.set};
+  const fx=Object.assign({},ok.fx||{});for(const k in s.fx)fx[k]=(fx[k]||0)+s.fx[k];
+  return Object.assign({},ok,{c:'bad',fx,set:Object.assign({},ok.set||{},s.set),run:()=>{addLog(T(s.t),'bad');if(ok.run)ok.run()}});
+}
 /* a plain stat roll without showing an option check */
 const owb_roll=(k,need)=>R()<clamp(Math.pow(fst()[k]/Math.max(1,need),2),.05,.95);
 const owb_trop=()=>isSp('@tropical');
@@ -114,7 +134,7 @@ function owb_move(route,o){
   }
   const mode=o.ride||owb_mode(k,route);
   if(!owb_ride(mode,o.rideMod)){
-    if(o.rideEnd&&(!o.rideEndIf||o.rideEndIf()))return {end:o.rideEnd};
+    if(o.rideEnd&&(!o.rideEndIf||o.rideEndIf())&&R()<(o.rideDf===undefined?.25:o.rideDf))return {end:o.rideEnd};
     out.t=pick(['가는 길에 봉지 속 물이 뿌옇게 흐려졌습니다. 도착했을 때 {n}은 옆으로 기운 채 아가미를 크게 벌리고 있었습니다.','오는 내내 봉지가 흔들렸습니다. {n}의 옆구리 비늘 몇 장이 봉지 바닥에 떨어져 있었습니다.']);out.c='bad';out.fx={h:-18,st:.15};
   }
   if(k==='same'){out.t=(out.t?out.t+' ':'')+(o.sameText||'주인은 {n}을 데리고 갔습니다.');return out}
@@ -199,8 +219,8 @@ fev([{id:'OWB-04',stage:'home',tier:'fact',own:['techbro'],cd:60,when:()=>!fl('o
   p:'수조 옆 가는 관에서 물이 계속 졸졸 흘러듭니다. 수면이 유리 테두리까지 올라오고, 물에서 수돗물 냄새가 납니다. 테두리 너머로 물이 넘치기 시작합니다. {n}은…',
   o:[
    {l:'넘치는 물살이 당기는 수면 가장자리에 머문다',chk:['p',40],ok:()=>owb04c(0),no:()=>owb04c(5)},
-   {l:'물살 반대편, 수조 가장 깊은 곳으로 내려간다',chk:['w',35],ok:()=>owb04c(-10),no:()=>isSp('@small')&&!fl('lid')&&R()<.5?{end:'OWB-04-S'}:owb04c(0)},
-   {l:'은신처에 가만히 있는다',ok:()=>isSp('@small')&&!fl('lid')&&R()<.25?{end:'OWB-04-S'}:owb04c(0)}
+   {l:'물살 반대편, 수조 가장 깊은 곳으로 내려간다',chk:['w',35],ok:()=>owb04c(-10),no:()=>isSp('@small')&&!fl('lid')&&R()<.15?{end:'OWB-04-S'}:owb04c(0)},
+   {l:'은신처에 가만히 있는다',ok:()=>isSp('@small')&&!fl('lid')&&R()<.08?{end:'OWB-04-S'}:owb04c(0)}
   ]}]);
 function owb04c(mod){
   const need=45+mod-(tankL()>=120?10:0)-(isSp('@big')?10:0)+(isSp('@scaleless')?10:0);
@@ -225,7 +245,7 @@ fev([{id:'OWB-05',stage:'home',tier:'fact',own:['relay','casual','eager'],need:{
    {l:'바닥에 가만히 있는다',ok:()=>owb05(0)}
   ]}]);
 function owb05(mod){
-  const need=55+mod-(isSp('platy','comet','pleco','gar','channa','bichir')?15:0)+(isSp('neon','altum','clownloach','ghost','motoro')?15:0)-(fl('salt')?10:0);
+  const need=50+mod-(isSp('platy','comet','pleco','gar','channa','bichir')?15:0)+(isSp('neon','altum','clownloach','ghost','motoro')?15:0)-(fl('salt')?10:0);
   return owb_hold(need,'OWB-05-D',{t:'둘째 주가 지나자 물 냄새가 가라앉았습니다. {n}의 아가미 끝은 한동안 거무스름했습니다.',c:'bad',fx:{h:-14,st:.1,i:-.1},set:{cycled:1,inj_gill:1},
     run:()=>owb_learn('owb05_fix','주인은 "물잡이"라는 말을 처음 검색했습니다. 다음 주인에게는 전해지지 않을 공부였습니다.')});
 }
@@ -289,8 +309,8 @@ fev([{id:'OWB-09',stage:'home',tier:'fact',own:['release'],once:1,w:3,
   ],
   auto:{t:'신도들이 염불을 외며 봉지를 거꾸로 듭니다. 바닷물에 닿은 {n}의 몸이 뻣뻣해집니다.',c:'bad',end:'OWB-09-D'}}]);
 function owb09(mod){
-  if(isSp('fig8'))return owb_hold(30+mod,'OWB-09-D',{end:'OWB-09-H'});
-  return owb_hold(70+mod,'OWB-09-D',{end:'OWB-09-G'});
+  if(isSp('fig8'))return owb_hold(30+mod,'OWB-09-D',{end:'OWB-09-H'},1);
+  return owb_hold(70+mod,'OWB-09-D',{end:'OWB-09-G'},1);
 }
 fevEnd({
  'OWB-09-D':{kind:'bad',cat:'방생',tier:'fact',fx:'f-float',pl:[[5,'바다에 방생']],fact:'fRelease',
@@ -311,7 +331,9 @@ fev([{id:'OWB-10',stage:'home',tier:'fact',own:['release'],need:{season:'summer'
    {l:'바닥 진흙 위에 가만히 있는다',ok:()=>owb10(-5)}
   ]}]);
 function owb10(mod){
-  if(!owb_air())for(let i=0;i<3;i++)if(!owb_roll('g',60+mod))return {end:'OWB-10-D'};
+  if(!owb_air()){let hurt=0;for(let i=0;i<3;i++)if(!owb_roll('g',60+mod)){if(R()<.12)return {end:'OWB-10-D'};hurt++}
+    if(hurt)addLog(T(hurt>=2?'새벽마다 숨이 막혔던 아가미 새엽 끝이 검붉게 죽어 떨어져 나갔습니다. {n}의 숨은 그 뒤로도 짧았습니다.':'숨이 막혔던 새벽, {n}의 아가미 새엽 끝이 붉게 터졌다가 천천히 아물었습니다.'),'bad');
+    if(hurt){S.health-=8*hurt;setFl('inj_gill',1)}}
   const tx=owb_air()?'새벽마다 다른 물고기들이 수면에 매달렸지만 {n}은 공기를 마시며 여름을 넘겼습니다.':'{n}은 여름 내내 새벽마다 수면에서 입을 벌리며 버텼습니다.';
   if(isSp('channa','gar'))return {t:tx+' 연못의 작은 물고기들이 하나둘 사라졌고, {n}은 점점 커졌습니다. 어느 장마철, 넘친 물을 따라 {n}은 수로로 나갔습니다.',c:'bad',fx:{fat:.2},run:()=>fRelease()};
   if(!owb_trop()&&R()<.3)return {t:tx+' 장마철 넘친 물을 따라 {n}은 연못 수로를 지나 하천으로 나갔습니다.',c:'bad',run:()=>fRelease()};
@@ -340,7 +362,7 @@ fevEnd({'OWB-11-D':{kind:'bad',cat:'수질 악화',tier:'fact',fx:'f-float',pl:[
   l:['금요일 오후, 퇴근하는 사람들이 한 꼬집씩 먹이를 넣고 갑니다. 다 먹지 못한 사료가 주말 동안 바닥에서 썩습니다.','물이 뿌옇게 흐려지고 수면에 기름막이 뜹니다. 늘어난 세균이 물속 산소를 씁니다.','{n}은 수면 바로 아래에서 아가미를 빠르게 여닫습니다. 지느러미 가장자리가 하얗게 짓무르기 시작합니다.','월요일 아침, 첫 출근자가 커피를 내려놓고 수면에 떠 있는 {n}을 봅니다.']}});
 
 /* [출처: 저수온과 어류 면역 저하] — a tropical fish without a heater in a cold classroom gets no check */
-fev([{id:'OWB-12',stage:'home',tier:'fact',own:['shared'],need:{season:['winter','summer']},cd:40,w:2,
+fev([{id:'OWB-12',stage:'home',tier:'fact',own:['shared'],need:{season:['winter','summer']},cd:40,w:2,when:()=>!(season()==='winter'&&owb_trop()&&!fl('heater')),
   p:()=>season()==='winter'?'교실 불이 꺼진 지 며칠이 지났습니다. 창가 쪽 물이 차가워지고, 먹이는 더 이상 떨어지지 않습니다. 복도에서 발소리가 사라졌습니다. {n}은…'
     :'창문이 닫힌 교실에 오후 햇볕이 오래 머뭅니다. 물이 미지근해지다 뜨거워집니다. 수면이 조금씩 내려갑니다. {n}은…',
   o:[
@@ -360,7 +382,7 @@ function owb12(mod,warm){
   const ok=()=>fl('owb_h5')>=2?{t:'개학 날, 혼자 남은 {n}에게 반 아이들이 이름표를 새로 붙여 주었습니다. 이름표는 지난 학기와 달랐습니다.',c:'good',fx:{h:-10},set:{weight:'thin'}}
     :{t:'개학 날, 반장이 뚜껑을 열고 먹이를 넣었습니다. {n}은 바닥에서 천천히 올라왔습니다.',c:'sub',fx:{h:-12},set:{weight:'thin'}};
   if(owb_roll('g',need))return ok();
-  if(w&&owb_trop())return {end:'OWB-12-D'};
+  if(w&&owb_trop())return R()<owb_df()?{end:'OWB-12-D'}:owb_scar(ok(),'OWB-12-D');
   return {run:()=>{render();fEnd(S.f.place==='office'?'office':'classroom')}};
 }
 fevEnd({'OWB-12-D':{kind:'bad',cat:'방치',tier:'fact',fx:'f-ice',pl:[[2,'방학 동안 방치']],fact:'fTemp',
@@ -400,7 +422,7 @@ function owb14hurt(){
   if(isSp('cory'))return {t:'아이 손에 잡힌 {n}이 가슴지느러미 가시를 세웠습니다. 아이 손가락에서 피가 났고, 담임은 "물고기 만지지 말 것"이라고 칠판에 적었습니다.',c:'bad',fx:{fin:.12,h:-6},set:{owb14_stop:S.tick+12},
     run:()=>owb_learn('owb14_fix','담임은 수조 위에 뚜껑을 덮었습니다.',.3)};
   if(isSp('guppy','neon')&&R()<.3)return {t:'작은 손이 {n}의 몸통을 꽉 쥐었다가 놓았습니다. {n}은 몸을 비스듬히 기울인 채 헤엄쳤습니다.',c:'bad',fx:{h:-18},set:{inj_spine:1}};
-  return R()<.35?{end:'OWB-14-D'}:{t:'손이 지나간 자리의 점막이 벗겨졌습니다. 옆구리 비늘 몇 장이 들떴습니다.',c:'bad',fx:{h:-10,st:.08},set:{slime_loss:1}};
+  return R()<.1?{end:'OWB-14-D'}:{t:'손이 지나간 자리의 점막이 벗겨졌습니다. 옆구리 비늘 몇 장이 들떴습니다.',c:'bad',fx:{h:-10,st:.08},set:{slime_loss:1}};
 }
 fevEnd({'OWB-14-D':{kind:'bad',cat:'학대',tier:'fact',fx:'f-hand',pl:[[3,'아이들 손에 맡김']],
   fact:'물고기 피부를 덮은 점액은 세균과 곰팡이를 막는 벽입니다. 맨손으로 만질 때마다 그 벽이 벗겨집니다.',
@@ -436,7 +458,7 @@ fev([{id:'OWB-16',stage:'home',tier:'fact',own:['decor'],need:{lid:0},cd:30,w:()
    {l:'바닥에 가만히 있는다',ok:()=>owb16(0)}
   ]}]);
 function owb16(mod){
-  const L=tankL(),need=50+mod-(L>=200?20:0)+(L<30?20:0)+(isSp('oranda','ryukin')?20:0);
+  const L=tankL(),need=45+mod-(L>=200?20:0)+(L<30?20:0)+(isSp('oranda','ryukin')?20:0);
   return Object.assign({t:'"얘도 한잔해야지." 소주잔이 수면 위에서 기울어졌습니다.',c:'bad'},owb_hold(need,'OWB-16-D',{c:'bad',fx:{h:-14,st:.15},set:{toxin:'ethanol',inj_gill:1},sick:isSp('oranda','ryukin')?'swimb':null,
     run:()=>owb_learn('owb16_fix','사장은 수조에 뚜껑을 덮고 "술·음식 넣지 마세요" 팻말을 세웠습니다.')}));
 }
@@ -460,8 +482,8 @@ function owb17(mod){
   const side=isSp('clownloach')&&R()<.4?{t:'옆으로 누워 쉬는 {n}을 보고 손님이 "죽었어요"라고 했습니다. 사장이 뜰채로 {n}을 건졌다 다시 넣었습니다.',c:'bad',fx:{h:-8,st:.1}}
     :isSp('arowana')&&!fl('lid')&&R()<.35?{t:'유리 두드리는 소리에 {n}이 수면 위로 튀어 올랐습니다.',c:'bad',run:()=>{if(!S.waiting)q(null,null,()=>fCr('jump'))}}
     :isSp('altum')?{t:'놀란 {n}이 유리에 몸을 부딪쳤습니다.',c:'bad',fx:{h:-6},set:{inj_skin:1}}:null;
-  if(!owb_roll('g',need))return {end:'OWB-17-D'};
   const ok={t:'{n}은 또 한 주를 불빛 아래에서 보냈습니다. 몸 색이 조금 바랬습니다.',c:'sub',fx:{st:.08,h:-4},run:()=>owb_learn('owb17_fix','사장은 조명에 타이머를 달았습니다. 밤 11시면 수조가 어두워졌습니다.')};
+  if(!owb_roll('g',need)){if(R()<owb_df())return {end:'OWB-17-D'};const sc=owb_scar(ok,'OWB-17-D');return side?Object.assign({},side,{fx:Object.assign({},side.fx,{h:((side.fx||{}).h||0)-10,fin:.12}),run:()=>{if(side.run)side.run();sc.run()}}):sc}
   return side?Object.assign({},side,{run:()=>{if(side.run)side.run();ok.run()}}):ok;
 }
 fevEnd({'OWB-17-D':{kind:'bad',cat:'스트레스',tier:'fact',fx:'f-bottom',pl:[[2,'조명을 밤새 켜 둠']],fact:'fWater',
@@ -479,9 +501,9 @@ fev([{id:'OWB-18',stage:'home',tier:'fact',own:['decor','gift'],sp:['betta','wil
   ]}]);
 function owb18(mod){
   setFl('vase',1);
-  const need=55+mod+(isSp('guppy')?10:0)+(season()==='winter'?10:0);
+  const need=50+mod+(isSp('guppy')?10:0)+(season()==='winter'?10:0);
   return owb_hold(need,'OWB-18-D',{c:'bad',fx:{h:-15},set:{weight:'thin'},sick:season()==='winter'&&R()<.5?'finrot':null,
-    run:()=>owb_learn('owb18_fix','"베타는 뿌리를 안 먹어요." 손님이 남긴 댓글을 본 사장이 {n}을 작은 수조로 옮기고 먹이를 사 왔습니다.',isKind('gift')?.1:.15)});
+    run:()=>owb_learn('owb18_fix','"베타는 뿌리를 안 먹어요." 손님이 남긴 댓글을 본 사장이 {n}을 작은 수조로 옮기고 먹이를 사 왔습니다.',isKind('gift')?.1:.15)},.12);
 }
 fevEnd({'OWB-18-D':{kind:'bad',cat:'굶주림',tier:'fact',fx:'f-thin',pl:[[2,'꽃병에 넣고 먹이를 주지 않음']],fact:'fBetta',
   l:['꽃병의 물은 한 컵 남짓입니다. 가게 사람들은 베타가 식물 뿌리를 먹고 산다고 들었습니다. 아무도 먹이를 주지 않습니다.','{n}은 뿌리 틈을 비집고 올라가 공기를 마십니다. 마실 때마다 지느러미가 뿌리에 걸려 찢어집니다.','몸통 근육이 줄며 등뼈 선이 드러나고 배가 안쪽으로 꺼집니다.','꽃이 시들어 꽃병째 버려지는 날, {n}은 뿌리 사이에 걸린 채 움직이지 않습니다.']}});
@@ -497,7 +519,7 @@ fev([{id:'OWB-19',stage:'home',tier:'fact',own:['unbox'],once:1,w:6,
    {l:'봉지 바닥에 가만히 있는다',ok:()=>owb19()}
   ]}]);
 function owb19(){
-  const need=60+10+(isSp('cory')&&R()<.5?15:0)+(isSp('pleco','cory','bichir')&&R()<.5?10:0)+(isSp('@puffer')?5:0);
+  const need=62+(isSp('cory')&&R()<.5?15:0)+(isSp('pleco','cory','bichir')&&R()<.5?10:0)+(isSp('@puffer')?5:0);
   return Object.assign({t:'"물맞춤은 20분 해 줄게요." 주인은 봉지를 수면에 띄웠습니다.',c:'sub'},owb_hold(need,'OWB-19-D',{c:'bad',fx:{h:-15,st:.15},set:{inj_gill:1}}));
 }
 fevEnd({'OWB-19-D':{kind:'bad',cat:'운송',tier:'fact',fx:'f-bag',pl:[[2,'장거리 택배 개체를 오래 물맞춤']],fact:'fChain',
@@ -510,10 +532,10 @@ fev([{id:'OWB-20',stage:'home',tier:'fact',own:['unbox','content'],cd:40,when:()
   o:[
    {l:'손 안에서 몸을 크게 튕긴다',chk:['p',50],ok:()=>owb20({t:'{n}이 손에서 미끄러져 물로 떨어졌습니다. 썸네일은 흔들려 쓸 수 없었습니다.',c:'good',fx:{h:-3}}),
     no:()=>owb20({t:'{n}이 손에서 튀어 나가 바닥에 떨어졌습니다. 주인이 집어 수조에 넣었을 때 옆구리 비늘 몇 장이 바닥에 남았습니다.',c:'bad',fx:{h:-15,st:.12},set:{inj_skin:1}})},
-   {l:'몸을 부풀린다',when:()=>isSp('@puffer'),ok:()=>R()<.4?{end:'OWB-20-P'}:{t:'동그랗게 부푼 {n}이 썸네일에 담겼습니다. 물에 돌아온 {n}은 한참 동안 공기를 뱉어 냈습니다. 그 영상의 조회수가 가장 높았습니다.',c:'bad',fx:{h:-10,i:.1}}},
+   {l:'몸을 부풀린다',when:()=>isSp('@puffer'),ok:()=>R()<.12?{end:'OWB-20-P'}:{t:'동그랗게 부푼 {n}이 썸네일에 담겼습니다. 물에 돌아온 {n}은 한참 동안 공기를 뱉어 냈습니다. 그 영상의 조회수가 가장 높았습니다.',c:'bad',fx:{h:-10,i:.1}}},
    {l:'손 안에서 가만히 있는다',ok:()=>owb20(owb_roll('g',45-(isSp('betta','wildbetta','channa','bichir','pleco')?15:0)+(isSp('neon','guppy','altum')?15:0))
       ?{t:'30초 뒤 {n}은 물로 돌아왔습니다. 손이 닿은 자리의 점막이 얇게 벗겨져 있었습니다.',c:'sub',fx:{h:-6},set:{slime_loss:1}}
-      :R()<.4?{end:'OWB-20-D'}:{t:'물로 돌아온 {n}의 몸 한쪽이 뿌옇게 흐려져 있었습니다. 손이 닿은 자리였습니다.',c:'bad',fx:{h:-14},set:{slime_loss:1}})}
+        :R()<.12?{end:'OWB-20-D'}:{t:'물로 돌아온 {n}의 몸 한쪽이 뿌옇게 흐려져 있었습니다. 손이 닿은 자리였습니다.',c:'bad',fx:{h:-14},set:{slime_loss:1}})}
   ]}]);
 function owb20(o){
   if(isSp('motoro'))return {t:'손으로 {n}을 받친 순간, 꼬리의 독침이 주인 손바닥을 찔렀습니다. 주인은 병원에 갔고, 영상은 조회수가 터졌습니다. 일주일 뒤 주인은 {n}의 독침을 잘라 냈습니다.',c:'bad',fx:{h:-18,st:.2},set:{barb_cut:1}};
@@ -542,11 +564,12 @@ fev([{id:'OWB-21',stage:'home',tier:'fact',own:['unbox'],sp:['oscar','arowana','
   ]}]);
 function owb21prey(safe){
   if(safe)return {t:'큰 입은 다른 물고기를 물었습니다. {n}은 무리 사이에서 살아남았습니다. 영상이 끝나고 {n}은 다시 봉지에 담겼습니다.',c:'bad',fx:{st:.15,h:-4}};
-  return {end:'OWB-21-E'};
+  if(R()<.15)return {end:'OWB-21-E'};
+  return {t:'큰 턱이 {n}의 꼬리 쪽을 물었다 놓았습니다. 꼬리지느러미 절반이 떨어져 나가고, 꼬리자루 비늘 아래로 이빨 자국이 줄지어 패었습니다. 영상이 끝나고 {n}은 다시 봉지에 담겼습니다.',c:'bad',fx:{h:-18,fin:.3,st:.2},set:{inj_fin:1,inj_skin:1}};
 }
 function owb21pred(){
   if(isSp('fig8'))return {t:'{n}은 작은 물고기들의 지느러미만 뜯었습니다. 댓글 반응은 시들했고, 주인은 다음 실험을 접었습니다.',c:'sub'};
-  if(R()<.5)return Object.assign({t:'{n}이 덮친 것은 코리도라스였습니다. 목구멍에 무언가 걸렸습니다.',c:'bad'},owb_hold(55,'OWB-21-D',{t:'{n}은 머리를 크게 흔들어 코리도라스를 뱉어 냈습니다. 목구멍 점막이 찢겨 며칠 동안 먹이를 먹지 못했습니다.',c:'bad',fx:{h:-18},set:{inj_gill:1}}));
+  if(R()<.35)return Object.assign({t:'{n}이 덮친 것은 코리도라스였습니다. 목구멍에 무언가 걸렸습니다.',c:'bad'},owb_hold(55,'OWB-21-D',{t:'{n}은 머리를 크게 흔들어 코리도라스를 뱉어 냈습니다. 목구멍 점막이 찢겨 며칠 동안 먹이를 먹지 못했습니다.',c:'bad',fx:{h:-18},set:{inj_gill:1}}));
   return {t:isSp('gar','arowana')?'{n}은 한 번에 삼켰습니다. 영상은 짧았습니다.':'{n}은 가장 가까운 물고기를 삼켰습니다.',c:'sub',fx:{fat:.1}};
 }
 fevEnd({
@@ -566,7 +589,7 @@ fev([{id:'OWB-22',stage:'home',tier:'fact',own:['unbox'],once:1,w:1.5,
    {l:'봉지 바닥에 가만히 있는다',ok:()=>owb22(0)}
   ]}]);
 function owb22(mod){
-  return owb_move('bored',{ride:'parcel',rideMod:mod,rideEnd:'OWB-22-D',drop:['river','flush','same'],text:'상자는 당첨자의 집에 도착했습니다. {n}의 새 주인이었습니다.'});
+  return owb_move('bored',{ride:'parcel',rideMod:mod,rideEnd:'OWB-22-D',rideDf:.1,drop:['river','flush','same'],text:'상자는 당첨자의 집에 도착했습니다. {n}의 새 주인이었습니다.'});
 }
 fevEnd({'OWB-22-D':{kind:'bad',cat:'택배',tier:'fact',fx:'f-box',pl:[[0,'경품으로 택배 발송']],fact:'fChain',
   l:['택배 상자는 물류 터미널의 차가운 바닥에서 하룻밤을 보냅니다. 핫팩은 새벽에 식습니다.','봉지 속 수온이 내려가며 {n}의 움직임이 느려집니다. {n}은 봉지 모서리에 몸을 기대고 지느러미를 접습니다.','아가미 뚜껑이 점점 느리게 움직입니다.','수신인이 상자를 연 것은 사흘 뒤입니다.']}});
@@ -595,7 +618,7 @@ fevEnd({'OWB-23-D':{kind:'bad',cat:'질병',tier:'fact',fx:'f-bottom',pl:[[1,'�
 fev([{id:'OWB-24',stage:'home',tier:'fact',own:['staff'],cd:50,when:()=>!fl('owb24_fix'),w:2,
   p:'몇 달째 물이 갈리지 않습니다. 물빛이 옅은 노란색으로 변하고 유리에 갈색 막이 낍니다. 일요일 아침, 주인이 호스와 양동이를 잔뜩 들고 옵니다. {n}은…',
   o:[
-   {l:'양동이 쪽, 새 물이 들어오는 곳으로 다가간다',chk:()=>['g',60+owb24m()],ok:()=>owb24x({t:'새 물이 쏟아지는 곳에서 {n}은 아가미를 크게 벌리며 버텼습니다.',c:'bad',fx:{h:-15},set:{inj_gill:1}}),no:()=>owb24x({end:'OWB-24-D'})},
+   {l:'양동이 쪽, 새 물이 들어오는 곳으로 다가간다',chk:()=>['g',60+owb24m()],ok:()=>owb24x({t:'새 물이 쏟아지는 곳에서 {n}은 아가미를 크게 벌리며 버텼습니다.',c:'bad',fx:{h:-15},set:{inj_gill:1}}),no:()=>owb24x(owb_hold(70+owb24m(),'OWB-24-D',{t:'새 물이 쏟아지는 곳에서 {n}은 아가미를 크게 벌리며 버텼습니다.',c:'bad',fx:{h:-15},set:{inj_gill:1}}))},
    {l:'새 물이 들어오는 반대편 구석으로 간다',chk:['w',40],ok:()=>owb24x(owb_hold(40+owb24m(),'OWB-24-D')),no:()=>owb24x(owb_hold(55+owb24m(),'OWB-24-D'))},
    {l:'바닥에 가만히 있는다',ok:()=>owb24x(owb_hold(55+owb24m(),'OWB-24-D'))}
   ]}]);
@@ -617,7 +640,7 @@ fev([{id:'OWB-25',stage:'home',tier:'fact',own:['staff','breeder'],need:{season:
    {l:'은신처에 가만히 있는다',ok:()=>owb25(0)}
   ]}]);
 function owb25(mod){
-  const need=55+mod+(owb_trop()?10:0)+(isSp('@big')?10:0)-(owb_air()?20:0)-(isSp('@small')?5:0);
+  const need=50+mod+(owb_trop()?10:0)+(isSp('@big')?10:0)-(owb_air()?20:0)-(isSp('@small')?5:0);
   return owb_hold(need,'OWB-25-D',()=>R()<.5?{t:'아침에 차단기를 올린 주인은 여과기를 열어 썩은 물을 빼고 헹군 뒤 다시 켰습니다.',c:'sub',fx:{h:-8},run:()=>owb_learn('owb25_fix','주인은 회로를 나누고 에어펌프에 무정전 전원 장치를 달았습니다.')}
     :{t:'아침에 차단기를 올리자 멈춰 있던 여과기에서 검은 물이 쏟아졌습니다. {n}은 뿌연 물속에서 아가미를 크게 벌렸습니다.',c:'bad',fx:{h:-12,wq:-20},set:{cycled:0}});
 }
@@ -652,10 +675,10 @@ fev([{id:'OWB-27',stage:'home',tier:'fact',own:['bait'],sp:['comet','guppy'],nee
     ok:{t:'"아빠, 얘는 키우자." 500원짜리 미끼는 아이의 첫 반려동물이 되었습니다. 아이 아빠는 그날 한 마리도 낚지 못했습니다. 통에 남은 열아홉 마리는 다음 주말 같은 저수지로 갔습니다.',c:'good',
      run:()=>owb_rehome('gift','{n}은 비닐봉지에 담겨 낚시객의 아이와 함께 집으로 갔습니다.',{note:'미끼로 팔림'})},
     no:()=>owb27hook()},
-   {l:'통 바닥에 가만히 있는다',ok:()=>R()<.5?owb27hook():{t:'손은 바닥에 가만히 있는 {n}을 지나쳤습니다.',c:'sub'}}
+   {l:'통 바닥에 가만히 있는다',ok:()=>R()<.25?owb27hook():{t:'손은 바닥에 가만히 있는 {n}을 지나쳤습니다.',c:'sub'}}
   ]}]);
 function owb27hook(){
-  const tear=isSp('comet')?.45:.15;
+  const tear=isSp('comet')?.6:.35;
   if(R()<tear&&!(isSp('guppy')&&season()==='winter'))return {t:'바늘이 {n}의 등을 꿰었습니다. 낚싯줄이 저수지로 날아갔고, 물속에서 몸부림치던 {n}의 등 근육이 찢어지며 바늘이 빠졌습니다.',c:'bad',fx:{h:-20,st:.2},
     run:()=>{breakP(0,'미끼로 팔아넘김');S.f.released=1;setFl('hooked',1);goWild('river');q(null,null,()=>{const e=FEV.find(x=>x.id==='OWB-28');if(e&&!S.ending&&!S.waiting)fevRun(e)})}};
   return {end:'OWB-27-D'};
@@ -674,7 +697,7 @@ fev([{id:'OWB-28',stage:'wild',tier:'fact',sp:['comet','guppy'],need:{hooked:1},
   ]}]);
 function owb28(mod){
   setFl('hooked',0);
-  const need=60+mod+(season()==='summer'?5:0);
+  const need=52+mod+(season()==='summer'?5:0);
   return owb_hold(need,'OWB-28-D',()=>isSp('comet')?{end:'OWB-28-H'}:{t:'{n}의 등 상처에 얇은 막이 덮였습니다. 저수지의 여름은 아직 따뜻했습니다.',c:'sub',fx:{h:-10},set:{scar:1}});
 }
 fevEnd({
@@ -696,7 +719,7 @@ fev([{id:'OWB-29',stage:'home',tier:'fact',own:['touch'],sp:['comet','koi','oran
   ]}]);
 function owb29(n){
   addFl('owb29_n',n);
-  const need=50+fl('owb29_n')*2-(fl('owb29_fix')?10:0);
+  const need=46+fl('owb29_n')*2-(fl('owb29_fix')?10:0);
   return owb_hold(need,'OWB-29-D',()=>Object.assign({t:'그날 {n}은 '+['','한','두','세','네'][n]+' 번쯤 잡혔다 놓였습니다. 손이 닿은 자리의 점막이 얇아졌습니다.',c:'bad',fx:{h:-6,st:.06},set:{slime_loss:1},
     run:()=>owb_learn('owb29_fix','민원이 들어온 뒤, 체험장 벽에 "한 번 잡으면 바로 놓아 주세요" 안내문이 붙었습니다.')},
     isSp('oranda','ryukin')&&R()<.2?{sick:'swimb'}:{}));
@@ -714,7 +737,7 @@ fev([{id:'OWB-30',stage:'home',tier:'fact',own:['touch'],sp:['koi','comet'],need
    {l:'연못 깊은 곳에 가만히 있는다',ok:()=>owb30(0)}
   ]}]);
 function owb30(mod){
-  return owb_hold(55+mod+(R()<.5?10:0),'OWB-30-D',{t:'체험이 쉬는 월요일, 직원이 바닥의 사료 찌꺼기를 걷어 냈습니다. {n}의 아가미 끝이 하얗게 부어 있었습니다.',c:'bad',fx:{h:-10,wq:-8},set:{inj_gill:1},
+  return owb_hold(50+mod+(R()<.5?10:0),'OWB-30-D',{t:'체험이 쉬는 월요일, 직원이 바닥의 사료 찌꺼기를 걷어 냈습니다. {n}의 아가미 끝이 하얗게 부어 있었습니다.',c:'bad',fx:{h:-10,wq:-8},set:{inj_gill:1},
     run:()=>owb_learn('owb30_fix','체험장은 하루 젖병 판매 수량을 정했습니다.')});
 }
 fevEnd({'OWB-30-D':{kind:'bad',cat:'체험',tier:'fact',fx:'f-pond',pl:[[2,'먹이 체험으로 과식시킴']],fact:'fWater',
@@ -764,7 +787,7 @@ fevEnd({'OWB-32-D':{kind:'bad',cat:'수질 쇼크',tier:'fact',fx:'f-float',pl:[
   after:'할머니는 빈 어항을 한동안 치우지 않고 아침마다 그 앞에 섰습니다.'}});
 
 /* [출처: 녹조 수역 주야간 용존산소 변동 / 열대어 저수온 한계] — a tropical fish without a heater on a winter balcony gets no check */
-fev([{id:'OWB-33',stage:'home',tier:'fact',own:['grandma','casual'],need:{season:['summer','winter']},cd:40,when:()=>!fl('owb33_fix'),w:()=>isKind('grandma')?2.5:.4,
+fev([{id:'OWB-33',stage:'home',tier:'fact',own:['grandma','casual'],need:{season:['summer','winter']},cd:40,when:()=>!fl('owb33_fix')&&!(season()==='winter'&&owb_trop()&&!fl('heater')),w:()=>isKind('grandma')?2.5:.4,
   log:'어항은 아파트 베란다 창가에 놓여 있었습니다.',
   p:()=>season()==='summer'?'남향 창으로 들어온 햇볕이 유리 어항을 오후 내내 데웁니다. 물빛이 날마다 짙은 초록으로 변합니다. 밤이 되면 물이 무겁게 느껴집니다. {n}은…'
     :'베란다 창틈으로 찬 공기가 들어옵니다. 물 표면이 차갑고, 아침마다 할머니 입김이 유리에 하얗게 서립니다. {n}은…',
@@ -777,7 +800,7 @@ fev([{id:'OWB-33',stage:'home',tier:'fact',own:['grandma','casual'],need:{season
 function owb33(mod){
   if(season()==='winter'){
     if(!owb_trop())return {t:'베란다의 물은 차가웠지만, {n}의 몸은 그 물을 알고 있었습니다. {n}은 바닥에서 느릿느릿 겨울을 났습니다.',c:'sub'};
-    if(!fl('heater'))return {end:'OWB-33-W'};
+    if(!fl('heater'))return R()<owb_df()?{end:'OWB-33-W'}:owb_scar({t:'밤마다 베란다의 물이 식었습니다. {n}은 바닥에 몸을 붙인 채 겨울을 났습니다.',c:'bad',fx:{h:-12}},'OWB-33-W');
     return owb_hold(50+mod,'OWB-33-W',{t:'히터가 밤새 쉬지 않고 돌았습니다. {n}은 히터 옆에 붙어 겨울을 났습니다.',c:'sub',fx:{h:-8}});
   }
   return owb_hold(55+mod-(owb_air()?15:0),'OWB-33-S',{t:'새벽마다 {n}은 수면에서 입을 벌렸습니다. 여름이 끝날 무렵 물빛은 조금 옅어졌습니다.',c:'bad',fx:{h:-12,st:.1}});
@@ -802,7 +825,7 @@ fev([{id:'OWB-34',stage:'home',tier:'fact',own:['grandma'],need:{season:['autumn
   ]}]);
 function owb34(mod){
   const bite=isSp('oscar','channa')&&R()<.4;
-  return owb_hold(50+mod,'OWB-34-D',{t:bite?'{n}이 수면에 내민 손주 손가락을 물었습니다. 할머니는 수조를 손주 손이 닿지 않는 장 위로 옮겼습니다.':'명절 뒤 사흘, 바닥의 사료가 썩어 물이 탁해졌습니다. {n}은 수면 아래에서 버텼습니다.',c:'bad',fx:{h:-10,wq:-10}});
+  return owb_hold(45+mod,'OWB-34-D',{t:bite?'{n}이 수면에 내민 손주 손가락을 물었습니다. 할머니는 수조를 손주 손이 닿지 않는 장 위로 옮겼습니다.':'명절 뒤 사흘, 바닥의 사료가 썩어 물이 탁해졌습니다. {n}은 수면 아래에서 버텼습니다.',c:'bad',fx:{h:-10,wq:-10}});
 }
 fevEnd({'OWB-34-D':{kind:'bad',cat:'수질 악화',tier:'fact',fx:'f-float',pl:[[2,'먹이통째 쏟음']],fact:'fWater',
   l:['바닥에 가라앉은 사료 한 통이 물을 먹고 부풀어 풀어집니다. 사흘 사이 사료가 썩으며 물이 탁해지고 수면에 거품이 남습니다.','늘어난 세균과 암모니아가 아가미 새엽을 붓게 합니다. {n}은 수면 바로 아래에서 아가미 뚜껑을 빠르게 여닫습니다.','지느러미 가장자리가 하얗게 짓무릅니다.','손주들이 돌아간 날 저녁, {n}은 여과기 흡입구 망에 몸이 붙은 채 움직이지 않습니다.']}});
@@ -838,7 +861,7 @@ fev([{id:'OWB-36',stage:'home',tier:'fact',own:['breakup'],need:{breakup_stage:2
 function owb36(mod){
   const need=45+mod+(isSp('@schooling')?15:0);
   const preg=isSp('@livebearer')&&fem()?' {n}의 배는 이미 불러 있었습니다. 새 집 수조에는 몇 주 뒤 치어가 가득했습니다.':'';
-  if(isSp('neon')&&!owb_roll('g',need)&&R()<.5)return {t:'새 집에서 {n}은 수초 뒤에서 나오지 않았습니다.',c:'bad',sick:'neond',run:()=>q(null,null,()=>fevOut({end:'OWB-36-D'}))};
+  if(isSp('neon')&&!owb_roll('g',need)&&R()<.15)return {t:'새 집에서 {n}은 수초 뒤에서 나오지 않았습니다.',c:'bad',sick:'neond',run:()=>q(null,null,()=>fevOut({end:'OWB-36-D'}))};
   return owb_hold(need,'OWB-36-D',{t:'{n}이 담긴 봉지는 한 사람의 새 집으로 갔습니다.'+preg,c:'sub',fx:{st:.12},
     run:()=>owb_rehome('breakup','{n}은 헤어진 두 사람 중 한 사람의 새 집으로 갔습니다.',{bstage:3,note:'이별하며 나눔'})});
 }
@@ -878,7 +901,7 @@ function owb38(o){
   if(isSp('@big')&&R()<.5)return owb_move('oversize',{text:'이삿짐 업체는 큰 수조를 받지 않았습니다. 주인은 {n}을 데려갈 수 없었습니다.'});
   const k=owb_draw('move',o);
   const ride=['expert','staff','breeder'].includes(kindOf())?'icebox':o.better?'bag':'truck';
-  return owb_move('move',{force:k,ride,rideEnd:'OWB-38-D',rideEndIf:()=>season()==='summer'&&ride==='truck',sameText:'짐을 다 푼 저녁, {n}은 새 집 수조에 다시 풀렸습니다.'});
+  return owb_move('move',{force:k,ride,rideEnd:'OWB-38-D',rideDf:.15,rideEndIf:()=>season()==='summer'&&ride==='truck',sameText:'짐을 다 푼 저녁, {n}은 새 집 수조에 다시 풀렸습니다.'});
 }
 fevEnd({'OWB-38-D':{kind:'bad',cat:'운송',tier:'fact',fx:'f-box',pl:[[0,'이사 짐칸에 실음']],fact:'fO2',
   l:['봉지는 반찬통에 담겨 상자들 사이 짐칸에 실립니다. 7월 오후, 닫힌 짐칸의 공기가 데워지고 봉지 속 수온이 오릅니다.','수온이 오를수록 물에 녹는 산소는 줄고 {n}이 쓰는 산소는 늘어납니다. {n}은 봉지 위쪽 물에 입을 대고 아가미를 빠르게 움직입니다.','트럭이 흔들릴 때마다 {n}의 몸이 봉지 벽에 부딪힙니다. 아가미 새엽이 붉게 부풀고 {n}은 옆으로 기울어 봉지 바닥에 닿습니다.','새 집에서 반찬통을 연 것은 짐을 다 푼 저녁입니다.']}});
@@ -894,7 +917,7 @@ fev([{id:'OWB-39',stage:'home',tier:'likely',cd:80,w:.18,
 function owb39(liked){
   if(!liked&&isSp('gar','pleco','motoro')&&R()<.4)return owb_move('oversize',{text:'"그건 못 데려가." 새 배우자의 말에 주인은 {n}을 보낼 곳을 찾았습니다.'});
   const k=liked?'same':owb_draw('marry');
-  if(R()<.25)return owb_move('marry',{force:k,ride:'bag',rideMod:15,rideEnd:'OWB-39-D',sameText:'"얘 귀엽다." 새 배우자가 {n}을 신혼집 거실 한가운데에 두자고 했습니다.'});
+  if(R()<.25)return owb_move('marry',{force:k,ride:'bag',rideMod:15,rideEnd:'OWB-39-D',rideDf:.15,sameText:'"얘 귀엽다." 새 배우자가 {n}을 신혼집 거실 한가운데에 두자고 했습니다.'});
   if(k==='same')return {t:liked?'"얘 귀엽다." 새 배우자가 {n}을 신혼집 거실 한가운데에 두자고 했습니다.':'{n}은 신혼집으로 함께 옮겨졌습니다.',c:'good',fx:{i:liked?.2:0},run:()=>{if(liked&&R()<.3){S.r=clamp(S.r+.05,0,.97);addLog(T('새 배우자는 물생활 카페에 가입했습니다.'),'good')}}};
   return owb_move('marry',{force:k});
 }
@@ -914,7 +937,7 @@ function owb40(mod,good){
   if(isSp('@big'))return owb_move('oversize',{text:'큰 수조는 베란다로 옮길 수 없었습니다. 주인은 {n}을 보낼 곳을 찾았습니다.'});
   setFl('heater',0);S.interest=clamp(S.interest-.3,.02,1);
   const s=season();
-  if(s==='winter'&&owb_trop())return {end:'OWB-40-D'};
+  if(s==='winter'&&owb_trop())return R()<.06?{end:'OWB-40-D'}:{t:'베란다 창은 이중창이었습니다. 수온은 낮에도 미지근한 데서 더 오르지 않았고, {n}은 몇 주 동안 바닥에서 지느러미를 접고 지냈습니다. 지느러미 끝이 하얗게 괴사해 떨어져 나갔습니다.',c:'bad',fx:{h:-18,fin:.1,st:.1},set:{inj_fin:1}};
   if(s==='summer'&&!owb_roll('g',55+mod-(owb_air()?15:0)))return {t:'베란다 어항의 물이 초록으로 변했습니다. 새벽마다 {n}은 수면에서 입을 벌렸습니다.',c:'bad',fx:{h:-20,st:.12}};
   if(R()<.6)return owb_move('baby',{bonus:good?1:0});
   return {t:'몇 달 동안 {n}의 수조는 베란다에 그대로 있었습니다. 먹이는 생각날 때만 떨어졌습니다.',c:'bad',fx:{h:-6}};
@@ -927,7 +950,7 @@ fev([{id:'OWB-41',stage:'home',tier:'likely',cd:80,w:()=>isKind('grandma')?.6:.1
   log:'주인이 갑자기 입원했습니다.',
   p:'며칠째 집 안에 아무도 없습니다. 어느 날 낯선 사람이 문을 열고 들어와 먹이통을 들고 수조 앞에 섭니다. 그 사람은 먹이통을 오래 들여다봅니다. {n}은…',
   o:[
-   {l:'낯선 사람 앞 수면으로 올라가 입을 벌린다',chk:['c',50],ok:()=>owb41(-15,1),no:()=>Object.assign({t:'"얼마나 줘야 해?" 그 사람은 먹이통을 반이나 부었습니다.',c:'bad'},owb_hold(55,'OWB-41-D',()=>owb41(0,0)))},
+   {l:'낯선 사람 앞 수면으로 올라가 입을 벌린다',chk:['c',50],ok:()=>owb41(-15,1),no:()=>Object.assign({t:'"얼마나 줘야 해?" 그 사람은 먹이통을 반이나 부었습니다.',c:'bad'},owb_hold(55,'OWB-41-D',()=>owb41(0,0),.1))},
    {l:'수조 이끼나 바닥 찌꺼기를 뒤진다',chk:()=>['w',isSp('@bottom','pleco')?25:40],ok:()=>owb41(-10,0),no:()=>owb41(0,0)},
    {l:'은신처에 가만히 있는다',ok:()=>owb41(0,0)}
   ]}]);
@@ -937,7 +960,7 @@ function owb41(mod,fam){
     if(R()<.15)return {t:'몇 주 뒤 주인이 퇴원해 돌아왔습니다. 수조의 물은 절반으로 줄어 있었지만, {n}은 살아 있었습니다.',c:'sub',fx:{h:-10},set:{weight:'thin'},
       run:()=>{if(isKind('grandma')){setFl('autofeeder',1);addLog(T('손주가 와서 수조 위에 자동 급이기를 달아 주고 갔습니다.'),'sub')}}};
     return Object.assign({},owb_move('hospital',{only:fam?['grandma','gift']:undefined,drop:['same']}),{fx:{h:-10}});
-  });
+  },.1);
 }
 fevEnd({'OWB-41-D':{kind:'bad',cat:'굶주림',tier:'likely',fx:'f-thin',pl:[[2,'입원 중 아무도 돌보지 않음']],
   l:['수위가 날마다 조금씩 내려갑니다. 걸이식 여과기의 흡입구가 수면 위로 드러나고 물이 더 이상 돌지 않습니다.','남은 물에 배설물이 쌓이고 암모니아가 오릅니다. {n}의 몸통 근육이 줄어 등뼈 선이 드러납니다.','{n}은 바닥 찌꺼기를 입으로 뒤지다 수면으로 올라가 입을 벌립니다. 아가미 새엽이 부어 숨 쉬는 면이 줄어듭니다.','주인이 퇴원해 돌아온 날, 수조 안의 물은 절반으로 줄어 있습니다.'],after:false}});
@@ -954,7 +977,7 @@ fev([{id:'OWB-42',stage:'home',tier:'likely',once:1,w:()=>isKind('grandma')?.5:i
   ]}]);
 function owb42(){
   const need=50+(isSp('@small')?15:0)-(isSp('@big')?15:0);
-  return Object.assign({t:'"이것도 정리해야겠네."',c:'bad'},owb_hold(need,'OWB-41-D',()=>owb_move('death',{endFlush:'OWB-42-D',riverText:'가족 중 한 사람이 {n}을 근처 하천에 놓아주었습니다.'})));
+  return Object.assign({t:'"이것도 정리해야겠네."',c:'bad'},owb_hold(need,'OWB-42-D',()=>owb_move('death',{endFlush:'OWB-42-D',riverText:'가족 중 한 사람이 {n}을 근처 하천에 놓아주었습니다.'}),.1));
 }
 fevEnd({'OWB-42-D':{kind:'bad',cat:'버려짐',tier:'likely',fx:'f-trash',pl:[[0,'유품과 함께 버림']],
   l:['정리 업체 사람들이 수조를 옮기려고 물을 하수구로 빼냅니다. {n}은 물이 빠지는 쪽으로 몸이 끌려가지 않으려고 바닥에 지느러미를 벌립니다.','수위가 등지느러미 아래로 내려가고 {n}은 옆으로 눕습니다. 바닥 자갈에 닿은 쪽 피부 점막이 마르기 시작합니다.','아가미 뚜껑이 열릴 때마다 물 대신 공기가 들어가고 새엽이 서로 붙습니다.','수조는 그대로 현관 밖 폐기물 더미 옆에 놓입니다.'],after:false}});
@@ -971,11 +994,11 @@ fev([{id:'OWB-43',stage:'home',tier:'likely',cd:80,w:()=>isKind('breakup')&&fl('
 function owb43(o){
   const k=o.force||owb_draw('breakup',o);
   if(k==='breakup'){
-    if(!owb_ride('bottle'))return {end:'OWB-43-D'};
+    if(!owb_ride('bottle')&&R()<.1)return {end:'OWB-43-D'};
     if(isKind('breakup'))return {t:'한 사람이 {n}을 데려갔습니다. 새 집에는 수조가 없어서, {n}은 한동안 반찬통에서 지냈습니다.',c:'bad',fx:{h:-10},set:{breakup_stage:3}};
     return owb_move('breakup',{force:'breakup',ride:'icebox',bstage:3,text:'두 사람이 헤어지고, 한 사람이 {n}을 데려갔습니다.'});
   }
-  return owb_move('breakup',{force:k,ride:'bottle',rideEnd:'OWB-43-D'});
+  return owb_move('breakup',{force:k,ride:'bottle',rideEnd:'OWB-43-D',rideDf:.1});
 }
 fevEnd({'OWB-43-D':{kind:'bad',cat:'방치',tier:'likely',fx:'f-float',pl:[[2,'아이스크림 통에 옮겨 둠']],fact:'fBowlAny',
   l:['{n}은 빈 아이스크림 통에 수조 물 한 컵과 함께 담깁니다. 새 집에는 수조가 없고, 통은 싱크대 옆에 놓입니다.','좁은 물에 배설물이 쌓이며 하루 만에 물이 탁해집니다. {n}은 통 벽을 따라 돌다 몸을 돌릴 때마다 지느러미가 벽에 눌려 접힙니다.','암모니아에 아가미 새엽이 부어 {n}은 수면에 입을 대고 있습니다.','나흘째 통의 물은 노랗고, {n}은 통 바닥에 옆으로 누워 있습니다.'],
@@ -993,7 +1016,7 @@ fev([{id:'OWB-44',stage:'home',tier:'likely',own:['decor','shared','staff','touc
    {l:'은신처에 가만히 있는다',ok:()=>owb44()}
   ]}]);
 function owb44(){
-  return owb_hold(55,'OWB-44-D',()=>owb_move('closure',{endLeft:'OWB-44-D',mul:isSp('@small')?{left:2}:isSp('@gold')?{relay:1.5}:undefined}));
+  return owb_hold(55,'OWB-44-D',()=>owb_move('closure',{endLeft:'OWB-44-D',mul:isSp('@small')?{left:2}:isSp('@gold')?{relay:1.5}:undefined}),.1);
 }
 fevEnd({'OWB-44-D':{kind:'bad',cat:'버려짐',tier:'likely',fx:'f-bucket',pl:[[0,'폐업하며 버림']],
   l:['철거 업체 사람들이 수조 물을 양동이로 퍼서 배수구에 붓습니다. {n}은 바닥에 남은 물과 함께 양동이에 쏟아집니다.','양동이는 가게 앞 길가에 하룻밤 놓입니다. 밤사이 기온이 떨어지고 좁은 물속 산소가 줄어듭니다.','{n}은 양동이 벽에 몸을 붙인 채 수면에 입을 댑니다. 아가미 뚜껑이 점점 느리게 움직이다 멈춥니다.','아침 수거 차량이 양동이를 비웁니다.'],after:false}});
@@ -1047,7 +1070,7 @@ function owb47(mod,back){
   const s=season(),need=20+mod+(s==='summer'||s==='winter'?10:0)+(isSp('altum','neon','apisto')?15:0)+(isSp('@livebearer')?5:0)-(owb_cold()?10:0)+(isSp('@scaleless')&&fl('meds')?10:0);
   const dirty=fl('nh3')>=2?{wq:-10}:{};
   if(isSp('fig8')&&!S.f.waterOK)addFl('owb_fresh');
-  return owb_hold(need,'OWB-47-D',{t:'봉지가 뒤집히며 {n}은 새 물로 쏟아졌습니다. 한동안 바닥에서 비스듬히 헤엄쳤지만 저녁이 되자 몸을 바로 세웠습니다.',c:'sub',fx:Object.assign({h:back?-3:-8,st:.08},dirty),set:back?{}:{inj_skin:1}});
+  return owb_hold(need,'OWB-47-D',{t:'봉지가 뒤집히며 {n}은 새 물로 쏟아졌습니다. 한동안 바닥에서 비스듬히 헤엄쳤지만 저녁이 되자 몸을 바로 세웠습니다.',c:'sub',fx:Object.assign({h:back?-3:-8,st:.08},dirty),set:back?{}:{inj_skin:1}},.1);
 }
 fevEnd({'OWB-47-D':{kind:'bad',cat:'수질 쇼크',tier:'fact',fx:'f-float',pl:[[2,'봉지째 부음']],fact:'fTemp',
   l:['봉지가 뒤집히며 {n}은 온도가 크게 다른 물로 한 번에 쏟아집니다. 갑작스러운 온도 변화에 {n}의 몸이 경직되고 평형을 잃습니다.','삼투압과 pH가 다른 물이 아가미 새엽 상피를 자극해 점액이 과다하게 나옵니다. {n}은 수조 바닥을 비스듬히 미끄러지며 지느러미를 떱니다.','수면으로 올라가려 할 때마다 몸이 뒤집힙니다. 아가미를 덮은 점액 때문에 숨 쉬는 면이 줄어들고, {n}은 새 수조의 장식 뒤에 끼인 채 멈춥니다.','새 주인은 "적응 중인가 봐요"라고 판매자에게 메시지를 보냅니다.']}});

@@ -8,8 +8,8 @@
 
 /* ---------- 1. difficulty ---------- */
 const MODES={
-  story:{chk:1.15,l:'쉬움',d:'주인이 조금 더 너그럽고, 물고기의 선택이 결과를 더 크게 바꿉니다. 그래도 많이 죽습니다.',hz:.12,die:.15,dz:.12,dh:.33,bore:.65,wq:.55},
-  real:{chk:1,l:'어려움',d:'실제 통계에 맞춘 난이도입니다. 대부분 끝까지 살지 못합니다.',hz:.3,die:.45,dz:.3,dh:.8,bore:.95,wq:.8}};
+  story:{chk:1.6,l:'쉬움',d:'주인이 조금 더 너그럽고, 물고기의 선택이 결과를 더 크게 바꿉니다. 그래도 많이 죽습니다.',hz:.12,die:.15,dz:.12,dh:.33,bore:.65,wq:.55},
+  real:{chk:1.2,l:'어려움',d:'실제 통계에 맞춘 난이도입니다. 대부분 끝까지 살지 못합니다.',hz:.3,die:.45,dz:.3,dh:.8,bore:.95,wq:.8}};
 let MODE_NOW='story';
 try{const m=localStorage.getItem('kmu_mode');if(MODES[m])MODE_NOW=m}catch(e){}
 const modeK=k=>(MODES[(typeof S!=='undefined'&&S&&S.mode)||'real']||MODES.real)[k];

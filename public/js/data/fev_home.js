@@ -19,16 +19,20 @@ function hom_lv(lv,t0,t1,t2,extra){
 }
 /* a hidden roll inside a passive option (the option itself shows no check) */
 const hom_roll=(k,need,a,b)=>R()<clamp(Math.pow(fst()[k]/need,2),.05,.95)?valOf(a):valOf(b);
-/* 버티기: 근성 (and a little owner skill) decides; failure is the ending */
-function hom_endure(need,end,t,extra){
+/* 버티기: 근성 (and a little owner skill) decides; a failure is usually lasting tissue damage (hurt), sometimes the ending */
+function hom_endure(need,end,t,extra,hurt){
   const ch=clamp(Math.pow(fst().g/need,2),.05,.93)*(.75+S.r*.5);
   if(R()<ch)return Object.assign({t,c:'bad',fx:{h:-22,st:.16}},extra||{});
+  if(R()<.65){const ex=extra||{},f=ex.fx||{};
+    return Object.assign({t:hurt||t,c:'bad'},ex,{fx:Object.assign({},f,{h:Math.min(-34,(f.h||0)-10),st:.24}),set:Object.assign({scar:1},ex.set||{})})}
   return {end};
 }
-/* 물 밖 결과: 근성 vs need, helped by air breathing and an owner who finds the fish in time */
-function hom_dry(need,end,saved,extra){
+/* 물 밖 결과: 근성 vs need, helped by air breathing and an owner who finds the fish in time;
+   a failure is mostly dried, torn tissue (hurt), sometimes the ending */
+function hom_dry(need,end,saved,extra,hurt){
   const ch=clamp(Math.pow(fst().g/need,2),.05,.95)*(.45+hom_find()*.8)+(fx_().air?.15:0);
   if(R()<ch)return Object.assign({t:saved,c:'bad',fx:{h:-22,st:.16},set:{slime_loss:1}},extra||{});
+  if(hurt&&R()<.78)return Object.assign({t:hurt,c:'bad',fx:{h:-36,st:.25,fin:.15},set:{slime_loss:1,inj_skin:1,scar:1},sick:R()<.4?'fungus':null},extra||{});
   return {end};
 }
 /* the catalogue's owner lessons (owner_learned): key → [fix, line] */
@@ -131,6 +135,7 @@ fev([{id:'HOM-01',tier:'fact',sp:['@escaper'],need:{lid:1,lid_gap:1,pond:0},cd:3
 function hom_out01(){
   if(isSp('ghost')){
     if(R()<hom_find()*.8)return {t:'{n}은 틈을 빠져나와 수조 뒤 바닥으로 떨어졌습니다. 물 마시러 나온 주인이 바닥에서 몸을 접었다 펴는 {n}을 발견해 수조에 넣었습니다. 한쪽 옆구리의 점막이 벗겨지고 작은 비늘이 쓸려 나갔습니다.',c:'bad',fx:{h:-24,st:.18},set:{slime_loss:1},sick:R()<.35?'fungus':null,mem:'마른 바닥. 먼지. 다시 물.',run:()=>hom_learn('gap')};
+    if(R()<.55)return {t:'{n}은 틈을 빠져나와 수조 뒤 바닥으로 떨어졌습니다. 몸을 접었다 펴며 미끄러지다 여과기 호스에서 떨어진 물방울이 고인 자리에 닿았습니다. 아침에 주인이 찾았을 때 {n}의 한쪽 옆구리 상피는 바닥에 쓸려 벗겨져 있었고, 꼬리 끝 지느러미 막은 말라 기조에 달라붙어 있었습니다.',c:'bad',fx:{h:-34,fin:.2,st:.22},set:{slime_loss:1,inj_skin:1,scar:1},sick:R()<.45?'fungus':null,mem:'마른 바닥. 먼지. 다시 물.',run:()=>hom_learn('gap')};
     return {end:'HOM-01-D'};
   }
   return hom_crawl('{n}은 틈을 빠져나와 바닥으로 떨어졌습니다.',()=>hom_learn('gap'));
@@ -141,6 +146,7 @@ function hom_crawl(first,learn){
     if(g>=capOf('g')*.9&&R()<.35)return {end:'HOM-01-H'};
     return {t:first+' 공기를 삼키며 바닥을 기어가 소파 근처에서 멈췄습니다. 아침에 주인이 먼지투성이가 된 {n}을 찾아 수조에 넣었습니다.',c:'bad',fx:{h:-18,st:.15},set:{slime_loss:1},sick:R()<.3?'columnaris':null,mem:'마른 바닥. 먼지. 다시 물.',run:learn};
   }
+  if(R()<.55)return {t:first+' 공기를 삼키며 바닥을 기어 다니다 소파 밑에서 멈췄습니다. 이틀 뒤 주인이 찾았을 때 {n}의 몸 표면 점액은 말라 먼지와 함께 굳어 있었고, 굳은 자리의 피부가 갈라져 있었습니다. 지느러미 막은 말라 기조에 붙은 채 찢어졌습니다.',c:'bad',fx:{h:-36,fin:.25,st:.24},set:{slime_loss:1,inj_skin:1,scar:1},sick:R()<.45?'columnaris':null,mem:'마른 바닥. 먼지. 다시 물.',run:learn};
   return {end:'HOM-01-M'};
 }
 fevEnd({
@@ -400,7 +406,7 @@ function hom_out10(lv){
   if(isSp('oscar','arowana','koi','@gold','pleco','gar'))lv++;
   if(isSp('@scaleless','neon','altum'))lv++;
   if(isSp('@livebearer')&&R()<.4)return {t:'치어들이 먼저 바닥에 떠오르자 주인이 이상하다는 걸 알았습니다. 물을 크게 갈았습니다.',c:'bad',fx:{h:-8,wq:15},run:()=>hom_learn('media')};
-  if(lv>=2)return hom_endure(isSp('@scaleless','neon','altum')?60:50,'HOM-10-D','{n}의 아가미와 지느러미가 붉게 상했습니다. 몇 주 뒤 박테리아가 다시 자리 잡을 때까지 {n}은 버텼습니다.',{fx:{h:-24,st:.15,wq:-10},sick:R()<.4?'finrot':null});
+  if(lv>=2)return hom_endure(isSp('@scaleless','neon','altum')?60:50,'HOM-10-D','{n}의 아가미와 지느러미가 붉게 상했습니다. 몇 주 뒤 박테리아가 다시 자리 잡을 때까지 {n}은 버텼습니다.',{fx:{h:-24,st:.15,wq:-10},sick:R()<.4?'finrot':null},'{n}의 아가미 새엽 끝이 암모니아에 녹아 뭉툭해졌습니다. 지느러미 가장자리는 붉게 짓물렀다가 한 마디씩 떨어져 나갔습니다. {n}은 몇 주 동안 수면 가까이에서 아가미 뚜껑을 빠르게 움직이며 지냈습니다.');
   return hom_lv(lv,'{n}은 따끔거리는 물에서 며칠을 지냈습니다.','{n}의 지느러미 기조를 따라 붉은 줄이 생겼습니다.',null,{fx:{h:lv?-14:-5,wq:-12},sick:lv&&R()<.3?'finrot':null});
 }
 fevEnd({'HOM-10-D':{kind:'bad',cat:'물잡이 실패',tier:'fact',fx:'f-float',pl:[[2,'여과재를 수돗물로 빪']],fact:'fCycle',
@@ -440,7 +446,8 @@ fev([{id:'HOM-12',tier:'fact',need:{strong_flow:1,pond:0},cd:30,
   ]}]);
 const hom_swim12=()=>({t:'{n}은 거센 물살 속을 신나게 헤엄쳤습니다.',c:'good',fx:{p:2}});
 function hom_flow12(){
-  if(isSp('betta')){addFl('flowhit');if(fl('flowhit')>=2||R()<.3)return {end:'HOM-12-D'};
+  if(isSp('betta')){addFl('flowhit');if(fl('flowhit')>=3&&R()<.6)return {end:'HOM-12-D'};
+    if(fl('flowhit')>=2)return {t:'물살에 밀린 {n}의 꼬리지느러미 막이 유리에 쓸려 가장자리부터 검게 죽었습니다. 죽은 막이 떨어져 나가 꼬리는 기조가 드러난 채 절반 길이가 되었습니다. {n}은 수면으로 올라갈 때마다 몸통을 세게 흔들어야 했습니다.',c:'bad',fx:{fin:.45,h:-20,st:.15},set:{inj_fin:1},sick:R()<.5?'finrot':null,run:()=>hom_learn('flow',isKind('eager','techbro')?.4:1.2)};
     return {t:'{n}의 지느러미가 물살을 받아 유리에 쓸렸습니다. 지느러미 막 가장자리가 갈라졌습니다.',c:'bad',fx:{fin:.3,h:-8,st:.08},sick:R()<.4?'finrot':null,run:()=>hom_learn('flow',isKind('eager','techbro')?.4:1)}}
   if(isSp('oranda','ryukin'))return {t:'짧고 둥근 몸이 물살에 뒤집혔다 돌아오기를 되풀이했습니다.',c:'bad',fx:{h:-10,st:.1},sick:R()<.35?'swimb':null,run:()=>hom_learn('flow',isKind('eager','techbro')?.4:1)};
   if(isSp('guppy'))return {t:'{n}의 꼬리가 물살에 접혀 유리에 쓸렸습니다.',c:'bad',fx:{fin:.2,h:-5},run:()=>hom_learn('flow')};
@@ -470,6 +477,7 @@ function hom_dig13(){
   if(R()>.4)return {t:'{n}은 자갈을 머금었다 뱉으며 먹이를 찾았습니다.',fx:{g:1}};
   if(isSp('comet')&&R()<clamp(Math.pow(fst().p/40,2),.05,.95))return {t:'입에 걸린 자갈을 {n}이 머리를 세게 흔들어 뱉어 냈습니다.',c:'good',fx:{p:1,h:-4}};
   if(isKind('expert','staff','learner')&&R()<.6)return {t:'입을 벌린 채 다니는 {n}을 본 주인이 핀셋으로 자갈을 빼냈습니다.',c:'good',fx:{h:-8},run:()=>hom_learn('gravel',1.5)};
+  if(R()<.4)return {t:'입안 깊숙이 들어간 자갈 하나가 인두 앞에 걸렸습니다. {n}은 입을 다물지 못한 채 열흘 넘게 먹이를 삼키지 못했고, 배가 안쪽으로 꺼졌습니다. 어느 날 머리를 흔들다 자갈이 빠져나왔을 때, 입천장 점막은 긁혀 헐어 있었습니다.',c:'bad',fx:{h:-32,st:.2},set:{thin:1,inj_mouth:1},sick:R()<.3?'columnaris':null,run:()=>hom_learn('gravel')};
   return {end:'HOM-13-D'};
 }
 fevEnd({'HOM-13-D':{kind:'bad',cat:'사고',tier:'fact',fx:'f-thin',pl:[[2,'금붕어 입 크기의 자갈']],
@@ -552,7 +560,7 @@ const hom_tell17=()=>isKind('decor')&&R()<.6?{t:'주인은 {n}이 두꺼비 앞�
 function hom_metal17(){
   if(isSp('@puffer'))setFl('no_snails',1);
   const need=isSp('@scaleless','altum','neon')?60:isSp('@gold','koi','pleco')?30:45;
-  return hom_endure(need,'HOM-17-D','{n}의 아가미에 점액이 두껍게 앉았습니다. 몇 주 뒤 누군가 두꺼비를 치울 때까지 {n}은 버텼습니다.',{set:{inj_gill:1},run:()=>hom_learn('metal',isKind('decor')?.15:isKind('grandma')?.4:1)});
+  return hom_endure(need,'HOM-17-D','{n}의 아가미에 점액이 두껍게 앉았습니다. 몇 주 뒤 누군가 두꺼비를 치울 때까지 {n}은 버텼습니다.',{set:{inj_gill:1},run:()=>hom_learn('metal',isKind('decor')?.15:isKind('grandma')?.4:1)},'구리에 상한 아가미 새엽 상피가 부풀었다가 벗겨져 나갔습니다. 몸 옆 측선의 감각세포도 일부 죽어, {n}은 그 뒤로 유리벽과 유목에 자주 몸을 부딪쳤습니다.');
 }
 fevEnd({'HOM-17-D':{kind:'bad',cat:'중독',tier:'fact',fx:'f-poison',pl:[[2,'수조에 놋쇠 장식과 동전']],
   l:['물에 녹아 나온 구리가 {n}의 아가미 새엽 상피에 쌓입니다. 상피세포가 부풀고 새엽 사이가 점액으로 메워집니다.','몸 옆을 따라 늘어선 측선의 감각세포도 구리에 상합니다.',()=>isSp('ghost')?'{n}은 어둠 속에서 늘 피하던 유리벽과 유목에 몸을 부딪칩니다. {n}은 몸을 앞뒤로 움직이며 숨던 관을 찾습니다.':'{n}은 늘 피하던 유리벽과 장식에 몸을 부딪칩니다.','아가미 뚜껑의 움직임이 빨라졌다가 불규칙해집니다.','두꺼비는 바닥 가운데 그대로 앉아 있습니다.']}});
@@ -618,7 +626,7 @@ function hom_sun20(lv){
     :{t:'녹색 물에서 {n}의 색이 진해졌습니다. 주인은 "햇볕을 받아서 색이 좋아졌다"며 만족했습니다.',fx:{g:1,c:1}};
   if(fx_().air)lv=Math.min(lv,1);
   if(isSp('neon','altum','peapuffer')&&season()==='summer')lv++;
-  if(lv>=2)return hom_endure(45,'HOM-20-D','새벽마다 숨이 짧아졌지만 {n}은 버텼습니다. 아가미 새엽 끝이 상했습니다.',{set:{inj_gill:1},run:L});
+  if(lv>=2)return hom_endure(45,'HOM-20-D','새벽마다 숨이 짧아졌지만 {n}은 버텼습니다. 아가미 새엽 끝이 상했습니다.',{set:{inj_gill:1},run:L},'새벽마다 산소가 모자란 물에서 {n}의 아가미 새엽 끝이 하얗게 죽었습니다. 죽은 끝이 떨어져 나간 뒤 새엽은 짧게 아물었고, {n}은 그 뒤로 조금만 헤엄쳐도 숨이 찼습니다.');
   return hom_lv(lv,'{n}은 연두색 물에서 지냈습니다.','새벽에 물속 산소가 모자랐습니다. {n}은 수면에서 입을 벌리며 아침을 기다렸습니다.',null,{fx:{h:lv?-12:-3,wq:-4},run:L});
 }
 fevEnd({'HOM-20-D':{kind:'bad',cat:'산소 부족',tier:'fact',fx:'f-float',pl:[[2,'창가 직사광선 자리']],fact:'fSun',
@@ -639,7 +647,7 @@ function hom_co2(lv){
   if(isSp('betta','wildbetta')&&R()<.5)lv--;
   const L=()=>hom_learn('co2',isKind('expert')?1.1:isKind('content')?.4:1);
   if(isSp('neon','altum','apisto')&&lv>=1&&R()<.35)return {t:'아침에 주인이 수면에 모여 입을 벌리는 물고기들을 보고 CO2 밸브를 잠갔습니다.',c:'bad',fx:{h:-10},run:L};
-  if(lv>=2)return R()<.6?{end:'HOM-21-D'}:{t:'아침에 조명이 켜지자 수초가 다시 이산화탄소를 쓰기 시작했습니다. {n}은 수초에 걸린 채 겨우 숨을 이었습니다.',c:'bad',fx:{h:-28,st:.2},set:{inj_gill:1},run:L};
+  if(lv>=2)return R()<.45?{end:'HOM-21-D'}:{t:'아침에 조명이 켜지자 수초가 다시 이산화탄소를 쓰기 시작했습니다. {n}은 수초에 걸린 채 겨우 숨을 이었습니다.',c:'bad',fx:{h:-28,st:.2},set:{inj_gill:1},run:L};
   return hom_lv(lv,'아침이 되자 물이 다시 편해졌습니다.','{n}은 밤새 숨이 깊어지지 않았습니다. 아침에 몸이 무거웠습니다.',null,{run:L});
 }
 fevEnd({'HOM-21-D':{kind:'bad',cat:'중독',tier:'fact',fx:'f-float',pl:[[2,'CO2 타이머를 확인하지 않음']],
@@ -661,7 +669,7 @@ function hom_low22(lv){
     const home=R()<hom_find()+.1;
     if(home)return fevOut({t:'주인이 여섯 시간 안에 돌아와 물을 다시 채웠습니다. 아래층에서는 천장에 물이 샌다는 연락이 왔습니다.',c:'bad',fx:{h:-10,st:.1},set:{slime_loss:1},run:()=>hom_learn('valve',isKind('cult')?0:1)});
     if(isSp('neon','guppy','platy','peapuffer')&&R()<.7)return fevOut({t:'{n}은 몇 cm 남은 물에서 헤엄치며 버텼습니다. 밤에 돌아온 주인이 물을 다시 채웠습니다. 수온이 크게 흔들렸습니다.',c:'bad',fx:{h:-12,st:.12},run:()=>hom_learn('valve')});
-    fevOut(hom_endure(isSp('oranda','ryukin','comet')?45:30,'HOM-22-D','{n}은 반쯤 드러난 몸으로 버텼습니다. 밤에 돌아온 주인이 물을 다시 채웠습니다. 위쪽 몸의 점막이 말라 있었습니다.',{set:{slime_loss:1,inj_gill:1},run:()=>hom_learn('valve')}));
+    fevOut(hom_endure(isSp('oranda','ryukin','comet')?45:30,'HOM-22-D','{n}은 반쯤 드러난 몸으로 버텼습니다. 밤에 돌아온 주인이 물을 다시 채웠습니다. 위쪽 몸의 점막이 말라 있었습니다.',{set:{slime_loss:1,inj_gill:1},run:()=>hom_learn('valve')},'물 밖으로 드러난 쪽 몸의 점막이 말라 갈라졌습니다. 위쪽 아가미 새엽 몇 줄이 마른 채 서로 붙었다가 그대로 죽었습니다. 밤에 물이 다시 차오른 뒤에도 {n}은 한쪽 아가미 뚜껑만 크게 움직였습니다.'));
   })};
 }
 fevEnd({'HOM-22-D':{kind:'bad',cat:'사고',tier:'fact',fx:'f-floor',pl:[[2,'기포기에 역류 방지 밸브 없음']],
@@ -730,8 +738,10 @@ function hom_burst25(corner){
     else hom_learn('tank',1.5)};
   if(fx_().cm<20)return {t:'수조 모서리에서 물이 새어 수위가 낮아졌습니다. 주인이 급히 {n}을 다른 통으로 옮겼습니다.',c:'bad',fx:{h:-6,st:.1},run:after};
   const need=isSp('pleco','bichir','channa','gar')?30:isSp('arowana','oscar','koi','motoro')?70:50;
+  /* most old seams open slowly: the water runs out over hours, not all at once */
+  if(R()<(corner?.3:.45))return {t:'모서리 이음새가 한 뼘쯤 벌어지며 물이 밤새 바닥으로 새어 나갔습니다. 아침에 수위는 {n}의 등 높이였습니다. 공기 중에 드러났던 등지느러미 막이 말라 갈라지고, 등 쪽 점막이 하얗게 굳어 있었습니다.',c:'bad',fx:{h:-14,fin:.12,st:.12},set:{slime_loss:1},run:after};
   if(corner&&R()<.3)addLog(T('터진 모서리의 물살이 {n}을 수조 밖으로 끌어냈습니다.'),'bad');
-  const r=hom_dry(need,'HOM-25-D','이음새가 터지며 물이 쏟아졌습니다. 주인이 깨어 {n}을 욕조로 옮겼습니다. 비늘 몇 장이 바닥에 남았습니다.',{run:after});
+  const r=hom_dry(need,'HOM-25-D','이음새가 터지며 물이 쏟아졌습니다. 주인이 깨어 {n}을 욕조로 옮겼습니다. 비늘 몇 장이 바닥에 남았습니다.',{run:after},'이음새가 터지며 물이 쏟아졌습니다. {n}은 바닥재 위에서 퍼덕이다 거실 바닥의 물웅덩이로 떨어졌습니다. 몸 한쪽 비늘이 바닥재에 쓸려 한 줄로 떨어져 나가고, 그 아래 진피가 드러났습니다. 아침에 주인이 웅덩이에서 아가미 뚜껑을 느리게 움직이는 {n}을 찾아 욕조로 옮겼습니다.');
   if(r.end||!isSp('pleco')||R()>.4)return r;
   return {end:'HOM-25-H'};
 }
@@ -783,7 +793,7 @@ function hom_stand27(side){
     if(cut)S.health-=isSp('arowana','oscar','koi')?18:10;
     if(R()<hom_find()){fevOut({t:'집에 있던 주인이 양동이에 물을 받아 {n}을 담았습니다.',c:'bad',fx:{h:-10,st:.15},set:{scar:1,slime_loss:1},run:after});return}
     if(isSp('neon','guppy','platy')&&R()<.4){fevOut({t:'{n}은 바닥의 물웅덩이에서 버텼습니다. 주인은 파편 사이에서 {n}을 한참 만에 찾았습니다.',c:'bad',fx:{h:-15,st:.15},set:{slime_loss:1},run:after});return}
-    fevOut(hom_dry(isSp('pleco','bichir','channa','gar')?30:isSp('arowana','oscar','koi','motoro')?70:50,'HOM-27-D','{n}은 물웅덩이에서 버텼습니다. 돌아온 주인이 {n}을 양동이에 담았습니다.',{run:after}));
+    fevOut(hom_dry(isSp('pleco','bichir','channa','gar')?30:isSp('arowana','oscar','koi','motoro')?65:45,'HOM-27-D','{n}은 물웅덩이에서 버텼습니다. 돌아온 주인이 {n}을 양동이에 담았습니다.',{run:after},'{n}은 유리 파편 사이 물웅덩이에서 몸을 뒤집으며 버텼습니다. 바닥에 닿은 쪽 아가미 새엽 몇 줄이 마르며 붙었고, 옆구리 비늘이 한 뼘쯤 벗겨졌습니다. 돌아온 주인이 {n}을 양동이에 담았을 때 지느러미 막은 바닥에 말라붙어 찢어져 있었습니다.'));
   })};
 }
 fevEnd({'HOM-27-D':{kind:'bad',cat:'수조 파손',tier:'fact',fx:'f-burst',pl:[[3,'전용 받침대가 아닌 가구에 수조']],fact:'fBurst',
@@ -823,7 +833,7 @@ const hom_told29=()=>({t:'주인이 꺼지지 않는 거품을 보고 세제를 
 function hom_soap29(){
   if(isSp('betta','channa','bichir')&&R()<.3)return Object.assign(hom_told29(),{t:'{n}은 수면 공기로 숨을 이으며 버텼습니다. 다음 날 주인이 거품을 보고 물을 크게 갈았습니다.',c:'bad',fx:{h:-15,wq:10}});
   const need=45+(isSp('@scaleless')?20:0)+(isSp('neon','altum','peapuffer')?15:0);
-  return hom_endure(need,'HOM-29-D','{n}의 피부가 하얗게 흐려지고 아가미가 상했습니다. 며칠 뒤 물이 몇 번 갈리고서야 따가움이 가셨습니다.',{set:{inj_gill:1,slime_loss:1},run:()=>hom_learn('bucket',isKind('shared')?.3:1)});
+  return hom_endure(need,'HOM-29-D','{n}의 피부가 하얗게 흐려지고 아가미가 상했습니다. 며칠 뒤 물이 몇 번 갈리고서야 따가움이 가셨습니다.',{set:{inj_gill:1,slime_loss:1},run:()=>hom_learn('bucket',isKind('shared')?.3:1)},'계면활성제에 녹은 아가미 새엽 상피가 실처럼 풀려 나갔습니다. 피부 점액이 통째로 벗겨져 몸이 하얗게 떴고, 벗겨진 자리마다 붉은 반점이 남았습니다. {n}은 며칠 동안 바닥에 배를 대고 아가미 뚜껑만 빠르게 움직였습니다.');
 }
 fevEnd({'HOM-29-D':{kind:'bad',cat:'중독',tier:'fact',fx:'f-poison',pl:[[2,'세제로 닦은 양동이']],
   l:['세제의 계면활성제가 {n}의 아가미 새엽 표면에 닿습니다. 상피세포막의 기름 성분이 녹아 세포가 터지고 떨어져 나갑니다.','새엽 사이로 점액이 쏟아져 물과 닿는 면을 덮습니다.',()=>isSp('cory')?'{n}은 바닥에서 수면까지 쉬지 않고 오르내리며 공기를 삼킵니다. 장으로 산소를 들여도 아가미에서 새는 염분과 이온은 막지 못합니다.':fx_().air?'{n}은 수면으로 올라가 공기를 삼킵니다. 공기로 산소를 들여도 아가미에서 새는 염분과 이온은 막지 못합니다.':'{n}은 수면으로 올라가 입을 벌립니다. 아가미에서 염분과 이온이 빠져나갑니다.','피부 점액이 벗겨져 몸이 하얗게 흐려집니다.',()=>isSp('cory')?'{n}은 바닥에 배를 대고 가슴지느러미 가시를 세운 채 아가미 뚜껑만 빠르게 움직입니다.':'{n}은 바닥에 배를 대고 아가미 뚜껑만 빠르게 움직입니다.']}});
@@ -844,7 +854,7 @@ function hom_spray30(){
   setFl('no_snails',1);
   if(season()!=='summer')return {t:'수면에 막이 오래 남았습니다. {n}의 아가미가 며칠 동안 따끔거렸습니다.',c:'bad',fx:{h:-6,st:.05},run:()=>hom_learn('spray',.5)};
   const need=isSp('neon','guppy','altum','peapuffer')?999:isSp('@big','pleco')?40:60;
-  return hom_endure(need,'HOM-30-D','{n}의 몸통이 한동안 잘게 떨렸습니다. 균형을 잃었다가 며칠 뒤에야 바로 헤엄쳤습니다.',{set:{inj_gill:1},run:()=>hom_learn('spray',isKind('casual')?.2:1)});
+  return hom_endure(need,'HOM-30-D','{n}의 몸통이 한동안 잘게 떨렸습니다. 균형을 잃었다가 며칠 뒤에야 바로 헤엄쳤습니다.',{set:{inj_gill:1},run:()=>hom_learn('spray',isKind('casual')?.2:1)},'신경이 멈추지 않고 신호를 보내 {n}의 몸통 근육이 밤새 떨렸습니다. 떨림이 멎은 뒤에도 꼬리 쪽 근육 한쪽이 굳어 {n}은 비스듬히 헤엄쳤습니다.');
 }
 fevEnd({'HOM-30-D':{kind:'bad',cat:'중독',tier:'fact',fx:'f-poison',pl:[[2,'수조 방에서 살충제를 뿌림']],
   l:['살충제 성분이 수면을 통해 물에 녹아듭니다. 아가미를 통해 들어온 성분이 신경세포의 나트륨 통로를 열린 채로 붙잡아 둡니다.','신경이 멈추지 않고 신호를 보냅니다. {n}의 몸통 근육이 잘게 떨리고 꼬리가 제멋대로 꺾입니다.','{n}은 몸을 세우려 지느러미를 휘젓지만 수면과 바닥 사이를 비스듬히 오르내립니다. 아가미 뚜껑의 움직임이 고르지 않게 됩니다.','{n}은 바닥에 떨어진 새우들 옆에 옆으로 눕습니다.','방 안의 모기는 창문 틈으로 나갔습니다.']}});
@@ -866,7 +876,7 @@ function hom_temp31(lv){
   if(isSp('@gold','koi','channa','gar')||!isSp('@tropical'))return {t:'찬물이 쏟아졌지만 {n}은 금세 몸을 추슬렀습니다.',fx:{g:1}};
   if(isSp('altum')&&lv>=1)return R()<.5?{end:'HOM-31-D'}:{t:'{n}은 그날부터 먹이를 받아먹지 않았습니다. 며칠 뒤 몸에 하얀 점이 돋았습니다.',c:'bad',fx:{h:-15,st:.15},sick:'ich',set:{thin:1},run:L};
   if(isSp('altum','motoro','ghost','clownloach','arowana'))lv++;
-  if(lv>=2)return hom_endure(45,'HOM-31-D','{n}의 몸에 하얀 점이 돋았습니다. 몸이 한동안 기울어 있었습니다.',{sick:'ich',run:L});
+  if(lv>=2)return hom_endure(45,'HOM-31-D','{n}의 몸에 하얀 점이 돋았습니다. 몸이 한동안 기울어 있었습니다.',{sick:'ich',run:L},'갑자기 식은 물에서 {n}의 피부와 아가미에 하얀 점이 빽빽하게 돋았습니다. 점이 떨어져 나간 자리마다 상피가 패였고, 몸이 한동안 옆으로 기울어 있었습니다.');
   return hom_lv(lv,'{n}은 찬물에 잠시 몸을 떨었습니다.','물이 한꺼번에 차가워졌습니다. 며칠 뒤 {n}의 몸에 하얀 점이 돋았습니다.',null,{sick:lv?'ich':null,run:L});
 }
 fevEnd({'HOM-31-D':{kind:'bad',cat:'수온 쇼크',tier:'fact',fx:'f-ice',pl:[[2,'환수 물 온도를 맞추지 않음']],fact:'fTemp',
@@ -886,7 +896,8 @@ function hom_ro32(b){
   const L=()=>hom_learn('ro',isKind('eager')?.5:1);
   if(isSp('altum','wildbetta','apisto')){addFl('ro_long');return fl('ro_long')>=2?{t:'완충 성분이 없는 물의 pH가 계속 떨어졌습니다. {n}의 아가미가 붓고 몸 색이 어두워졌습니다.',c:'bad',fx:{h:-15,st:.1},run:L}
     :{t:'{n}이 처음으로 지느러미를 끝까지 폈습니다. 주인은 정수기 덕분이라 믿고 렌탈을 2년 연장했습니다.',c:'good',fx:{st:-.05,c:1}}}
-  if(isSp('guppy','platy'))return R()<clamp(Math.pow(fst().g/55,2)+b,.05,.9)?{t:'{n}은 꼬리를 접은 채 제자리에서 몸을 흔들며 지냈습니다. 지느러미 끝이 짧아졌습니다.',c:'bad',fx:{h:-15,fin:.15,st:.1},run:L}:{end:'HOM-32-D'};
+  if(isSp('guppy','platy'))return R()<clamp(Math.pow(fst().g/55,2)+b,.05,.9)?{t:'{n}은 꼬리를 접은 채 제자리에서 몸을 흔들며 지냈습니다. 지느러미 끝이 짧아졌습니다.',c:'bad',fx:{h:-15,fin:.15,st:.1},run:L}
+    :R()<.35?{t:'산성 물에 {n}의 아가미 새엽 표면이 상해 점액이 두껍게 뭉쳤습니다. 화려하던 꼬리지느러미는 끝에서부터 녹아 절반 길이로 짧아졌고, 기조 끝이 하얗게 드러났습니다. {n}은 몇 주 동안 꼬리를 접은 채 제자리에서 몸을 흔들었습니다.',c:'bad',fx:{h:-30,fin:.35,st:.2},set:{inj_gill:1,inj_fin:1},run:L}:{end:'HOM-32-D'};
   if(isSp('@gold','koi'))return {t:'{n}의 피부 점막이 얇아졌습니다.',c:'bad',fx:{h:-8},set:{slime_loss:1},run:L};
   if(isSp('fig8'))return {t:'경도도 염분도 없는 물에서 {n}의 몸이 점점 무거워졌습니다.',c:'bad',fx:{h:-12,st:.12},run:L};
   return {t:'물이 조금씩 시큼해졌습니다. {n}은 별다른 일 없이 지냈습니다.',fx:{st:.03},run:L};
@@ -935,7 +946,8 @@ function hom_dog34(o){
     if(R()<hom_find()){fevOut({t:'집에 있던 주인이 바닥의 {n}을 컵에 담았습니다.',c:'bad',fx:{h:-12,st:.15},set:{slime_loss:1},run:L});return}
     if(isSp('guppy','platy','neon'))S.health-=6;
     const ch=clamp(Math.pow(fst().g/25,2),.05,.95)*(isSp('betta','wildbetta')?.8:isSp('oranda','ryukin')?.3:isSp('comet')?.25:.5);
-    fevOut(R()<ch?{t:'{n}은 바닥의 물웅덩이에서 버텼습니다. 돌아온 주인이 {n}을 컵에 담았습니다.',c:'bad',fx:{h:-18,st:.15},set:{slime_loss:1},run:L}:{end:'HOM-34-D'});
+    fevOut(R()<ch?{t:'{n}은 바닥의 물웅덩이에서 버텼습니다. 돌아온 주인이 {n}을 컵에 담았습니다.',c:'bad',fx:{h:-18,st:.15},set:{slime_loss:1},run:L}
+      :R()<.65?{t:'{n}은 깨진 어항 조각 사이 얕은 물웅덩이에 떨어졌습니다. 개가 코를 대고 핥을 때마다 몸 한쪽의 점막이 혀에 묻어 벗겨졌습니다. 돌아온 주인이 {n}을 컵에 담았을 때 벗겨진 옆구리는 붉게 드러나 있었고, 꼬리지느러미 막은 바닥에 붙었다가 찢어져 있었습니다.',c:'bad',fx:{h:-32,fin:.25,st:.22},set:{slime_loss:1,inj_skin:1,scar:1},sick:R()<.4?'fungus':null,run:L}:{end:'HOM-34-D'});
   })});
 }
 fevEnd({'HOM-34-D':{kind:'bad',cat:'사고',tier:'likely',fx:'f-floor',pl:[[3,'개 꼬리가 닿는 낮은 탁자에 어항']],
@@ -958,7 +970,7 @@ function hom_cloud35(o){
   return Object.assign({},o,{fx:Object.assign({wq:-18},o.fx||{}),run:()=>q(null,null,()=>{
     if(S.ending)return;
     if(fx_().air&&R()<.7){fevOut({t:'다음 날 새벽 물이 우윳빛으로 흐려졌습니다. {n}은 수면 공기를 마시며 버텼습니다.',c:'bad',fx:{h:-8},run:()=>hom_learn('food')});return}
-    fevOut(hom_endure(40+(tankL()<30?10:0),'HOM-35-D','다음 날 새벽 물이 우윳빛으로 흐려졌습니다. {n}은 수면에 입을 대고 아침까지 버텼습니다.',{set:{inj_gill:1},run:()=>hom_learn('food',isKind('grandma')?.3:1)}));
+    fevOut(hom_endure(40+(tankL()<30?10:0),'HOM-35-D','다음 날 새벽 물이 우윳빛으로 흐려졌습니다. {n}은 수면에 입을 대고 아침까지 버텼습니다.',{set:{inj_gill:1},run:()=>hom_learn('food',isKind('grandma')?.3:1)},'우윳빛 물에서 {n}의 아가미 새엽 끝이 하얗게 상해 떨어져 나갔습니다. 바닥에 가라앉은 먹이가 썩으며 지느러미 끝도 붉게 짓물렀습니다. 물이 맑아진 뒤에도 {n}은 오래 수면 가까이에 머물렀습니다.'));
   })});
 }
 fevEnd({'HOM-35-D':{kind:'bad',cat:'산소 부족',tier:'fact',fx:'f-float',pl:[[3,'먹이 통을 아이 손에 닿는 곳에 둠']],fact:'fBread',
@@ -1004,7 +1016,7 @@ function hom_move37(lv){
   S.f.cycled=0;
   if(isSp('oscar','arowana','koi','@gold','pleco','gar'))lv++;
   if(isSp('@scaleless','altum','neon'))lv++;
-  if(lv>=2)return hom_endure(isSp('@scaleless','altum','neon')?60:55,'HOM-37-D','{n}의 아가미가 붓고 눈 표면이 뿌옇게 흐려졌습니다. 몇 주 뒤 물이 자리를 잡았습니다.',{fx:{h:-24,wq:-12},set:{inj_gill:1,inj_eye:1},run:()=>hom_learn('move')});
+  if(lv>=2)return hom_endure(isSp('@scaleless','altum','neon')?60:55,'HOM-37-D','{n}의 아가미가 붓고 눈 표면이 뿌옇게 흐려졌습니다. 몇 주 뒤 물이 자리를 잡았습니다.',{fx:{h:-24,wq:-12},set:{inj_gill:1,inj_eye:1},run:()=>hom_learn('move')},'암모니아에 부푼 아가미 새엽이 서로 붙었다가 일부가 죽어 떨어졌습니다. 한쪽 눈의 각막이 하얗게 흐려진 채 맑아지지 않았습니다. {n}은 그 뒤로 흐린 눈 쪽에서 오는 먹이를 자주 놓쳤습니다.');
   return hom_lv(lv,'{n}은 낯선 물에 차츰 익숙해졌습니다.','새 물에 암모니아가 쌓여 {n}의 아가미가 화끈거렸습니다.',null,{fx:{h:lv?-15:-5,wq:-12},run:()=>hom_learn('move')});
 }
 fevEnd({'HOM-37-D':{kind:'bad',cat:'물잡이 실패',tier:'fact',fx:'f-float',pl:[[2,'이사 때 여과재를 말림']],fact:'fCycle',
@@ -1026,7 +1038,7 @@ function hom_heat38(lv){
   if(fl('l_fan'))lv--;
   if(isSp('altum')&&lv<=0)return {t:'{n}이 처음으로 먹이를 잘 받아먹었습니다. 주인은 "에어컨이 필요 없는 물고기"라고 기억해 두었습니다.',c:'good',fx:{h:3},set:{no_heater:1}};
   const ice=isKind('eager','gift','grandma');
-  if(lv>=2)return R()<.6?{end:'HOM-38-D'}:{t:'저녁이 되어서야 물이 식었습니다. {n}의 아가미가 붉게 부어 있었습니다.',c:'bad',fx:{h:-26,st:.18},set:{inj_gill:1},run:L};
+  if(lv>=2)return R()<.4?{end:'HOM-38-D'}:{t:'저녁이 되어서야 물이 식었습니다. {n}의 아가미 새엽은 붉게 부풀어 끝이 하얗게 죽어 있었고, 열에 지친 몸통 근육은 며칠 동안 떨렸습니다. 죽은 새엽 끝은 일주일 뒤 떨어져 나갔습니다.',c:'bad',fx:{h:-30,st:.2},set:{inj_gill:1,scar:1},run:L};
   return hom_lv(lv,ice?'주인이 얼음을 수조에 쏟았습니다. 물이 갑자기 차가워졌습니다.':'저녁이 되자 물이 조금 식었습니다.',ice?'주인이 얼음을 수조에 그대로 쏟았습니다. 데워졌던 물이 갑자기 차가워져 {n}이 몸을 떨었습니다.':'{n}은 오후 내내 수면에서 숨을 몰아쉬었습니다.',null,{sick:ice&&isSp('@tropical')&&R()<.5?'ich':null,run:L});
 }
 fevEnd({'HOM-38-D':{kind:'bad',cat:'과열',tier:'fact',fx:'f-cook',pl:[[2,'여름 수온 관리 안 함']],fact:'fTemp',
@@ -1072,7 +1084,7 @@ function hom_out40(){
 function hom_sewage40(lv){
   if(isSp('@scaleless'))lv++;
   const after=()=>{setFl('basement',0);if(R()<.4)q(null,null,()=>fRehome('반지하 방을 비우게 된 주인은 {n}을 지인에게 맡겼습니다.',{note:'침수로 집을 잃음'}))};
-  if(lv>=2)return hom_endure(50,'HOM-40-D','물이 빠진 뒤 사흘 만에 주인이 돌아왔습니다. {n}은 흙탕물 속에서 아가미를 겨우 움직이고 있었습니다.',{set:{inj_gill:1},run:after});
+  if(lv>=2)return hom_endure(50,'HOM-40-D','물이 빠진 뒤 사흘 만에 주인이 돌아왔습니다. {n}은 흙탕물 속에서 아가미를 겨우 움직이고 있었습니다.',{set:{inj_gill:1},run:after},'흙 입자와 기름이 아가미 새엽 사이에 엉겨 붙어 새엽 몇 줄이 썩어 떨어졌습니다. 피부에는 오수가 닿은 자리마다 붉은 염증이 번졌습니다. {n}은 물이 빠진 뒤에도 오래 숨이 가빴습니다.');
   if(R()<hom_find()*.6+fst().c/300)return {t:'대피하던 주인이 {n}을 통에 담아 함께 나왔습니다.',c:'bad',fx:{h:-8,st:.15},run:after};
   return hom_lv(lv,'물이 빠질 때까지 {n}은 수조 바닥에서 버텼습니다.','오수가 수조에 섞였습니다. {n}의 아가미가 상했습니다.',null,{set:{inj_gill:1},run:after});
 }
@@ -1095,6 +1107,7 @@ fev([{id:'HOM-41',tier:'fact',sp:['koi','comet','oranda','ryukin','guppy','platy
 function hom_beak41(){
   const len=S.f.len||fx_().cm*.5;
   if(isSp('koi')&&len>=30||isSp('comet')&&len>=20&&R()<.6)return {t:'왜가리의 부리가 {n}의 등을 찔렀습니다. 몸이 커서 삼켜지지는 않았습니다. 등에 깊은 상처가 남았습니다.',c:'bad',fx:{h:-25,st:.2},set:{scar:1},sick:R()<.35?'fungus':null,near:'net'};
+  if(R()<.7)return {t:'왜가리의 부리 끝이 {n}의 옆구리를 집었다가 미끄러졌습니다. 물 밖으로 반쯤 들렸던 {n}이 수면에 떨어져 연못 바닥으로 내려갔습니다. 부리가 지나간 자리의 비늘이 벗겨지고 근육에 깊은 구멍이 패였습니다.',c:'bad',fx:{h:-32,st:.22},set:{scar:1,inj_skin:1},sick:R()<.4?'fungus':null,near:'net'};
   return {end:'HOM-41-D'};
 }
 fevEnd({'HOM-41-D':{kind:'bad',cat:'잡아먹힘',tier:'fact',fx:'f-pond',pl:[[3,'연못에 그물을 치지 않음']],fact:'fKoi',
@@ -1114,6 +1127,7 @@ function hom_paw42(){
   const after=()=>{if(isKind('grandma')&&R()<.5){setFl('cat_food',1);addLog(T('할머니는 "고양이 밥을 따로 주면 된다"며 마당에 고양이 밥을 놓았습니다. 고양이가 더 모였습니다.'),'bad')}};
   if(isSp('koi')&&(S.f.len||30)>=30)return {t:'발톱이 {n}의 옆구리를 할퀴고 지나갔습니다. 큰 몸은 끌려 나가지 않았습니다.',c:'bad',fx:{h:-15,st:.15},set:{scar:1},near:'net',run:after};
   if(!fl('pond_shallow')&&R()<.4)return {t:'발톱이 {n}의 꼬리를 스쳤습니다. {n}은 깊은 곳으로 달아났습니다.',c:'bad',fx:{h:-10,fin:.15},near:'net',run:after};
+  if(R()<.6)return {t:'앞발의 발톱이 {n}의 꼬리자루에 걸려 근육을 찢고 빠졌습니다. {n}은 찢긴 쪽으로 몸이 기운 채 수초 덤불까지 달아났습니다. 아침에 주인은 물가 돌 위의 비늘 몇 장과, 꼬리자루가 벌어진 채 헤엄치는 {n}을 봤습니다.',c:'bad',fx:{h:-32,fin:.2,st:.22},set:{scar:1,inj_skin:1},sick:R()<.4?'fungus':null,near:'net',run:after};
   return {end:'HOM-42-D'};
 }
 fevEnd({'HOM-42-D':{kind:'bad',cat:'잡아먹힘',tier:'likely',fx:'f-pond',pl:[[3,'연못에 그물을 치지 않음']],
@@ -1122,16 +1136,16 @@ fevEnd({'HOM-42-D':{kind:'bad',cat:'잡아먹힘',tier:'likely',fx:'f-pond',pl:[
 /* EV-HOM-43 수달 — the otter is a protected species, never a villain here
    [출처: 수달(천연기념물·멸종위기 야생생물) 국내 하천 분포 회복과 양어장·연못 어류 피해 사례; 수달의 대형 잉어 포식] */
 fev([{id:'HOM-43',tier:'fact',sp:['koi','comet','oranda','ryukin'],need:{pond:1,river_near:1,otter_fence:0},cd:20,
-  w:()=>(S.f.net?.5:1)*(1+fl('otter_seen')),
+  w:()=>(S.f.net?.5:1)*(1+.3*fl('otter_seen')),
   p:'밤, 연못에 무언가가 소리 없이 들어옵니다. 물속에서 빠르고 유연한 몸이 바닥까지 내려왔다 올라갑니다. 물고기들이 한꺼번에 흩어지며 바닥 흙이 일어납니다. {n}은…',
   o:[
    {l:'연못 가장자리 돌 틈 사이로 파고든다',chk:['w',50],ok:{t:'{n}은 돌 틈 깊숙이 몸을 끼우고 아침을 기다렸습니다.',fx:{w:2}},no:()=>hom_otter43()},
    {l:'무리와 함께 반대편으로 빠르게 헤엄친다',chk:()=>['p',isSp('comet')?50:60],ok:{t:'{n}은 흩어지는 무리에 섞여 반대편 끝까지 달아났습니다.',fx:{p:2}},no:()=>hom_otter43()},
-   {l:'흙탕물 속 바닥에 몸을 붙이고 가만히 있는다',ok:()=>hom_roll('g',25,()=>R()<.5?{t:'흙탕물 속에서 {n}은 움직이지 않았습니다. 수염 달린 얼굴이 바로 옆을 지나갔습니다.',fx:{st:.1}}:hom_otter43(),()=>hom_otter43())}
+   {l:'흙탕물 속 바닥에 몸을 붙이고 가만히 있는다',ok:()=>hom_roll('g',25,()=>R()<.65?{t:'흙탕물 속에서 {n}은 움직이지 않았습니다. 수염 달린 얼굴이 바로 옆을 지나갔습니다.',fx:{st:.1}}:hom_otter43(),()=>hom_otter43())}
   ]}]);
 function hom_otter43(){
   addFl('otter_seen');
-  if(R()<.15)return {t:'수달의 이빨이 {n}의 옆구리를 스쳤습니다. {n}은 몸을 비틀어 빠져나왔습니다.',c:'bad',fx:{h:-25,st:.2},set:{scar:1},run:()=>hom_learn('otter',isKind('expert','breeder')?1.5:.5)};
+  if(R()<.85)return {t:'수달의 이빨이 {n}의 옆구리를 스쳤습니다. {n}은 몸을 비틀어 빠져나왔습니다. 이빨 자국 둘레의 비늘이 한 줌 뜯겨 나가고 그 아래 근육이 드러났습니다.',c:'bad',fx:{h:-30,st:.22},set:{scar:1,inj_skin:1},run:()=>hom_learn('otter',isKind('expert','breeder')?1.5:.5)};
   return {end:'HOM-43-D'};
 }
 fevEnd({'HOM-43-D':{kind:'bad',cat:'잡아먹힘',tier:'fact',fx:'f-pond',pl:[[3,'하천 가까운 연못에 울타리 없음']],
@@ -1148,11 +1162,13 @@ fev([{id:'HOM-44',tier:'fact',sp:['@gold','koi','guppy','platy'],need:{pond:1,se
    {l:'바닥으로 내려가 몸을 붙이고 움직임을 줄인다',when:()=>!isSp('guppy','platy')&&!fl('pond_shallow'),chk:()=>['g',isSp('oranda','ryukin')?55:40],ok:()=>hom_ice44(0),no:()=>hom_ice44(1)},
    {l:'다른 물고기들 곁에 가만히 있는다',when:()=>!isSp('guppy','platy')&&!fl('pond_shallow'),chk:['g',25],ok:()=>hom_ice44(1),no:()=>hom_ice44(2)}
   ],
-  auto:()=>isSp('guppy','platy')?{end:'HOM-44-T'}:{end:'HOM-44-D'}}]);
+  auto:()=>isSp('guppy','platy')?{end:'HOM-44-T'}:R()<.8?hom_frost44():{end:'HOM-44-D'}}]);
+/* frozen almost to the bottom but not quite: the outer fins freeze and die */
+const hom_frost44=()=>({t:'얼음이 바닥 가까이까지 내려와 {n}이 움직일 수 있는 물이 손바닥만큼 남았습니다. 얼음에 닿은 등지느러미와 꼬리지느러미 끝이 얼어 하얗게 죽었습니다. 봄에 얼음이 녹자 죽은 지느러미 끝은 물러져 떨어져 나갔고, {n}은 짧아진 꼬리로 기울어 헤엄쳤습니다.',c:'bad',fx:{h:-34,fin:.4,st:.2},set:{scar:1,inj_fin:1},sick:R()<.4?'fungus':null,run:()=>hom_learn('pondwin')});
 function hom_ice44(lv){
   const L=()=>hom_learn('pondwin');
   if(isSp('oranda','ryukin'))lv++;
-  if(lv>=2)return {end:'HOM-44-D'};
+  if(lv>=2)return R()<.8?hom_frost44():{end:'HOM-44-D'};
   if(lv===0&&isSp('comet')&&fst().g>=capOf('g')*.85&&R()<.3)return {end:'HOM-44-H'};
   if(isKind('grandma','casual')&&R()<.2)return {t:'주인이 주전자의 뜨거운 물을 부어 얼음에 구멍을 냈습니다. 물이 닿은 자리에 있던 {n}의 등이 하얗게 데었습니다.',c:'bad',fx:{h:-14},set:{inj_burn:1},run:L};
   return hom_lv(lv,'{n}은 바닥에서 겨울을 났습니다. 봄이 되자 다시 헤엄쳤습니다.','{n}은 차가운 물에서 겨울을 버텼습니다. 봄에도 한동안 몸이 기울어 있었습니다.',null,{sick:lv&&isSp('@gold')&&R()<.4?'swimb':null,run:L});
@@ -1176,7 +1192,7 @@ fev([{id:'HOM-45',tier:'fact',sp:['koi','comet','oranda','ryukin','guppy','platy
    {l:'연잎과 수초 뿌리 사이에 몸을 붙인다',ok:()=>hom_roll('g',25,{t:'{n}은 수초 뿌리를 붙잡고 버텼습니다. 빗물에 물맛이 바뀌어 며칠 몸이 무거웠습니다.',fx:{h:-5,st:.05}},()=>hom_flood45())}
   ]}]);
 function hom_flood45(){
-  if(isSp('oranda','ryukin'))return {end:'HOM-45-D'};
+  if(isSp('oranda','ryukin'))return R()<.65?{t:'{n}은 넘치는 물줄기에 실려 연못 가장자리를 넘었다가 잔디 위 얕은 물에 옆으로 누웠습니다. 잔디 줄기에 걸린 몸통의 점막이 벗겨지고 비늘이 들렸습니다. 비가 잦아들기 전 물줄기가 다시 불어나 {n}을 연못 쪽 웅덩이로 밀어 넣었을 때, 위쪽 아가미 새엽 몇 줄은 공기에 말라 붙어 있었습니다.',c:'bad',fx:{h:-32,st:.22},set:{slime_loss:1,inj_gill:1,scar:1},sick:R()<.4?'fungus':null,pl:[[3,'장마에 연못이 넘침']],run:()=>hom_learn('overflow')}:{end:'HOM-45-D'};
   return {t:'{n}은 넘치는 물줄기에 실려 마당 배수구로 들어갔습니다. 빗물관을 따라 도시 하천까지 흘러갔습니다.',c:'bad',pl:[[3,'장마에 연못이 넘침']],
     run:()=>{if(!isKind('release'))hom_learn('overflow');q(null,null,()=>{S.f.released=1;setFl('escaped',1);goWild('river')})}};
 }

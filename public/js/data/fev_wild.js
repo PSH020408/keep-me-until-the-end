@@ -34,6 +34,33 @@ const wld_late=(b)=>()=>(b||1)*(.25+fl('age')*1.6);
 const wld_newPlace=()=>pick(['reservoir','river','river','ditch']);
 /* survived a winter outdoors */
 const wld_winter={add:{winter_survived:1},mem:'얼음 아래에서 겨울을 버텼다.'};
+/* a predator or poison that does not finish the job: p = chance of lasting tissue damage instead of the ending */
+const wld_or=(p,t,o,end)=>{if(R()>=p)return {end};o=o||{};
+  return Object.assign({t,c:'bad'},o,{fx:Object.assign({h:-30,st:.2},o.fx||{}),set:Object.assign({scar:1,near_miss:1},o.set||{})})};
+const WLD_HURT={
+ '03':[.85,'얼음 아래 숨 막힌 물에서 {n}의 아가미 새엽 끝이 하얗게 죽었습니다. 얼음이 녹을 때까지 {n}은 바닥에 옆으로 누운 채 아가미 뚜껑만 움직였습니다. 봄이 왔을 때 새엽 끝은 짧게 떨어져 나가 있었고, 등이 얼음에 쓸린 자리의 피부가 벗겨져 있었습니다.',()=>Object.assign({set:{inj_gill:1,weight:'thin'}},wld_winter)],
+ '05':[.86,'수온이 크게 떨어진 며칠 동안 {n}은 옆으로 기운 채 배출구 관 앞에서 버텼습니다. 지느러미 끝과 아가미 새엽 가장자리가 추위에 하얗게 죽어 떨어져 나갔습니다. 배출구에서 다시 미지근한 물이 흘러나왔을 때 {n}의 꼬리는 절반 길이였습니다.',()=>Object.assign({fx:{h:-32,fin:.35},set:{inj_gill:1,inj_fin:1}},wld_winter)],
+ '06':[.8,'웅덩이 물이 데워지는 동안 {n}의 아가미 새엽 끝이 검붉게 상해 떨어져 나갔습니다. 물이 줄어 드러난 등 쪽 피부는 햇볕에 말라 갈라졌습니다. 며칠 뒤 비가 내려 웅덩이가 물길과 이어졌을 때 {n}은 진흙 위에 배를 대고 아가미 뚜껑만 움직이고 있었습니다.',()=>({set:{inj_gill:1,inj_skin:1,weight:'thin'}})],
+ '07':[.8,'물이 빠지는 속도가 {n}이 헤엄치는 속도보다 빨랐습니다. {n}은 풀뿌리 사이 얕은 물에서 몸을 뒤집으며 버텼고, 드러난 등의 점막이 햇볕에 말라 하얗게 굳었습니다. 다음 날 내린 비에 물길이 다시 이어졌을 때 {n}의 위쪽 아가미 새엽 몇 줄은 말라붙은 채 죽어 있었습니다.',()=>({set:{inj_gill:1,slime_loss:1,wild_place:wld_newPlace()}})],
+ '07S':[.7,'{n}은 흙탕물에 실려 한참을 떠내려갔습니다. 물에 섞인 모래 알갱이가 아가미 새엽 사이에 끼어 상피를 긁었고, 몸이 돌과 나뭇가지에 부딪힐 때마다 비늘이 떨어져 나갔습니다. 물이 빠졌을 때 {n}은 낯선 물가의 수초 뿌리에 걸려 있었습니다.',()=>({set:{inj_gill:1,inj_skin:1,wild_place:wld_newPlace()}})],
+ '08':[.75,'물살이 {n}을 철문 아래 틈으로 끌고 들어갔습니다. 콘크리트 턱에 머리가 부딪혀 두개골 위 피부가 찢어졌고, 아래쪽 바닥에 한 번 더 부딪히며 척추 한 마디가 어긋났습니다. {n}은 하류 소에서 한쪽으로 기운 채 원을 그리며 헤엄쳤고, 꼬리 쪽은 그 뒤로도 다른 각도로 꺾여 있었습니다.',()=>({fx:{h:-34},set:{inj_spine:1,inj_skin:1}})],
+ '08B':[.6,'수문 아래 물에 과하게 녹아 있던 기체가 {n}의 혈액 속에서 기포로 나왔습니다. 지느러미 막 사이와 눈 뒤쪽에 작은 기포가 줄지어 맺혔고, 한쪽 눈이 앞으로 밀려 나왔습니다. 기포는 며칠에 걸쳐 빠졌지만 밀려 나왔던 눈은 하얗게 흐려진 채 돌아가지 않았습니다.',()=>({set:{gbd:1,inj_eye:1,scar:0}})],
+ '09':[.75,'새벽마다 산소가 바닥나는 물에서 {n}의 아가미 새엽 끝이 하얗게 죽어 떨어져 나갔습니다. {n}은 해가 뜰 때까지 수면에 입을 대고 버텼고, 그 뒤로는 조금만 헤엄쳐도 숨이 찼습니다.',()=>({set:{inj_gill:1}})],
+ '09T':[.75,'삼킨 남조류의 독소에 {n}의 간이 부어 배가 단단하게 부풀었습니다. {n}은 열흘 동안 먹이를 보고도 입을 열지 않았고, 몸이 한쪽으로 기울어 헤엄쳤습니다. 간은 다 낫지 않아 {n}은 그 뒤로 전보다 훨씬 적게 먹었습니다.',()=>({fx:{h:-28},set:{toxin:'microcystin',weight:'thin',scar:0}})],
+ '10':[.68,'근육이 쉬지 못하고 수축해 {n}의 척추가 옆으로 휘었습니다. 경련은 사흘 만에 잦아들었지만 휜 등뼈는 펴지지 않았고, {n}은 그 뒤로 한쪽으로 원을 그리며 헤엄쳤습니다.',()=>({set:{toxin:'pesticide',inj_spine:1,scar:0}})],
+ '11':[.8,'가물치가 입을 벌리는 순간 {n}의 몸이 물과 함께 끌려 들어갔습니다. 안쪽으로 휜 이빨이 옆구리 비늘 사이로 박혔고, {n}이 몸을 비트는 사이 이빨이 근육을 길게 가르며 빠졌습니다. {n}은 찢긴 옆구리로 피를 흘리며 수초 밖으로 빠져나왔습니다.',()=>({set:{inj_skin:1},sick:R()<.4?'fungus':null})],
+ '12':[.65,'메기의 넓은 입이 아래에서 {n}의 꼬리 쪽을 덮었습니다. 잔 이빨들이 꼬리자루 비늘을 긁어 벗겨 냈고, {n}은 꼬리지느러미 절반을 메기 입 안에 남긴 채 빠져나왔습니다.',()=>({fx:{fin:.4},set:{inj_fin:1,inj_skin:1}})],
+ '13':[.75,'쏘가리의 턱이 {n}의 머리 뒤쪽을 물었다가 놓쳤습니다. 이빨이 아가미 뚜껑을 꿰뚫고 지나간 자리로 피가 물살에 풀렸습니다. {n}은 찢긴 아가미 뚜껑으로 숨을 몰아쉬며 자갈 틈으로 들어갔습니다.',()=>({set:{inj_gill:1,inj_skin:1}})],
+ '13C':[.75,'쏘가리가 {n}을 머리부터 삼키는 순간 가슴 가시가 양옆으로 서서 쏘가리의 입천장에 박혔습니다. 쏘가리가 머리를 흔들어 {n}을 뱉어 냈습니다. 가시 뿌리 관절 한쪽이 꺾여, {n}은 그 뒤로 한쪽 가시를 세우지 못했습니다.',()=>({set:{inj_fin:1}})],
+ '14':[.72,'강준치의 아래턱이 {n}의 꼬리 쪽을 비스듬히 물었다가 놓쳤습니다. 비늘이 한꺼번에 떨어져 옆구리 한쪽이 붉게 드러났고, 꼬리자루에 이빨 자국이 줄지어 패였습니다. {n}은 피를 흘리며 깊은 곳으로 내려갔습니다.',()=>({set:{inj_skin:1}})],
+ '16':[.62,'왜가리의 부리가 물을 뚫고 {n}의 몸통을 가로로 집었습니다. {n}이 부리 사이에서 몸을 크게 휘자 미끄러져 물로 떨어졌습니다. 부리 가장자리가 지나간 자리의 비늘이 벗겨지고, 옆구리 근육에 깊은 자국이 패였습니다.',()=>({set:{inj_skin:1},sick:R()<.35?'fungus':null})],
+ '17':[.85,'가마우지의 갈고리 부리 끝이 {n}의 등지느러미 아래 근육을 꿰었습니다. 수면으로 끌려 올라가던 중 {n}이 몸을 뒤틀자 근육이 찢어지며 부리에서 빠졌습니다. {n}은 등에 벌어진 상처를 달고 바닥 돌 사이로 떨어졌습니다.',()=>({set:{inj_skin:1},sick:R()<.35?'fungus':null})],
+ '18':[.75,'수달의 앞발이 {n}의 몸통을 감싸 쥐었다가 미끄러졌습니다. 발톱이 옆구리를 따라 네 줄로 긁고 지나가 비늘과 피부가 벗겨지고 그 아래 근육이 드러났습니다. {n}은 바위 밑 깊은 곳에서 며칠을 움직이지 않았습니다.',()=>({set:{inj_skin:1},sick:R()<.35?'fungus':null})],
+ '20':[.85,'양동이 물은 한 시간 만에 햇볕에 데워졌습니다. 피라미와 붕어 사이에 끼인 {n}은 수면으로 올라가지 못해 아가미 새엽 끝이 검붉게 상했습니다. 저녁에 사람들이 짐을 챙기며 양동이를 냇가에 쏟았을 때 {n}은 자갈 위에서 몇 번 튀어 물로 들어갔습니다. 자갈에 쓸린 옆구리의 비늘이 벗겨져 있었습니다.',()=>({set:{inj_gill:1,inj_skin:1,slime_loss:1}})],
+ '21':[.72,'바늘이 {n}의 위턱을 뚫고 미늘이 반대쪽 살에 걸렸습니다. 물 밖으로 들려 나온 {n}을 사람이 사진 몇 장 찍은 뒤 바늘을 비틀어 빼고 물로 던졌습니다. 찢어진 위턱은 다물어지지 않아 {n}은 한동안 먹이를 제대로 삼키지 못했습니다.',()=>({fx:{h:-26},set:{hooked:1,slime_loss:1,weight:'thin'}})],
+ '24':[.6,'닻벌레가 박힌 자리마다 피부가 패여 동전 크기의 붉은 궤양이 생겼습니다. 궤양 가장자리로 물곰팡이가 하얗게 번졌다가 물이 식으며 잦아들었습니다. 상처는 움푹 팬 흉터로 아물었고, 그 자리에는 비늘이 다시 나지 않았습니다.',()=>({set:{parasite_ext:1,inj_skin:1}})]
+};
+const wld_hurt=(k,end)=>{const h=WLD_HURT[k];return wld_or(h[0],h[1],h[2](),end)};
 /* H4 lives in fev_core.js */
 const wld_SOFA='HAP-SOFA';
 
@@ -77,7 +104,7 @@ fev([{id:'WLD-02',stage:'wild',tier:'fact',w:3,cd:30,need:{season:'winter'},when
     no:{t:'밤사이 얕은 물이 얼기 시작했습니다.',c:'bad',fx:{h:-6},run:()=>wld_q('WLD-03')}},
    {l:'지금 있는 곳 낙엽 밑에서 움직이지 않는다',when:()=>!isSp('@tropical'),ok:()=>wld02Still()}
   ],
-  auto:()=>isSp('@tropical')?{t:'물이 하루하루 차가워집니다. {n}의 움직임이 느려집니다.',c:'bad',end:'WLD-02-D'}:wld02Still()}]);
+  auto:()=>isSp('@tropical')?{t:'물이 하루하루 차가워졌습니다. {n}의 움직임이 느려지고, 지느러미 끝이 하얗게 굳어 갔습니다. 먹이를 쫓아 몸을 돌릴 힘이 남지 않았습니다.',c:'bad',fx:{h:-25,st:.2,fin:.1}}:wld02Still()}]);
 function wld02Still(){
   if(['pond','ditch'].includes(fl('wild_place'))&&R()<.5)return {t:'얕은 물 위로 얼음이 덮였습니다.',c:'bad',fx:{h:-8},run:()=>wld_q('WLD-03')};
   return Object.assign({t:'{n}은 낙엽 밑에서 겨울을 버텼습니다. 봄이 왔을 때 몸은 한 줌이 줄어 있었습니다.',fx:{h:-14,g:2},set:{weight:'thin'}},wld_winter)}
@@ -90,12 +117,12 @@ fev([{id:'WLD-03',stage:'wild',tier:'fact',sp:['@gold','koi','gar'],cd:30,need:{
     ok:()=>(isSp('oranda')&&R()<.3)||!wld_pass('g',isSp('ryukin')?55:50)?wld03Still():Object.assign({t:'{n}은 얼음 밑을 따라 물이 들어오는 곳까지 갔습니다. 그곳 물은 숨쉬기가 조금 나았습니다.',c:'good',fx:{h:-6}},wld_winter),
     no:()=>wld03Still()},
    {l:'얼음 바로 아래에 붙어 물을 들이마신다',
-    ok:[[3,Object.assign({t:'얼음 바로 아래 물에는 숨이 조금 더 있었습니다. 대신 등이 얼음에 닿은 자리의 피부가 허옇게 벗겨졌습니다.',c:'bad',fx:{h:-12},set:{inj_skin:1}},wld_winter)],[2,{end:'WLD-03-D'}]]},
+    ok:[[4,Object.assign({t:'얼음 바로 아래 물에는 숨이 조금 더 있었습니다. 대신 등이 얼음에 닿은 자리의 피부가 허옇게 벗겨졌습니다.',c:'bad',fx:{h:-12},set:{inj_skin:1}},wld_winter)],[1,()=>wld_hurt('03','WLD-03-D')]]},
    {l:'바닥에서 움직이지 않는다',chk:()=>['g',isSp('ryukin')?65:60],
     ok:Object.assign({t:'{n}은 바닥에서 몸의 움직임을 줄였습니다. 아가미 뚜껑만 느리게 움직였습니다. 얼음이 녹을 때까지 그랬습니다.',c:'good',fx:{h:-10,g:2}},wld_winter),
-    no:{end:'WLD-03-D'}}
+    no:()=>wld_hurt('03','WLD-03-D')}
   ]}]);
-function wld03Still(){return wld_pass('g',isSp('ryukin')?65:60)?Object.assign({t:'{n}은 지쳐 바닥에 내려앉았습니다. 그대로 봄까지 버텼습니다.',fx:{h:-15}},wld_winter):{end:'WLD-03-D'}}
+function wld03Still(){return wld_pass('g',isSp('ryukin')?65:60)?Object.assign({t:'{n}은 지쳐 바닥에 내려앉았습니다. 그대로 봄까지 버텼습니다.',fx:{h:-15}},wld_winter):wld_hurt('03','WLD-03-D')}
 
 /* WLD-04 따뜻한 물이 나오는 곳 [출처: 하수처리장 방류수·발전소 온배수의 겨울 수온, 국내 온수 구간 열대어 정착 사례] */
 const wld_outflowFits=()=>isSp('guppy','platy')?'H11':isSp('neon','altum','peapuffer','apisto')?'weak':'ok';
@@ -120,11 +147,11 @@ fev([{id:'WLD-05',stage:'wild',tier:'likely',sp:['@tropical'],cd:60,w:2,need:{wi
   o:[
    {l:'배출구 관 안쪽 어두운 곳으로 거슬러 들어간다',when:()=>isSp('oscar','arowana','pleco'),chk:['w',999],lockText:'{n}의 몸이 관 속으로 들어가지 않는다',ok:{}},
    {l:'배출구 관 안쪽 어두운 곳으로 거슬러 들어간다',when:()=>!isSp('oscar','arowana','pleco'),chk:()=>capOf('p')<25?['p',25]:['w',50],
-    ok:()=>wld_pass('p',25)||(isSp('@airbreather')&&R()<.3)?Object.assign(wld05Live(),{t:'{n}은 관 속 고인 물에서 며칠을 버텼습니다. 배출구에서 다시 미지근한 물이 흘러나왔습니다.'}):{end:'WLD-05-D'},
-    no:{end:'WLD-05-D'}},
+    ok:()=>wld_pass('p',25)||(isSp('@airbreather')&&R()<.3)?Object.assign(wld05Live(),{t:'{n}은 관 속 고인 물에서 며칠을 버텼습니다. 배출구에서 다시 미지근한 물이 흘러나왔습니다.'}):wld_hurt('05','WLD-05-D'),
+    no:()=>wld_hurt('05','WLD-05-D')},
    {l:'무리가 몰려 있는 곳 한가운데로 파고든다',
-    ok:()=>isSp('guppy','platy')?(wld_pass('g',60)?Object.assign(wld05Live(),{t:'무리의 절반이 바닥에 가라앉았습니다. 남은 절반 사이에 {n}이 있었습니다.'}):{set:{guppy_kingdom:0},end:'WLD-05-D'}):(R()<.4?wld05Live():{end:'WLD-05-D'})},
-   {l:'바닥 진흙에 몸을 붙이고 가만히 있는다',chk:['g',60],ok:()=>wld05Live(),no:{end:'WLD-05-D'}}
+    ok:()=>isSp('guppy','platy')?(wld_pass('g',60)?Object.assign(wld05Live(),{t:'무리의 절반이 바닥에 가라앉았습니다. 남은 절반 사이에 {n}이 있었습니다.'}):Object.assign(wld_hurt('05','WLD-05-D'),{set:{guppy_kingdom:0}})):(R()<.4?wld05Live():wld_hurt('05','WLD-05-D'))},
+   {l:'바닥 진흙에 몸을 붙이고 가만히 있는다',chk:['g',60],ok:()=>wld05Live(),no:()=>wld_hurt('05','WLD-05-D')}
   ]}]);
 
 /* WLD-06 마른 웅덩이 [출처: 가뭄기 고립 웅덩이 집단 폐사(용존산소·수온), 공기 호흡 어종의 저산소 내성, 베타 서식지 — 논·습지] */
@@ -132,21 +159,21 @@ const wld06Rain={t:'며칠 뒤 비가 내렸습니다. 웅덩이가 다시 물�
 fev([{id:'WLD-06',stage:'wild',tier:'fact',w:.8,cd:40,need:{season:'summer',wild_place:['ditch','river']},
   p:'물이 하루가 다르게 줄어듭니다. 흐르던 물이 끊기고, 남은 곳은 무릎 높이도 안 되는 웅덩이 하나입니다. 물이 미지근하고 탁합니다. 웅덩이 가장자리에 긴 다리를 가진 새가 서 있습니다. {n}은…',
   o:[
-   {l:'물이 가장 깊은 가운데 바닥에 머문다',chk:['g',60],ok:wld06Rain,no:{end:'WLD-06-D'}},
+   {l:'물이 가장 깊은 가운데 바닥에 머문다',chk:['g',60],ok:wld06Rain,no:()=>wld_hurt('06','WLD-06-D')},
    {l:'수면으로 올라가 공기를 마신다',chk:()=>isSp('@airbreather')?['g',isSp('betta','wildbetta')?30:40]:['g',999],lockText:'{n}은 공기로 숨을 쉴 수 없다',
     ok:()=>Object.assign({},wld06Rain,{t:'{n}은 수면에서 공기를 마시며 웅덩이를 버텼습니다. 수면에 올라갈 때마다 새의 그림자가 가까웠습니다.',run:()=>{if(R()<.5)wld_q('WLD-16')}}),
-    no:{end:'WLD-06-D'}},
+    no:()=>wld_hurt('06','WLD-06-D')},
    {l:'가장자리 진흙과 돌 틈에 몸을 붙인다',
-    ok:()=>R()<clamp(Math.pow(Math.max(0,fst().g-10)/60,2),.05,.95)?wld06Rain:{end:'WLD-06-D'}},
+    ok:()=>R()<clamp(Math.pow(Math.max(0,fst().g-10)/60,2),.05,.95)?wld06Rain:wld_hurt('06','WLD-06-D')},
    {l:'진흙 위를 기어 다음 웅덩이를 찾아간다',when:()=>isSp('bichir','channa'),chk:['g',70],
     ok:()=>wld_pass('p',40)?{t:'{n}은 젖은 진흙 위를 몸을 비틀며 건너 다른 웅덩이에 닿았습니다.',c:'good',fx:{h:-6,p:2},run:()=>{if(R()<.5)wld_q(R()<.5?'WLD-16':'WLD-20')}}:{t:'{n}은 진흙 위에서 지쳐 원래 웅덩이로 돌아왔습니다.',c:'bad',fx:{h:-12}},
-    no:{end:'WLD-06-D'}}
+    no:()=>wld_hurt('06','WLD-06-D')}
   ]}]);
 
 /* WLD-07 장마 [출처: 집중호우 시 둔치·논 고립 어류 폐사, 홍수 시 관상어 연못 유출] */
 function wld07Swept(){
   const s=wld_size();
-  if(s===0)return {end:'WLD-07-S'};
+  if(s===0)return wld_hurt('07S','WLD-07-S');
   if(s===1){const pl=R()<.12?'outflow':wld_newPlace();return {t:'{n}은 흙탕물에 실려 한참을 떠내려갔습니다. 물이 빠졌을 때 {n}은 낯선 물에 있었습니다.',c:'bad',fx:{h:-12},set:{wild_place:pl,inj_gill:1},run:()=>{if(pl==='outflow')S.f.warm=1}}}
   return {t:'{n}의 큰 몸이 물살에 떠밀려 하류의 보 쪽으로 내려갔습니다.',c:'bad',fx:{h:-8},run:()=>wld_q('WLD-08')}}
 fev([{id:'WLD-07',stage:'wild',tier:'likely',cd:40,need:{season:'summer'},
@@ -155,7 +182,7 @@ fev([{id:'WLD-07',stage:'wild',tier:'likely',cd:40,need:{season:'summer'},
    {l:'물살이 약한 큰 바위 뒤로 들어간다',chk:['p',50],ok:{t:'{n}은 바위 뒤에서 물살이 지나가기를 기다렸습니다.',c:'good',fx:{p:2}},no:()=>wld07Swept()},
    {l:'넓어진 물을 따라 새로 생긴 얕은 곳으로 간다',chk:['w',40],
     ok:{t:'{n}은 얕은 물에서 먹이를 찾다가 물이 빠지기 전에 본류로 돌아왔습니다.',c:'good',fx:{h:4}},
-    no:()=>isSp('bichir','channa','pleco')&&wld_pass('g',70)?{t:'물이 빠졌습니다. {n}은 풀뿌리 사이를 몸을 비틀며 기어 본류로 돌아왔습니다.',c:'good',fx:{h:-10}}:{end:'WLD-07-D'}},
+    no:()=>isSp('bichir','channa','pleco')&&wld_pass('g',70)?{t:'물이 빠졌습니다. {n}은 풀뿌리 사이를 몸을 비틀며 기어 본류로 돌아왔습니다.',c:'good',fx:{h:-10}}:wld_hurt('07','WLD-07-D')},
    {l:'바닥에 몸을 붙이고 물살이 지나가기를 기다린다',
     ok:()=>wld_pass('g',isSp('motoro')?55:50)?{t:'{n}은 바닥에 붙은 채 장마를 넘겼습니다.',c:'good',fx:{g:2}}:wld07Swept()}
   ]}]);
@@ -171,20 +198,20 @@ fev([{id:'WLD-07B',stage:'home',tier:'likely',sp:['@gold','koi'],cd:40,need:{sea
 /* WLD-08 보(洑) 수문이 열리는 날 [출처: 보·댐 방류 하류 어류 피해, 가스 과포화에 의한 기포병(gas bubble disease) 병리] */
 function wld08Gate(){
   if(wld_size()===0)return {t:'{n}은 수문 아래 틈으로 빨려 들어갔다가 작은 몸 그대로 하류 소에 떨어졌습니다. 소에는 은빛 물고기들이 모여 있었습니다.',c:'bad',run:()=>wld_q('WLD-14')};
-  return wld_pass('g',50)?{t:'{n}은 수문 아래로 휩쓸려 콘크리트 턱에 몸을 부딪쳤습니다. 등뼈 한쪽이 욱신거렸지만 하류에서 다시 헤엄쳤습니다.',c:'bad',fx:{h:-22},set:{inj_spine:1,inj_skin:1}}:{end:'WLD-08-D'}}
+  return wld_pass('g',50)?{t:'{n}은 수문 아래로 휩쓸려 콘크리트 턱에 몸을 부딪쳤습니다. 등뼈 한쪽이 욱신거렸지만 하류에서 다시 헤엄쳤습니다.',c:'bad',fx:{h:-22},set:{inj_spine:1,inj_skin:1}}:wld_hurt('08','WLD-08-D')}
 fev([{id:'WLD-08',stage:'wild',tier:'fact',w:.5,cd:40,need:{wild_place:['river','reservoir']},when:wld_warm,
   p:'물이 한 방향으로 강하게 빨려 갑니다. 앞쪽에서 낮게 울리는 소리가 들립니다. 물 아래로 콘크리트 벽과 철문이 보이고, 그 아래 틈으로 물이 쏟아져 나갑니다. {n}은…',
   o:[
    {l:'물살을 거슬러 위쪽 얕은 곳으로 헤엄쳐 간다',chk:['p',65],ok:{t:'{n}은 수문에서 멀어질 때까지 꼬리를 저었습니다.',c:'good',fx:{p:2}},no:()=>wld08Gate()},
    {l:'벽 옆 물살이 소용돌이치는 곳에서 버틴다',chk:['g',60],ok:{t:'{n}은 소용돌이 가장자리에서 수문이 닫힐 때까지 버텼습니다.',c:'good',fx:{h:-5}},no:()=>wld08Gate()},
    {l:'벽에서 먼 바닥으로 내려가 몸을 붙인다',
-    ok:()=>R()<.3?(wld_pass('g',isSp('motoro')?30:40)?{t:'수문 아래 물에 잔거품이 가득했습니다. {n}의 지느러미에 작은 기포가 맺혔다가 사라졌습니다.',c:'bad',fx:{h:-10},set:{gbd:1}}:{end:'WLD-08-B'}):{t:'{n}은 바닥에 붙어 수문 소리가 멎을 때까지 기다렸습니다.'}}
+    ok:()=>R()<.3?(wld_pass('g',isSp('motoro')?30:40)?{t:'수문 아래 물에 잔거품이 가득했습니다. {n}의 지느러미에 작은 기포가 맺혔다가 사라졌습니다.',c:'bad',fx:{h:-10},set:{gbd:1}}:wld_hurt('08B','WLD-08-B')):{t:'{n}은 바닥에 붙어 수문 소리가 멎을 때까지 기다렸습니다.'}}
   ]}]);
 
 /* WLD-09 녹조 [출처: 남조류 대발생 시 야간 용존산소 고갈, 마이크로시스틴의 어류 간 독성] */
 function wld09Toxin(o){
   return ()=>{const r=valOf(o);if(r.end)return r;
-    if(fl('algae')>=1&&!wld_pass('g',isSp('@scaleless')?50:40))return {end:'WLD-09-T'};
+    if(fl('algae')>=1&&!wld_pass('g',isSp('@scaleless')?50:40)){const h=wld_hurt('09T','WLD-09-T');if(h.end)return h;return Object.assign(h,{add:{algae:1}})}
     return Object.assign({},r,{add:{algae:1},set:Object.assign({},r.set,{toxin:fl('algae')>=1?'microcystin':0,weight:'thin'})})}}
 fev([{id:'WLD-09',stage:'wild',tier:'fact',cd:25,need:{season:'summer',wild_place:['reservoir','river','pond']},
   p:'물빛이 짙은 초록입니다. 수면에 초록 막이 엉겨 있고, 비린 풀 냄새가 납니다. 낮에는 숨쉬기가 편한데, 밤이 되면 물이 답답해집니다. 새벽에는 다른 물고기들이 모두 수면에 입을 대고 있습니다. {n}은…',
@@ -193,16 +220,16 @@ fev([{id:'WLD-09',stage:'wild',tier:'fact',cd:25,need:{season:'summer',wild_plac
     ok:()=>wld_pass('w',30)?{t:'{n}은 초록 막이 끝나는 곳까지 헤엄쳐 갔습니다. 물이 다시 투명했습니다.',c:'good',set:{algae:0,wild_place:'river'}}:wld09Toxin(wld09Surface)(),
     no:()=>wld09Toxin(wld09Surface)()},
    {l:'새벽마다 수면에 올라가 입을 댄다',ok:()=>wld09Toxin(wld09Surface)()},
-   {l:'바닥 그늘에서 움직임을 줄인다',chk:['g',40],ok:()=>wld09Toxin({t:'{n}은 바닥 그늘에서 몸의 움직임을 줄인 채 새벽을 넘겼습니다.',fx:{h:-6}})(),no:{end:'WLD-09-D'}}
+   {l:'바닥 그늘에서 움직임을 줄인다',chk:['g',40],ok:()=>wld09Toxin({t:'{n}은 바닥 그늘에서 몸의 움직임을 줄인 채 새벽을 넘겼습니다.',fx:{h:-6}})(),no:()=>wld_hurt('09','WLD-09-D')}
   ]}]);
 function wld09Surface(){
   if(isSp('@airbreather'))return {t:'{n}은 새벽마다 수면에서 공기를 마셨습니다. 다른 물고기들 사이에서 숨은 막히지 않았습니다.',fx:{h:-4}};
-  return wld_pass('g',50)?{t:'{n}은 새벽마다 수면 바로 아래에서 입을 벌리고 해가 뜨기를 기다렸습니다.',c:'bad',fx:{h:-10}}:{end:'WLD-09-D'}}
+  return wld_pass('g',50)?{t:'{n}은 새벽마다 수면 바로 아래에서 입을 벌리고 해가 뜨기를 기다렸습니다.',c:'bad',fx:{h:-10}}:wld_hurt('09','WLD-09-D')}
 
 /* WLD-10 논물이 흘러드는 철 [출처: 유기인계·카바메이트계 살충제의 어류 아세틸콜린에스테라아제 저해·척추 변형, 국내 농약 유입 어류 폐사 사례] */
 function wld10Exposed(){
   const need=60+(isSp('@scaleless')?15:0)-(isSp('@airbreather')?5:0)+(wld_size()===0?5:0);
-  if(!wld_pass('g',need))return {end:'WLD-10-D'};
+  if(!wld_pass('g',need))return wld_hurt('10','WLD-10-D');
   const bent=isSp('koi','comet')&&R()<.4;
   return {t:bent?'{n}은 며칠 동안 몸을 떨다 살아남았습니다. 꼬리 쪽 등뼈가 옆으로 조금 휘었습니다.':'{n}은 며칠 동안 몸을 떨다가 살아남았습니다.',c:'bad',fx:{h:-20},set:{toxin:'pesticide',near_miss:1,inj_spine:bent?1:fl('inj_spine')}}}
 fev([{id:'WLD-10',stage:'wild',tier:'fact',cd:40,need:{season:['spring','summer'],wild_place:['ditch','river','reservoir']},when:wld_warm,w:()=>fl('paddy')?2.5:1,
@@ -217,13 +244,13 @@ fev([{id:'WLD-10',stage:'wild',tier:'fact',cd:40,need:{season:['spring','summer'
 fev([{id:'WLD-11',stage:'wild',tier:'likely',cd:30,need:{wild_place:['reservoir','ditch','river']},when:()=>season()!=='winter',
   p:'수초가 빽빽한 물가입니다. 물이 고요합니다. 수초 사이에 통나무 같은 어두운 무늬가 움직이지 않고 떠 있습니다. 그 앞을 지나가던 붕어 한 마리가 사라집니다. {n}은…',
   o:[
-   {l:'수초를 벗어나 탁 트인 물로 빠르게 헤엄쳐 나간다',when:()=>wld_size()<2,chk:['p',50],ok:{t:'{n}은 수초를 벗어나 넓은 물로 빠져나갔습니다.',c:'good',set:{near_miss:1}},no:{end:'WLD-11-D'}},
-   {l:'어두운 무늬에서 눈을 떼지 않고 천천히 뒤로 물러난다',when:()=>wld_size()<2,chk:()=>['w',isSp('channa')?45:50],ok:{t:'{n}은 어두운 무늬와 거리를 유지한 채 수초 밖으로 물러났습니다.',c:'good',fx:{w:3},set:{near_miss:1}},no:{end:'WLD-11-D'}},
+   {l:'수초를 벗어나 탁 트인 물로 빠르게 헤엄쳐 나간다',when:()=>wld_size()<2,chk:['p',50],ok:{t:'{n}은 수초를 벗어나 넓은 물로 빠져나갔습니다.',c:'good',set:{near_miss:1}},no:()=>wld_hurt('11','WLD-11-D')},
+   {l:'어두운 무늬에서 눈을 떼지 않고 천천히 뒤로 물러난다',when:()=>wld_size()<2,chk:()=>['w',isSp('channa')?45:50],ok:{t:'{n}은 어두운 무늬와 거리를 유지한 채 수초 밖으로 물러났습니다.',c:'good',fx:{w:3},set:{near_miss:1}},no:()=>wld_hurt('11','WLD-11-D')},
    {l:'몸을 부풀린다',when:()=>isSp('fig8'),chk:['w',40],
-    ok:{t:'가물치가 {n}을 입에 넣었다가 뱉었습니다. 공처럼 부푼 {n}은 수면으로 떠올라 한참을 그대로 떠 있었습니다.',c:'bad',fx:{h:-10},set:{near_miss:1},run:()=>wld_q('WLD-16')},no:{end:'WLD-11-D'}},
+    ok:{t:'가물치가 {n}을 입에 넣었다가 뱉었습니다. 공처럼 부푼 {n}은 수면으로 떠올라 한참을 그대로 떠 있었습니다.',c:'bad',fx:{h:-10},set:{near_miss:1},run:()=>wld_q('WLD-16')},no:()=>wld_hurt('11','WLD-11-D')},
    {l:'바닥 진흙 가까이에서 움직이지 않는다',when:()=>wld_size()<2,
     ok:()=>{let p=wld_size()===0?.6:.4;if(isSp('@gold'))p=.25;if(isSp('pleco'))p+=.2;if(isSp('cory'))p+=.15;
-      return R()<p?{t:isSp('cory')?'가물치가 {n}을 삼키려다 가슴 가시에 걸려 뱉었습니다. 가시 옆 지느러미가 찢어졌습니다.':'어두운 무늬는 {n}을 지나쳐 다른 쪽으로 떠갔습니다.',c:isSp('cory')?'bad':'sub',fx:isSp('cory')?{fin:.1}:{},set:{near_miss:1}}:{end:'WLD-11-D'}}}
+      return R()<p?{t:isSp('cory')?'가물치가 {n}을 삼키려다 가슴 가시에 걸려 뱉었습니다. 가시 옆 지느러미가 찢어졌습니다.':'어두운 무늬는 {n}을 지나쳐 다른 쪽으로 떠갔습니다.',c:isSp('cory')?'bad':'sub',fx:isSp('cory')?{fin:.1}:{},set:{near_miss:1}}:wld_hurt('11','WLD-11-D')}}
   ],
   auto:()=>({t:'어두운 무늬가 {n}을 보고 수초 속으로 물러났습니다.',add:isSp('gar')?{gar_comp:1}:{}})}]);
 
@@ -231,16 +258,16 @@ fev([{id:'WLD-11',stage:'wild',tier:'likely',cd:30,need:{wild_place:['reservoir'
 fev([{id:'WLD-12',stage:'wild',tier:'likely',cd:30,when:()=>season()!=='winter',
   p:'밤입니다. 물속이 거의 보이지 않습니다. 바닥 쪽에서 수염이 물을 쓸고 지나가는 진동이 옆구리에 닿습니다. 진동이 천천히 가까워집니다. {n}은…',
   o:[
-   {l:'진동 반대쪽으로 수면 가까이 헤엄쳐 올라간다',when:()=>wld_size()<2,chk:['p',40],ok:{t:'{n}은 수면 가까이에서 진동이 멀어질 때까지 머물렀습니다.',c:'good',set:{near_miss:1}},no:{end:'WLD-12-D'}},
-   {l:'진동이 지나가는 길을 감지하고 비켜선다',when:()=>wld_size()<2,chk:()=>['w',isSp('ghost')?50:60],ok:{t:'{n}은 진동이 지나가는 길에서 한 뼘 비켜섰습니다. 수염이 꼬리 끝을 스치고 지나갔습니다.',c:'good',fx:{w:3},set:{near_miss:1}},no:{end:'WLD-12-D'}},
+   {l:'진동 반대쪽으로 수면 가까이 헤엄쳐 올라간다',when:()=>wld_size()<2,chk:['p',40],ok:{t:'{n}은 수면 가까이에서 진동이 멀어질 때까지 머물렀습니다.',c:'good',set:{near_miss:1}},no:()=>wld_hurt('12','WLD-12-D')},
+   {l:'진동이 지나가는 길을 감지하고 비켜선다',when:()=>wld_size()<2,chk:()=>['w',isSp('ghost')?50:60],ok:{t:'{n}은 진동이 지나가는 길에서 한 뼘 비켜섰습니다. 수염이 꼬리 끝을 스치고 지나갔습니다.',c:'good',fx:{w:3},set:{near_miss:1}},no:()=>wld_hurt('12','WLD-12-D')},
    {l:'돌 틈에 몸을 끼우고 움직이지 않는다',when:()=>wld_size()<2,
     ok:()=>{let p=isSp('cory','clownloach','ghost','bichir','apisto','peapuffer')?.7:.4;if(isSp('clownloach'))p+=.1;if(isSp('@gold'))p-=.1;
-      return R()<p?(isSp('clownloach')&&R()<.4?{t:'메기가 {n}을 입에 넣었다가 눈 밑 가시에 찔려 뱉었습니다. 옆구리가 긁혔습니다.',c:'bad',fx:{h:-8},set:{inj_skin:1,near_miss:1}}:{t:'진동은 돌 틈 앞을 지나 멀어졌습니다.',set:{near_miss:1}}):{end:'WLD-12-D'}}}
+      return R()<p?(isSp('clownloach')&&R()<.4?{t:'메기가 {n}을 입에 넣었다가 눈 밑 가시에 찔려 뱉었습니다. 옆구리가 긁혔습니다.',c:'bad',fx:{h:-8},set:{inj_skin:1,near_miss:1}}:{t:'진동은 돌 틈 앞을 지나 멀어졌습니다.',set:{near_miss:1}}):wld_hurt('12','WLD-12-D')}}
   ],
   auto:{t:'밤새 바닥에서 무언가가 {n} 옆을 지나갔습니다. {n}은 그것의 입보다 컸습니다.'}}]);
 
 /* WLD-13 여울 바위 밑의 쏘가리 [출처: 쏘가리·꺽지 서식지와 섭식, 코리도라스 가슴 가시 고정 구조] */
-const wld13Eaten=()=>({end:isSp('cory')?'WLD-13-C':'WLD-13-D'});
+const wld13Eaten=()=>isSp('cory')?wld_hurt('13C','WLD-13-C'):wld_hurt('13','WLD-13-D');
 fev([{id:'WLD-13',stage:'wild',tier:'likely',cd:30,sp:['@small','@gold','clownloach','fig8','ghost'],need:{wild_place:'river'},when:()=>wld_warm()&&wld_size()<2,
   w:()=>wld_size()===0?1.2:.4,
   p:'물이 맑고 빠릅니다. 큰 바위들 사이로 물살이 갈라집니다. 바위 밑 그늘에 얼룩무늬가 섞여 잘 보이지 않습니다. 피라미 무리가 그 바위를 크게 돌아서 지나갑니다. {n}은…',
@@ -258,25 +285,25 @@ fev([{id:'WLD-14',stage:'wild',tier:'likely',cd:30,need:{wild_place:['river','re
   o:[
    {l:'튀어 오른 작은 물고기들을 따라 수면 위로 뛰어오른다',when:()=>wld_size()<2&&isSp('pleco','bichir','motoro'),chk:['p',999],lockText:'{n}은 물 밖으로 뛰어오르는 몸이 아니다',ok:{}},
    {l:'튀어 오른 작은 물고기들을 따라 수면 위로 뛰어오른다',when:()=>wld_size()<2&&!isSp('pleco','bichir','motoro'),chk:['p',55],
-    ok:()=>isSp('betta')&&R()<.15?{end:'WLD-14-D'}:{t:'{n}은 수면 위로 튀어 올라 은빛 무리가 지나가는 길 밖으로 떨어졌습니다.',c:'good',set:{near_miss:1}},no:{end:'WLD-14-D'}},
+    ok:()=>isSp('betta')&&R()<.15?wld_hurt('14','WLD-14-D'):{t:'{n}은 수면 위로 튀어 올라 은빛 무리가 지나가는 길 밖으로 떨어졌습니다.',c:'good',set:{near_miss:1}},no:()=>wld_hurt('14','WLD-14-D')},
    {l:'아래로 깊이 잠수한다',when:()=>wld_size()<2,chk:['g',40],ok:{t:'{n}은 깊은 곳으로 내려갔습니다. 은빛 무리는 수면 쪽을 훑고 지나갔습니다.',c:'good',set:{near_miss:1}},
-    no:()=>R()<.5?{t:'은빛 몸 하나가 {n}의 옆구리를 스쳤습니다. 비늘 몇 장이 물에 흩어졌습니다.',c:'bad',fx:{h:-10},set:{scar:1}}:{end:'WLD-14-D'}},
-   {l:'가장자리 수초에 몸을 붙이고 가만히 있는다',when:()=>wld_size()<2,ok:()=>R()<(isSp('@gold')?.35:.5)?{t:'은빛 무리는 수초 앞을 지나 하류로 내려갔습니다.',set:{near_miss:1}}:{end:'WLD-14-D'}}
+    no:()=>R()<.5?{t:'은빛 몸 하나가 {n}의 옆구리를 스쳤습니다. 비늘 몇 장이 물에 흩어졌습니다.',c:'bad',fx:{h:-10},set:{scar:1}}:wld_hurt('14','WLD-14-D')},
+   {l:'가장자리 수초에 몸을 붙이고 가만히 있는다',when:()=>wld_size()<2,ok:()=>R()<(isSp('@gold')?.35:.5)?{t:'은빛 무리는 수초 앞을 지나 하류로 내려갔습니다.',set:{near_miss:1}}:wld_hurt('14','WLD-14-D')}
   ],
   auto:{t:'은빛 무리가 {n}의 큰 몸을 피해 갈라져 지나갔습니다.'}}]);
 
 /* WLD-15 배스가 사는 저수지 [출처: 블루길·배스 생태계교란 생물 지정과 섭식 생태] */
 function wld15Nip(){const n=fl('fin_nip')+1;
-  if(n>=2&&isSp('@longfin')||n>=3)return {end:'WLD-15-D'};
+  if((n>=3&&isSp('@longfin')||n>=4)&&R()<.6)return {end:'WLD-15-D'};
   return {t:'납작한 물고기들이 {n}의 지느러미 끝을 조금씩 뜯어 갔습니다.',c:'bad',fx:{fin:.12,h:-4},add:{fin_nip:1},set:{inj_fin:1}}}
 fev([{id:'WLD-15',stage:'wild',tier:'likely',cd:25,need:{wild_place:['reservoir','pond']},when:()=>season()!=='winter',
   p:'물가 돌 틈 사이로 납작하고 둥근 물고기들이 떼 지어 다닙니다. 그 물고기들이 {n}의 지느러미 끝을 툭툭 칩니다. 조금 떨어진 곳에서 큰 입을 가진 그림자가 천천히 돌고 있습니다. {n}은…',
   o:[
    {l:'둥근 물고기들을 피해 넓은 물로 나간다',when:()=>wld_size()<2,chk:['p',50],
-    ok:()=>R()<.5&&!wld_pass('w',50)?{end:'WLD-15-D'}:{t:'{n}은 납작한 물고기 떼를 떼어 내고 넓은 물로 나갔습니다. 큰 입의 그림자는 다른 쪽을 돌았습니다.',c:'good',set:{near_miss:1}},
+    ok:()=>R()<.5&&!wld_pass('w',50)?wld15Nip():{t:'{n}은 납작한 물고기 떼를 떼어 내고 넓은 물로 나갔습니다. 큰 입의 그림자는 다른 쪽을 돌았습니다.',c:'good',set:{near_miss:1}},
     no:()=>wld15Nip()},
    {l:'돌 틈 안쪽 깊은 곳으로 들어간다',when:()=>wld_size()<2,chk:()=>['w',isSp('apisto')?35:40],ok:{t:'{n}은 돌 틈 안쪽에서 납작한 물고기들이 지나가기를 기다렸습니다.',c:'good'},no:()=>wld15Nip()},
-   {l:'지금 자리에서 지느러미를 접고 버틴다',when:()=>wld_size()<2,ok:()=>R()<.3?{end:'WLD-15-D'}:wld15Nip()}
+   {l:'지금 자리에서 지느러미를 접고 버틴다',when:()=>wld_size()<2,ok:()=>wld15Nip()}
   ],
   auto:()=>({t:'납작한 물고기들은 {n}의 큰 몸 둘레를 돌다 흩어졌습니다.',add:isSp('gar')?{gar_comp:1}:{}})}]);
 
@@ -286,11 +313,11 @@ fev([{id:'WLD-16',stage:'wild',tier:'likely',cd:20,when:()=>wld_warm()&&(season(
   w:()=>(isSp('@gold','koi')?2:1)*(1+fl('heron_up')*.5)*(['ditch','pond','outflow'].includes(fl('wild_place'))?1.4:1),
   p:'물이 발목 높이밖에 되지 않습니다. 물가에 회색·하얀 새가 한쪽 다리로 서 있습니다. 새는 움직이지 않습니다. 새의 그림자가 수면에 길게 걸쳐 있습니다. {n}은…',
   o:[
-   {l:'그림자 반대쪽 깊은 물로 한 번에 내달린다',when:()=>!wld16Big(),chk:['p',50],ok:{t:'{n}은 깊은 물까지 단숨에 내달렸습니다.',c:'good',set:{near_miss:1}},no:{end:'WLD-16-D'}},
+   {l:'그림자 반대쪽 깊은 물로 한 번에 내달린다',when:()=>!wld16Big(),chk:['p',50],ok:{t:'{n}은 깊은 물까지 단숨에 내달렸습니다.',c:'good',set:{near_miss:1}},no:()=>wld_hurt('16','WLD-16-D')},
    {l:'새가 고개를 돌릴 때를 기다렸다가 천천히 움직인다',when:()=>!wld16Big(),chk:['w',50],ok:{t:'새가 고개를 돌린 사이 {n}은 깊은 쪽으로 미끄러져 갔습니다.',c:'good',fx:{w:2},set:{near_miss:1}},
-    no:()=>R()<.5?{t:'새의 부리가 {n} 바로 옆 물을 찍었습니다. {n}은 흙탕물 속으로 빠져나갔습니다.',c:'bad',set:{near_miss:1}}:{end:'WLD-16-D'}},
+    no:()=>R()<.5?{t:'새의 부리가 {n} 바로 옆 물을 찍었습니다. {n}은 흙탕물 속으로 빠져나갔습니다.',c:'bad',set:{near_miss:1}}:wld_hurt('16','WLD-16-D')},
    {l:'바닥 진흙 색에 몸을 붙이고 움직이지 않는다',when:()=>!wld16Big(),
-    ok:()=>{let p=wld_drab()?.7:wld_bright()?.25:.5;if(isSp('motoro'))p+=.2;return R()<p?{t:'새는 한참 서 있다가 다른 물가로 날아갔습니다.',set:{near_miss:1}}:{end:'WLD-16-D'}}}
+    ok:()=>{let p=wld_drab()?.7:wld_bright()?.25:.5;if(isSp('motoro'))p+=.2;return R()<p?{t:'새는 한참 서 있다가 다른 물가로 날아갔습니다.',set:{near_miss:1}}:wld_hurt('16','WLD-16-D')}}
   ],
   auto:()=>isSp('koi','comet')?{t:'회색 새가 {n}의 등을 몇 번 쪼다가 포기했습니다. 쪼인 자리의 비늘이 떨어졌습니다.',c:'bad',fx:{h:-8},set:{inj_skin:1,scar:1}}:{t:'회색 새는 {n}의 큰 몸을 내려다보다 다른 물가로 날아갔습니다.'}}]);
 
@@ -298,10 +325,10 @@ fev([{id:'WLD-16',stage:'wild',tier:'likely',cd:20,when:()=>wld_warm()&&(season(
 fev([{id:'WLD-17',stage:'wild',tier:'likely',cd:30,need:{wild_place:['river','reservoir']},when:wld_warm,
   p:'수면 위로 검은 새 여러 마리가 떠 있습니다. 한 마리가 머리를 물속에 넣더니 몸 전체가 물속으로 들어옵니다. 새는 날개를 접고 발로 물을 차며 물고기처럼 빠르게 나아갑니다. 다른 새들도 하나씩 물속으로 들어옵니다. {n}은…',
   o:[
-   {l:'새보다 빠르게 깊은 쪽으로 헤엄쳐 간다',when:()=>wld_size()<2,chk:['p',65],ok:{t:'{n}은 검은 새들보다 먼저 깊은 곳에 닿았습니다.',c:'good',set:{near_miss:1}},no:{end:'WLD-17-D'}},
-   {l:'바닥 돌 사이로 파고든다',when:()=>wld_size()<2,chk:()=>['w',wld_size()===0||isSp('@bottom')?50:60],ok:{t:'{n}은 돌 사이 깊숙이 몸을 밀어 넣었습니다. 부리가 돌 틈 앞에서 몇 번 헛돌았습니다.',c:'good',set:{near_miss:1}},no:{end:'WLD-17-D'}},
+   {l:'새보다 빠르게 깊은 쪽으로 헤엄쳐 간다',when:()=>wld_size()<2,chk:['p',65],ok:{t:'{n}은 검은 새들보다 먼저 깊은 곳에 닿았습니다.',c:'good',set:{near_miss:1}},no:()=>wld_hurt('17','WLD-17-D')},
+   {l:'바닥 돌 사이로 파고든다',when:()=>wld_size()<2,chk:()=>['w',wld_size()===0||isSp('@bottom')?50:60],ok:{t:'{n}은 돌 사이 깊숙이 몸을 밀어 넣었습니다. 부리가 돌 틈 앞에서 몇 번 헛돌았습니다.',c:'good',set:{near_miss:1}},no:()=>wld_hurt('17','WLD-17-D')},
    {l:'무리 속에 섞여 가만히 있는다',when:()=>wld_size()<2,
-    ok:()=>R()<(isSp('cory','clownloach')?.5:.4)?(isSp('cory','clownloach')&&R()<.5?{t:'검은 새가 {n}을 삼키다 가시에 걸려 토해 냈습니다. 옆구리에 부리 자국이 남았습니다.',c:'bad',fx:{h:-10},set:{inj_skin:1}}:{t:'검은 새들은 무리의 다른 쪽을 몰아갔습니다.',set:{near_miss:1}}):{end:'WLD-17-D'}}
+    ok:()=>R()<(isSp('cory','clownloach')?.5:.4)?(isSp('cory','clownloach')&&R()<.5?{t:'검은 새가 {n}을 삼키다 가시에 걸려 토해 냈습니다. 옆구리에 부리 자국이 남았습니다.',c:'bad',fx:{h:-10},set:{inj_skin:1}}:{t:'검은 새들은 무리의 다른 쪽을 몰아갔습니다.',set:{near_miss:1}}):wld_hurt('17','WLD-17-D')}
   ],
   auto:()=>R()<.3?{t:'검은 새의 부리가 {n}의 등을 찍고 지나갔습니다. 삼키기에는 몸이 너무 컸습니다.',c:'bad',fx:{h:-6},set:{inj_skin:1}}:{t:'검은 새들은 {n}의 큰 몸을 지나쳐 작은 물고기들을 쫓아갔습니다.'}}]);
 
@@ -309,7 +336,7 @@ fev([{id:'WLD-17',stage:'wild',tier:'likely',cd:30,need:{wild_place:['river','re
 function wld18Caught(){
   if(isSp('gar','pleco')&&wld_pass('g',80))return {t:'수달의 이빨이 {n}의 단단한 비늘에 미끄러졌습니다. 수달은 {n}을 놓고 다른 쪽으로 헤엄쳐 갔습니다.',c:'bad',fx:{h:-15},set:{inj_skin:1,near_miss:1}};
   if(isSp('motoro')&&R()<.3)return {t:'수달이 {n}을 뒤집어 잡는 순간 꼬리가 휘었습니다. 수달이 {n}을 놓고 물가로 물러났습니다.',c:'bad',fx:{h:-12},set:{inj_skin:1,near_miss:1}};
-  return {end:'WLD-18-D'}}
+  return wld_hurt('18','WLD-18-D')}
 fev([{id:'WLD-18',stage:'wild',tier:'likely',cd:40,w:.4,need:{wild_place:['river','reservoir']},when:wld_warm,
   p:'새벽입니다. 물가 바위 위에서 무언가가 미끄러지듯 물속으로 들어옵니다. 물속에서 몸을 크게 굽히며 빠르게 방향을 바꿉니다. 수염이 난 얼굴이 {n} 쪽을 향합니다. {n}은…',
   o:[
@@ -320,7 +347,8 @@ fev([{id:'WLD-18',stage:'wild',tier:'likely',cd:40,w:.4,need:{wild_place:['river
   ]}]);
 
 /* WLD-19 물풀 속의 침 [출처: 잠자리 유충 포식 구조(아랫입술), 물장군 체외 소화·멸종위기 야생생물 II급 지정] */
-const wld19Eaten=()=>Object.assign({end:R()<.1?'WLD-19-W':'WLD-19-D'},isSp('guppy','platy')?{add:{guppy_kingdom:0}}:{});
+const wld19Eaten=()=>R()<.6?{t:'갈색 덩어리의 아랫입술이 앞으로 뻗어 나와 끝의 갈고리로 {n}의 꼬리 쪽을 걸었습니다. {n}이 꼬리를 세게 저어 몸을 빼는 사이 갈고리가 꼬리자루 근육을 한 줌 뜯어 갔습니다. {n}은 뜯긴 쪽으로 몸이 기운 채 물풀 밖으로 빠져나왔습니다.',c:'bad',fx:{h:-28,fin:.2,st:.2},set:{scar:1,inj_skin:1,near_miss:1},sick:R()<.35?'fungus':null}
+  :Object.assign({end:R()<.1?'WLD-19-W':'WLD-19-D'},isSp('guppy','platy')?{add:{guppy_kingdom:0}}:{});
 fev([{id:'WLD-19',stage:'wild',tier:'likely',cd:30,sp:['neon','peapuffer','guppy','platy','apisto'],need:{season:['spring','summer'],wild_place:['ditch','pond','reservoir']},
   p:'물풀 줄기 사이가 고요합니다. 줄기에 붙은 갈색 덩어리가 아주 천천히 자리를 옮깁니다. 덩어리 앞쪽이 접혔다 펴집니다. {n} 옆에 있던 작은 올챙이가 사라집니다. {n}은…',
   o:[
@@ -336,11 +364,11 @@ function wld20Caught(){
   if(isSp('@gold','koi')){const r=R();
     if(r<.5)return {t:'"누가 버렸네." 사람이 {n}을 다시 물에 놓아 주었습니다. 손이 닿은 자리의 점막이 벗겨졌습니다.',c:'bad',fx:{h:-6},set:{slime_loss:1}};
     if(r<.8)return {t:'"집에 가져가자." {n}은 양동이째 차에 실렸습니다.',c:'bad',run:()=>{S.wild=false;S.f.released=0;fRehome('{n}은 냇가에서 건져진 물고기로 새 집에 들어갔습니다.',{own:'casual',note:'냇가에서 주워 옴'})}};
-    return {end:'WLD-20-D'}}
+    return wld_hurt('20','WLD-20-D')}
   if(isSp('betta','guppy','platy','cory')&&wld_pass('c',60))return {end:'HAP-43'};
   if(isSp('cory','clownloach'))return R()<.5?{t:'족대 그물에 가시가 걸렸습니다. 사람이 그물째 털어 내자 {n}은 지느러미가 찢긴 채 물로 떨어졌습니다.',c:'bad',fx:{fin:.15,h:-8},set:{inj_fin:1,inj_skin:1}}:{end:'WLD-20-D'};
   if(isSp('@tropical')&&R()<.4)return {t:'"열대어가 왜 여기 있지?" {n}은 페트병에 담겨 누군가의 집으로 갔습니다.',c:'sub',run:()=>{S.wild=false;S.f.released=0;fRehome('{n}은 냇가에서 건져진 열대어로 새 집에 들어갔습니다.',{note:'냇가에서 주워 옴'})}};
-  return {end:'WLD-20-D'}}
+  return wld_hurt('20','WLD-20-D')}
 fev([{id:'WLD-20',stage:'wild',tier:'likely',cd:40,need:{season:'summer',wild_place:['river','ditch']},
   p:'물가에 사람 발이 여럿 들어옵니다. 바닥 돌이 뒤집히고 흙탕물이 일어납니다. 앞쪽에 그물이 펼쳐져 있고, 다른 쪽 돌 틈에는 미끼 냄새가 나는 원통이 놓여 있습니다. {n}은…',
   o:[
@@ -355,7 +383,7 @@ function wld21Landed(){
   if(isSp('koi','comet'))return R()<.6?{t:'낚시꾼은 {n}의 입에서 바늘을 빼고 물에 다시 넣었습니다. 위턱에 구멍이 남았습니다.',c:'bad',fx:{h:-8},set:{slime_loss:1}}
     :{t:'"이건 가져가야겠다." {n}은 낚시꾼의 살림망에 들어갔습니다.',c:'bad',run:()=>{S.wild=false;S.f.released=0;fRehome('{n}은 저수지 낚시꾼의 집 마당 고무 대야로 갔습니다.',{own:'casual',note:'낚시로 잡혀 감'})}};
   if(isSp('gar'))return fl('gar_size')>=3?{end:'HAP-12'}:{t:'낚시꾼은 {n}을 다시 넣지 않고 사진을 찍어 신고했습니다. 신고가 접수되는 사이 {n}은 물가 웅덩이에서 미끄러져 저수지로 돌아갔습니다.',c:'bad',fx:{h:-15},set:{reported:1,viral:1}};
-  return {set:{viral:isSp('oscar','arowana','channa')?1:0},end:'WLD-21-D'}}
+  const h=wld_hurt('21','WLD-21-D');if(isSp('oscar','arowana','channa'))h.set=Object.assign({},h.set,{viral:1});return h}
 fev([{id:'WLD-21',stage:'wild',tier:'likely',cd:30,need:{wild_place:['reservoir','river']},when:()=>season()!=='winter'&&wld_warm(),
   w:()=>isSp('comet','koi','oscar','arowana','channa','gar','bichir')?1:isSp('pleco')?.4:.15,
   p:'물속에 반짝이는 작은 것이 떨어집니다. 떨어진 것이 흔들리며 다가오고, 지렁이 냄새가 납니다. 위쪽으로 아주 가는 실 하나가 수면까지 이어져 있습니다. {n}은…',
@@ -411,7 +439,7 @@ fev([{id:'WLD-24',stage:'wild',tier:'fact',cd:40,need:{season:['spring','summer'
    {l:'물살이 센 곳으로 가서 몸을 씻는다',chk:['g',50],ok:{t:'센 물살에 몸에 붙은 것 일부가 떨어져 나갔습니다.',c:'good',fx:{h:-3},set:{scar:1}},no:()=>wld24Endure()},
    {l:'그늘에 가만히 있는다',ok:()=>wld24Endure()}
   ]}]);
-function wld24Endure(){return wld_pass('g',40+(isSp('@scaleless')||wld_size()===0?10:0))?{t:'몸에 박힌 것들 둘레가 붉게 부었다가 가라앉았습니다. 흉터가 남았습니다.',c:'bad',fx:{h:-12},set:{scar:1,parasite_ext:1}}:{end:'WLD-24-D'}}
+function wld24Endure(){return wld_pass('g',40+(isSp('@scaleless')||wld_size()===0?10:0))?{t:'몸에 박힌 것들 둘레가 붉게 부었다가 가라앉았습니다. 흉터가 남았습니다.',c:'bad',fx:{h:-12},set:{scar:1,parasite_ext:1}}:wld_hurt('24','WLD-24-D')}
 
 /* WLD-25 변기 아래로 — no choice inside the pipe [출처: 변기 배출 관상어의 생존 가능성 — '하수구에서 살아남는다'는 통념 반박 자료] */
 fev([{id:'WLD-25',stage:'home',tier:'fact',notSp:['@big'],own:['casual','neglect','eager','gift','breakup','relay','alchemist'],cd:60,

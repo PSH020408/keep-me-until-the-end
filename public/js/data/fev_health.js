@@ -14,9 +14,38 @@ const hlt_free=id=>!S.f.ill||S.f.ill.id===id;          // not already sick with 
 function hlt_treat(id,half){const i=S.f.ill;if(i&&(!id||i.id===id)){i.noticed=1;i.treating=half?.5:1}}
 function hlt_cure(id){const i=S.f.ill;if(i&&(!id||i.id===id))S.f.ill=null}
 /* passive endurance: 근성 against need (chance (g/need)², 5–95%), a caring owner helps a little */
-function hlt_hold(need,end,live,mod){
+/* A failed hold is not always death. Whether the damage kills now depends on who keeps the fish
+   (water changed, the sick fish noticed and moved, food stopped): a careful keeper's fish usually
+   comes out of it hurt; a careless one's usually does not come out of it. */
+const HLT_DOOM={expert:.05,staff:.07,learner:.13,breeder:.18,grandma:.18,techbro:.2,eager:.3,content:.3,gift:.3,unbox:.3,breakup:.3,
+  decor:.35,relay:.35,shared:.35,touch:.4,casual:.42,release:.42,bait:.45,mill:.48,neglect:.55,cult:.55,alchemist:.55};
+function hlt_doom(k){
+  const base=HLT_DOOM[kindOf()]!=null?HLT_DOOM[kindOf()]:.3;
+  return clamp(base*(k||1)*(S.health<35?1.4:1)*(fl('hlt_old')?1.25:1),.02,.9);
+}
+/* the fish lives through it, but the body pays: more health lost, a running illness gets worse */
+function hlt_hurt(live){
+  let o=valOf(live);o=o&&!o.end?Object.assign({},o):{t:'{n}은 버텼습니다.'};
+  o.c='bad';o.t=(o.t||'')+' 이번 일로 {n}의 몸은 크게 상했습니다.';
+  o.fx=Object.assign({},o.fx||{});o.fx.h=(o.fx.h||0)-12;o.fx.st=(o.fx.st||0)+.1;
+  o.add=Object.assign({},o.add||{},{hlt_scar:1});
+  const r0=o.run;o.run=()=>{if(r0)r0();if(S.f.ill)S.f.ill.sev=Math.min(.95,S.f.ill.sev+.2)};
+  return o;
+}
+/* a careful keeper who sees the fish sick starts treating it (the engine's illness then runs treated) */
+const HLT_TX={expert:1,staff:1,breeder:.8,learner:.6,grandma:.5,techbro:.3};
+function hlt_tx(o){
+  if(!o||o.end||!o.sick||!DZ[o.sick]||!(R()<(HLT_TX[kindOf()]||0)))return o;
+  o=Object.assign({},o);const r0=o.run,id=o.sick;
+  o.run=()=>{if(r0)r0();const i=S.f.ill;if(i&&i.id===id&&!i.treating&&DZ[id].cure>0){hlt_treat(id);addLog(T('주인이 증상을 알아보고 {n}을 격리해 치료를 시작했습니다.'),'good')}};
+  return o;
+}
+function hlt_hold(need,end,live,mod,doomK){
   const ch=clamp(Math.pow(fst().g/Math.max(1,need),2)*(mod||1)*(S.r>.6?1.15:1)*((MODES[S.mode]||{}).chk||1),.05,.95);
-  return R()<ch?valOf(live):{end};
+  if(R()<ch)return hlt_tx(valOf(live));
+  if(R()<hlt_doom(doomK))return {end};
+  const o=hlt_hurt(live);
+  return S.health+(o.fx.h||0)<=0?{end}:hlt_tx(o);   // a body with nothing left does not get through it
 }
 /* the owner's answer, by kind: {'k1 k2':OUT, '*':OUT} */
 function hlt_by(map){const k=kindOf();for(const key in map){if(key!=='*'&&key.split(' ').includes(k))return valOf(map[key])}return valOf(map['*'])}
@@ -33,7 +62,7 @@ function hlt_learn(flag,line,mod){
 /* a bigger tank, when an owner finally buys one */
 function hlt_upTank(){const L=tankL(),up=TANKS.filter(t=>t.k!=='pond'&&t.L>L&&t.L>=Math.min(fx_().minL,1620))[0]||TANKS.filter(t=>t.k!=='pond'&&t.L>L).slice(-1)[0];if(up&&S.f.tank!=='pond'){S.f.tank=up.k;S.f.outgrown=0}}
 /* scaleless fish at full label dose: the fev_core.js HLT-MEDSCALE path (fevMedEndure) */
-function hlt_med(){if(typeof fevMedEndure==='function')return fevMedEndure();return hlt_hold(60,FEVEND['HLT-MEDSCALE-D']?'HLT-MEDSCALE-D':'HLT-37-D',{t:'{n}은 피부가 벗겨진 채로 버텼습니다.',c:'bad',fx:{h:-30,st:.2}})}
+function hlt_med(){if(typeof fevMedEndure==='function'){const o=fevMedEndure();return o&&o.end&&R()>hlt_doom(1.5)?hlt_hurt({t:'라벨 뒷면의 작은 글씨는 아무도 읽지 않았습니다. {n}은 피부가 벗겨진 채로 버텼습니다.',fx:{h:-18,st:.2},set:{slime_loss:1}}):o}return hlt_hold(60,FEVEND['HLT-MEDSCALE-D']?'HLT-MEDSCALE-D':'HLT-37-D',{t:'{n}은 피부가 벗겨진 채로 버텼습니다.',c:'bad',fx:{h:-30,st:.2}})}
 /* the 보내 줌 ending is only for owners who would choose it (decision 21) */
 const HLT_CARE=['expert','staff','learner','grandma'];
 
@@ -63,7 +92,7 @@ function hlt_01hold(mod){
   return hlt_hold(n,'HLT-01-D',()=>{
     if(capOf('g')>=85&&fst().g>=80&&!isKind('expert','staff'))return {t:'주인은 물잡이를 할 생각 없이 3주를 보냈고, {n} 혼자 그 3주를 버텨 수조의 여과 세균을 길러 냈습니다. 주인은 커뮤니티에 "물잡이 필요 없어요, 저는 그냥 넣었어요"라고 썼습니다. 그 글을 보고 물고기를 바로 넣은 사람이 열네 명이었습니다.',c:'sub',fx:{h:-10,g:3},set:{inj_gill:1,cycled:1},mem:'물이 따가운 날들을 버텼다.'};
     return {t:isSp('@airbreather')?'{n}은 수면 공기를 마시며 버텼습니다. 주인은 "잘 버티네"라고만 했습니다. 아가미 끝에는 흉터가 남았습니다.':'{n}은 버텼습니다. 아가미 새엽 끝에 흉터 조직이 남았습니다.',c:'bad',fx:{h:-14,st:.1},set:{inj_gill:1},mem:'물이 따가운 날들을 버텼다.'};
-  },m);
+  },m,.8);
 }
 fev([{id:'HLT-01',tier:'fact',need:{cycled:0},cd:30,
   w:()=>(isKind('eager','gift','casual','shared','decor','unbox','breakup')?2.2:isKind('expert','staff')?.15:1)*(isSp('@big')?1.5:1),
@@ -82,7 +111,7 @@ fev([{id:'HLT-01',tier:'fact',need:{cycled:0},cd:30,
    [출처: 아질산 메트헤모글로빈혈증과 염화이온 보호 효과(수산 질병 교재, Lewis & Morris 1986)] */
 function hlt_02hold(mod){
   const n=50+(isSp('@small')?5:0)-(isSp('@livebearer','fig8')||fl('hlt_salt')?12:0);
-  return hlt_hold(n,'HLT-02-D',{t:'하루 이틀에 걸쳐 {n}의 아가미 색이 돌아왔습니다.',c:'good',fx:{h:-10,g:3},set:{inj_gill:1},mem:'숨을 쉬어도 숨이 차던 날들이 지나갔다.'},mod);
+  return hlt_hold(n,'HLT-02-D',{t:'하루 이틀에 걸쳐 {n}의 아가미 색이 돌아왔습니다.',c:'good',fx:{h:-10,g:3},set:{inj_gill:1},mem:'숨을 쉬어도 숨이 차던 날들이 지나갔다.'},mod,.4);
 }
 fev([{id:'HLT-02',tier:'fact',need:{cycled:0},cd:30,w:()=>fl('inj_gill')?2.5:.9,
   p:'암모니아 냄새는 옅어졌는데 숨은 더 가쁩니다. 헤엄을 조금만 쳐도 금세 지칩니다. 아가미 안쪽 색이 평소와 다릅니다. {n}은…',
@@ -127,7 +156,7 @@ function hlt_no3(){
   if(isSp('oscar'))return {t:'{n}의 눈 위에 작은 구멍 하나가 생겼습니다.',c:'bad',fx:{h:-5},sick:'hex'};
   if(isSp('arowana'))return {t:'{n}의 아가미 뚜껑 가장자리가 조금 바깥으로 젖혀졌습니다.',c:'bad',fx:{h:-6},set:{hlt_gcurl:1},run:hlt_chain('HLT-41')};
   const sens=isSp('motoro','altum','apisto','ghost');
-  return hlt_hold(sens?60:50,'HLT-04-D',()=>isSp('altum','apisto')?{t:'{n}의 지느러미가 접히고 체색이 어두워졌습니다.',c:'bad',fx:{h:-8},sick:pick(['finrot','columnaris'])}:{t:'{n}은 하루 대부분을 쉬며 버텼습니다.',c:'sub',fx:{h:-6}});
+  return hlt_hold(sens?60:50,'HLT-04-D',()=>isSp('altum','apisto')?{t:'{n}의 지느러미가 접히고 체색이 어두워졌습니다.',c:'bad',fx:{h:-8},sick:pick(['finrot','columnaris'])}:{t:'{n}은 하루 대부분을 쉬며 버텼습니다.',c:'sub',fx:{h:-6}},1,.4);
 }
 fev([{id:'HLT-04',tier:'fact',need:{hlt_oldw:1},cd:35,
   w:()=>(isKind('cult')?4:isKind('neglect')?3:isKind('casual','decor','shared','content')?2:isKind('expert')?.15:1)*(fl('hlt_nowc')?2:1)*(fl('hlt_wc')?.3:1),
@@ -149,7 +178,7 @@ function hlt_05hold(mod){
   const n=55+(isSp('altum','apisto','wildbetta','neon')?15:0)-(isSp('@gold','koi','pleco')?10:0);
   return hlt_hold(n,'HLT-05-D',()=>({t:'{n}은 그날을 넘겼습니다.'+(isSp('@scaleless')?' 피부 점막이 군데군데 벗겨졌습니다.':''),c:'bad',fx:{h:-15,st:.15,wq:20},set:{slime_loss:isSp('@scaleless')?1:0},
     run:()=>{if(isKind('cult','neglect','casual')){setFl('hlt_nowc',1);addLog(T('주인은 "물을 갈았더니 죽을 뻔했다"고 결론 내렸습니다. 그 뒤로 물을 갈지 않았습니다.'),'bad')}
-      else if(isKind('expert','learner'))hlt_learn('hlt_wc','주인은 물을 조금씩 나눠 갈아야 한다는 걸 알게 되었습니다.')}}),mod);
+      else if(isKind('expert','learner'))hlt_learn('hlt_wc','주인은 물을 조금씩 나눠 갈아야 한다는 걸 알게 되었습니다.')}}),mod,.15);
 }
 fev([{id:'HLT-05',tier:'fact',need:{hlt_oldw:1},once:1,own:['cult','neglect','relay','grandma','eager'],w:2,
   log:'오랜만에 주인이 수조 물을 한 번에 거의 다 갈기로 했습니다.',
@@ -168,7 +197,7 @@ function hlt_06hold(mod){
     if(isSp('motoro','ghost'))o.set.slime_loss=1;
     if(isKind('techbro'))o.t+=' 주인은 자동 급수 밸브를 고치고 커밋 메시지에 "fix: valve"라고 적었습니다.';
     if(isSp('arowana')&&!S.f.lid&&R()<.35)o.run=()=>q(null,null,()=>fCr('jump'));
-    return o},mod);
+    return o},mod,.5);
 }
 fev([{id:'HLT-06',tier:'fact',need:{hlt_bigt:1,dechlor:0},cd:50,own:['eager','techbro','decor','content','casual'],w:1.2,
   p:'호스에서 물이 한참 동안 쏟아집니다. 수영장 같은 냄새가 수조 전체에 퍼집니다. 눈 표면이 따갑습니다. {n}은…',
@@ -207,9 +236,9 @@ fev([{id:'HLT-07',tier:'fact',sp:['altum','wildbetta','apisto','neon','guppy','p
 /* EV-HLT-08 팔자복어 — 자라면서 바뀌는 물 (피퍼퍼는 반대: 담수종에 소금)
    [출처: Dichotomyctere ocellatus(팔자복어) 성장 단계별 염분 요구, 복어 기수 사육 문헌] */
 function hlt_08hold(add){
-  if(isSp('peapuffer'))return hlt_hold(30+(add||0),'HLT-08-D',{t:'{n}은 짠물 속에서 버텼습니다. 주인은 소금을 계속 넣었습니다.',c:'bad',fx:{h:-8}});
+  if(isSp('peapuffer'))return hlt_hold(30+(add||0),'HLT-08-D',{t:'{n}은 짠물 속에서 버텼습니다. 주인은 소금을 계속 넣었습니다.',c:'bad',fx:{h:-8}},1,.6);
   addFl('hlt_fresh');
-  return hlt_hold(50+(add||0)+fl('hlt_fresh')*5,'HLT-08-D',{t:'{n}은 버텼습니다. 피부색은 조금 더 바랬습니다.',c:'bad',fx:{h:-8},sick:R()<.3?'ich':null});
+  return hlt_hold(50+(add||0)+fl('hlt_fresh')*5,'HLT-08-D',{t:'{n}은 버텼습니다. 피부색은 조금 더 바랬습니다.',c:'bad',fx:{h:-8},sick:R()<.3?'ich':null},1,.6);
 }
 fev([{id:'HLT-08',tier:'fact',sp:['fig8','peapuffer'],need:{hlt_brack:0},cd:30,
   w:()=>isSp('fig8')?2:isKind('eager','alchemist','casual')?1:.3,
@@ -223,7 +252,7 @@ fev([{id:'HLT-08',tier:'fact',sp:['fig8','peapuffer'],need:{hlt_brack:0},cd:30,
       if(R()>clamp(Math.pow(fst().c/70,2),.05,.95))return {t:'주인은 {n}의 하얀 점을 보고 백점병 약을 샀습니다.',c:'bad',sick:'ich',run:hlt_then(()=>hlt_08hold())};
       if(isSp('peapuffer'))return {t:'주인이 "피퍼퍼는 민물고기"라는 글을 읽고, 물을 여러 번 나눠 갈아 소금을 뺐습니다.',c:'good',fx:{h:4,w:2},set:{hlt_brack:1}};
       if(isKind('eager','alchemist'))return Object.assign(hlt_08hold(20),{t:'주인이 "팔자복어는 기수어"라는 걸 알았습니다. 그날 바로 소금을 한 번에 맞췄습니다.'});
-      if(isKind('expert','learner','staff')&&R()<.4)return {end:'HLT-08-H'};
+      if(isKind('expert','learner','staff')&&R()<.15)return {end:'HLT-08-H'};
       return {t:'주인이 "팔자복어 흰 반점"을 검색했습니다. 기수어였습니다. 주인은 몇 주에 걸쳐 소금을 조금씩 올렸습니다.',c:'good',fx:{g:5,h:5},set:{hlt_brack:1}};
     },
     no:{t:'"배고프구나." 주인은 먹이를 더 넣었습니다.',fx:{wq:-5},run:hlt_then(()=>hlt_08hold())}},
@@ -263,7 +292,7 @@ function hlt_10hold(mod){
   return hlt_hold(70,'HLT-10-D',()=>isSp('koi')&&fst().g>=80&&isKind('grandma')
     ?{t:'새벽 다섯 시, 산책 나온 할아버지가 연못에 몰린 잉어들을 보고 "아침밥 달라는구나" 하며 사료를 뿌렸습니다. 잉어들은 먹지 않았고, 할아버지는 이상하다며 호스를 연못에 꽂아 두었습니다. 찬 물줄기가 산소를 넣었습니다. 그날부터 할아버지는 새벽마다 호스를 꽂았고, 이웃은 수도요금을 이상하게 여겼습니다.',c:'good',fx:{h:-6},set:{dechlor:0},mem:'새벽마다 차가운 물줄기가 들어왔다.'}
     :{t:'해가 뜨자 녹조가 다시 산소를 만들기 시작했습니다. {n}은 살아 있었습니다.',c:'sub',fx:{h:-12},set:{inj_gill:1},run:()=>hlt_learn('hlt_air','주인은 연못에 에어 펌프와 그늘막을 달았습니다.')},
-    (mod||1)*(isSp('oranda','ryukin')?.7:1));
+    (mod||1)*(isSp('oranda','ryukin')?.7:1),.6);
 }
 fev([{id:'HLT-10',tier:'fact',sp:['koi','comet','oranda','ryukin'],need:{pond:1,season:'summer',hlt_air:0},cd:30,
   w:()=>isKind('grandma','decor','touch','release')?2:isKind('expert')?.3:1,
@@ -286,10 +315,10 @@ fev([{id:'HLT-11',tier:'fact',sp:['koi','comet','oranda','ryukin'],need:{pond:1,
   o:[
    {l:'수면에 올라가 사람들 앞에서 입을 벌린다',
     ok:()=>R()<clamp(Math.pow(fst().c/50,2),.05,.95)
-      ?{t:'사람들이 {n}의 입에 먹이를 계속 넣어 주었습니다. 찬물 속 장은 그것을 소화하지 못했습니다.',c:'bad',fx:{fat:.1},run:hlt_then(()=>hlt_hold(hlt_11n(20),'HLT-11-D',()=>Object.assign(hlt_11live(),{sick:R()<.3?'aero':null})))}
-      :hlt_hold(hlt_11n(),'HLT-11-D',hlt_11live)},
-   {l:'떨어진 먹이를 지나쳐 바닥으로 내려간다',chk:['w',50],ok:hlt_11live,no:()=>hlt_hold(hlt_11n(10),'HLT-11-D',hlt_11live)},
-   {l:'연못 가장 깊은 곳에서 가만히 있는다',chk:['g',60],ok:hlt_11live,no:()=>hlt_hold(hlt_11n(),'HLT-11-D',hlt_11live)}
+      ?{t:'사람들이 {n}의 입에 먹이를 계속 넣어 주었습니다. 찬물 속 장은 그것을 소화하지 못했습니다.',c:'bad',fx:{fat:.1},run:hlt_then(()=>hlt_hold(hlt_11n(20),'HLT-11-D',()=>Object.assign(hlt_11live(),{sick:R()<.3?'aero':null}),1,.6))}
+      :hlt_hold(hlt_11n(),'HLT-11-D',hlt_11live,1,.6)},
+   {l:'떨어진 먹이를 지나쳐 바닥으로 내려간다',chk:['w',50],ok:hlt_11live,no:()=>hlt_hold(hlt_11n(10),'HLT-11-D',hlt_11live,1,.6)},
+   {l:'연못 가장 깊은 곳에서 가만히 있는다',chk:['g',60],ok:hlt_11live,no:()=>hlt_hold(hlt_11n(),'HLT-11-D',hlt_11live,1,.6)}
   ]}]);
 
 /* =====================================================================
@@ -299,10 +328,10 @@ fev([{id:'HLT-11',tier:'fact',sp:['koi','comet','oranda','ryukin'],need:{pond:1,
 /* EV-HLT-12 지나가는 사람마다 한 줌 — 과식
    [출처: 잉어과 어류 무위(無胃) 소화관, 과급이와 수질 악화] */
 function hlt_12over(){
-  if(isSp('@gold'))return hlt_hold(45,'HLT-12-D',{t:'부푼 배 때문에 {n}의 몸이 기울었습니다.',c:'bad',fx:{fat:.2,wq:-10,h:-6},sick:'swimb'});
+  if(isSp('@gold'))return hlt_hold(45,'HLT-12-D',{t:'부푼 배 때문에 {n}의 몸이 기울었습니다.',c:'bad',fx:{fat:.2,wq:-10,h:-6},sick:'swimb'},1,.7);
   if(isSp('betta'))return {t:'{n}의 배가 공처럼 불렀습니다. 하루 동안 몸이 기울어 있었습니다.',c:'bad',fx:{fat:.2,wq:-6,h:-4}};
   if(isSp('oscar'))return {t:'{n}의 몸에 살이 붙었습니다. 물은 점점 탁해졌습니다.',c:'bad',fx:{fat:.3,wq:-12},sick:R()<.25?'hex':null};
-  return hlt_hold(40,'HLT-12-D',{t:'남은 먹이가 바닥에서 썩어 물이 흐려졌습니다.',c:'bad',fx:{fat:.15,wq:-12,h:-4}});
+  return hlt_hold(40,'HLT-12-D',{t:'남은 먹이가 바닥에서 썩어 물이 흐려졌습니다.',c:'bad',fx:{fat:.15,wq:-12,h:-4}},1,.7);
 }
 fev([{id:'HLT-12',tier:'likely',own:['shared','decor','grandma','touch','eager'],notSp:['@bottom','ghost'],cd:30,
   w:()=>isKind('shared')?4:1.5,
@@ -312,14 +341,14 @@ fev([{id:'HLT-12',tier:'likely',own:['shared','decor','grandma','touch','eager']
    {l:'먹이를 보고도 수초 쪽에 머문다',chk:()=>['w',isSp('@gold','koi')?55:45],
     ok:{t:'{n}은 수초 사이에서 사람들이 지나가기를 기다렸습니다.',c:'good',fx:{w:2},add:{hlt_h1:1}},
     no:()=>hlt_12over()},
-   {l:'바닥에서 가만히 있는다',ok:()=>hlt_hold(40,'HLT-12-D',{t:'{n}은 먹이 냄새 속에서 주말을 넘겼습니다.',fx:{wq:-6,h:-3}})}
+   {l:'바닥에서 가만히 있는다',ok:()=>hlt_hold(40,'HLT-12-D',{t:'{n}은 먹이 냄새 속에서 주말을 넘겼습니다.',fx:{wq:-6,h:-3}},1,.7)}
   ]}]);
 
 /* EV-HLT-13 바닥까지 내려오지 않는 먹이
    [출처: 플레코·코리도라스 식성(잡식, 단독 이끼로는 부족), 야행성 어종 급이 시간] */
 function hlt_13starve(){
   const n=50+(isSp('cory')&&fSameCount()===0?10:0)+(isSp('motoro')?10:0);
-  return hlt_hold(n,'HLT-13-D',()=>({t:isSp('pleco')?'{n}은 유목과 장식을 갉으며 버텼습니다. 배가 홀쭉해졌습니다.':'{n}은 위에서 내려오는 가루로 버텼습니다. 몸이 조금 더 말랐습니다.',c:'bad',fx:{h:-8,fat:-.2},set:{hlt_thin:1},sick:isSp('clownloach')&&R()<.3?'skinny':null}),isSp('pleco')?1.3:1);
+  return hlt_hold(n,'HLT-13-D',()=>({t:isSp('pleco')?'{n}은 유목과 장식을 갉으며 버텼습니다. 배가 홀쭉해졌습니다.':'{n}은 위에서 내려오는 가루로 버텼습니다. 몸이 조금 더 말랐습니다.',c:'bad',fx:{h:-8,fat:-.2},set:{hlt_thin:1},sick:isSp('clownloach')&&R()<.3?'skinny':null}),isSp('pleco')?1.3:1,.6);
 }
 fev([{id:'HLT-13',tier:'fact',sp:['cory','pleco','clownloach','bichir','motoro','ghost'],need:{hlt_topm:1,hlt_bfeed:0},cd:35,
   w:()=>isKind('casual','gift','shared','eager','relay')?2:1,
@@ -374,7 +403,7 @@ fev([{id:'HLT-15',tier:'fact',need:{qt:0},cd:45,
 
 /* EV-HLT-16 복어의 이빨 — 달팽이 · 부리 · 수의사
    [출처: 복어류 치판 과성장과 수의 치료(마취 하 트리밍), 피퍼퍼 먹이(달팽이)] */
-function hlt_16hold(){return hlt_hold(35+(isSp('fig8')&&!fl('hlt_brack')?15:0),'HLT-16-D',{t:'{n}은 먹이 앞에서 입을 여러 번 벌렸다 닫았습니다. 몇 개는 삼켰습니다.',c:'bad',fx:{h:-8,fat:-.15},run:()=>{S.f.beak=(S.f.beak||0)+.2}},isSp('peapuffer')?.75:1)}
+function hlt_16hold(){return hlt_hold(35+(isSp('fig8')&&!fl('hlt_brack')?15:0),'HLT-16-D',{t:'{n}은 먹이 앞에서 입을 여러 번 벌렸다 닫았습니다. 몇 개는 삼켰습니다.',c:'bad',fx:{h:-8,fat:-.15},run:()=>{S.f.beak=(S.f.beak||0)+.2}},isSp('peapuffer')?.75:1,.6)}
 fev([{id:'HLT-16',tier:'fact',sp:['@puffer'],cd:30,when:()=>!S.f.snails,w:()=>1+(S.f.beak||0)*3,
   p:'이빨이 서로 맞물리지 않습니다. 먹이를 물어도 잘 끊어지지 않습니다. 입 앞쪽이 조금씩 길어집니다. {n}은…',
   o:[
@@ -384,8 +413,8 @@ fev([{id:'HLT-16',tier:'fact',sp:['@puffer'],cd:30,when:()=>!S.f.snails,w:()=>1+
    {l:'주인 눈을 따라 다니다 입을 벌렸다 다물기를 반복해 보인다',chk:['w',60],
     ok:()=>{
       if(R()>clamp(Math.pow(fst().c/60,2),.05,.95))return {t:'주인은 {n}이 밥을 달라는 줄 알았습니다.',fx:{wq:-4},run:hlt_then(hlt_16hold)};
-      return hlt_by({'expert learner staff':()=>R()<.3?{end:'HLT-16-H'}:{t:'주인이 "복어 입"을 검색했습니다. 달팽이를 키우기 시작했고, 수의사에게 데려가 마취한 뒤 부리를 갈아 냈습니다. 마취에서 깬 {n}은 한참 바닥에 비스듬히 누워 있다가, 저녁에 달팽이 하나를 깨 먹었습니다.',c:'good',fx:{h:-5},run:()=>{S.f.snails=1;S.f.beak=0}},
-        'eager content unbox':{t:'주인이 "복어 부리 자르기" 영상을 찾았습니다. 그리고 손톱깎이를 꺼냈습니다.',c:'bad',run:hlt_then(()=>hlt_hold(60,'HLT-16-C',{t:'손톱깎이가 이빨판 끝만 잘라 냈습니다. {n}은 한참 떨다가 숨을 골랐습니다.',c:'sub',fx:{h:-12,st:.2},run:()=>{S.f.beak=0}}))},
+      return hlt_by({'expert learner staff':()=>R()<.1?{end:'HLT-16-H'}:{t:'주인이 "복어 입"을 검색했습니다. 달팽이를 키우기 시작했고, 수의사에게 데려가 마취한 뒤 부리를 갈아 냈습니다. 마취에서 깬 {n}은 한참 바닥에 비스듬히 누워 있다가, 저녁에 달팽이 하나를 깨 먹었습니다.',c:'good',fx:{h:-5},run:()=>{S.f.snails=1;S.f.beak=0}},
+        'eager content unbox':{t:'주인이 "복어 부리 자르기" 영상을 찾았습니다. 그리고 손톱깎이를 꺼냈습니다.',c:'bad',run:hlt_then(()=>hlt_hold(60,'HLT-16-C',{t:'손톱깎이가 이빨판 끝만 잘라 냈습니다. {n}은 한참 떨다가 숨을 골랐습니다.',c:'sub',fx:{h:-12,st:.2},run:()=>{S.f.beak=0}},1,.5))},
         '*':{t:'주인은 달팽이를 몇 마리 사 와 수조에 넣었습니다.',c:'good',fx:{w:2},run:()=>{S.f.snails=1;S.f.beak=Math.max(0,(S.f.beak||0)-.3)}}});
     },
     no:()=>hlt_16hold()},
@@ -395,9 +424,9 @@ fev([{id:'HLT-16',tier:'fact',sp:['@puffer'],cd:30,when:()=>!S.f.snails,w:()=>1+
 /* EV-HLT-17 작은 수조에서 멈춘 성장
    [출처: 관상어 성장 억제와 사육 공간·수질(어류 생리학), 작은 수조 금붕어 기형 사례] */
 function hlt_17res(){
-  if(isSp('oscar'))return hlt_hold(60,'HLT-17-D',{t:'{n}의 몸이 짧고 높아졌습니다. 머리에 작은 구멍이 생겼습니다.',c:'bad',fx:{h:-8},sick:'hex',set:{hlt_stunt:1}});
-  if(isSp('pleco'))return hlt_hold(60,'HLT-17-D',{t:'{n}은 버텼습니다. 수조는 배설물로 가득 찼습니다.',c:'bad',fx:{wq:-15,h:-5}},1.3);
-  return hlt_hold(60,'HLT-17-D',{t:isSp('channa','motoro')?'{n}의 꼬리와 몸 가장자리가 유리에 쓸려 상했습니다.':'{n}의 몸은 더 자라지 않았습니다. 척추가 조금 휘었습니다.',c:'bad',fx:{h:-8,fin:.08},set:{hlt_stunt:1,inj_spine:1}});
+  if(isSp('oscar'))return hlt_hold(60,'HLT-17-D',{t:'{n}의 몸이 짧고 높아졌습니다. 머리에 작은 구멍이 생겼습니다.',c:'bad',fx:{h:-8},sick:'hex',set:{hlt_stunt:1}},1,.5);
+  if(isSp('pleco'))return hlt_hold(60,'HLT-17-D',{t:'{n}은 버텼습니다. 수조는 배설물로 가득 찼습니다.',c:'bad',fx:{wq:-15,h:-5}},1.3,.5);
+  return hlt_hold(60,'HLT-17-D',{t:isSp('channa','motoro')?'{n}의 꼬리와 몸 가장자리가 유리에 쓸려 상했습니다.':'{n}의 몸은 더 자라지 않았습니다. 척추가 조금 휘었습니다.',c:'bad',fx:{h:-8,fin:.08},set:{hlt_stunt:1,inj_spine:1}},1,.5);
 }
 fev([{id:'HLT-17',tier:'fact',sp:['@big','comet'],need:{hlt_small:1},cd:40,
   w:()=>isKind('casual','gift','shared','decor','relay','cult')?2:1,
@@ -406,7 +435,7 @@ fev([{id:'HLT-17',tier:'fact',sp:['@big','comet'],need:{hlt_small:1},cd:40,
    {l:'좁은 수조를 끝에서 끝까지 쉬지 않고 오간다',ok:()=>{const o=hlt_17res();if(!o.end)o.fx=Object.assign({},o.fx||{},{p:1});return o}},
    {l:'주인이 볼 때마다 유리 앞에서 몸을 크게 돌려 보인다',chk:['c',65],
     ok:()=>{
-      if(isSp('koi')&&fst().c>=80&&R()<.5)return {end:'HLT-17-H'};
+      if(isSp('koi')&&fst().c>=80&&R()<.1)return {end:'HLT-17-H'};
       return hlt_by({'relay casual gift shared':{t:'"너무 커졌다." 주인은 {n}을 나눔 글에 올렸습니다.',c:'bad',run:()=>fRehome('주인은 "너무 커져서" {n}을 무료 분양 글에 올렸습니다.')},
         'learner expert grandma staff techbro':{t:'"얘 너무 답답해 보인다." 주인이 더 큰 수조를 들였습니다.',c:'good',fx:{c:2,st:-.1},run:hlt_upTank},
         '*':{t:'주인은 {n}이 춤을 춘다고 생각했습니다.',run:hlt_then(hlt_17res)}});
@@ -533,16 +562,18 @@ fev([{id:'HLT-23',tier:'fact',need:{hlt_wound:1},cd:35,when:()=>hlt_free('fungus
 /* EV-HLT-24 솔방울 — 복수(腹水)와 주인의 마지막 결정
    [출처: 어류 복수증(dropsy)의 원인과 예후, 관상어 안락사 지침(AVMA 어류 안락사 지침·정향유/유제놀), 살아 있는 물고기 변기 처리 문제] */
 function hlt_24owner(){
+  const stay={t:'주인은 {n}을 따로 옮기고 며칠 더 지켜보기로 했습니다.',c:'bad',fx:{h:-8},sick:'aero'};
   return hlt_by({
-   'expert staff':()=>R()<.15?{t:'주인이 엡솜염 약욕과 항생제를 며칠 이어 갔습니다. {n}의 배가 조금씩 가라앉았습니다.',c:'good',fx:{h:-10},run:()=>hlt_cure('aero')}:{end:'HLT-24-R'},
-   'learner':()=>R()<.15?{t:'주인이 검색한 대로 엡솜염 약욕을 했습니다. {n}의 비늘이 다시 몸에 붙었습니다.',c:'good',fx:{h:-12},run:()=>hlt_cure('aero')}:R()<.5?{end:'HLT-24-R'}:{t:'주인은 방법을 찾다가 밤을 새웠습니다. 결정을 내리지 못했습니다.',c:'bad',sick:'aero',fx:{h:-10}},
-   'grandma':()=>R()<.2?{t:'"물고기도 아프면 병원 가야지." 할머니가 {n}을 수의사에게 데려갔습니다. 주사를 맞은 {n}의 배가 조금씩 가라앉았습니다.',c:'good',fx:{h:-10},run:()=>hlt_cure('aero')}:{end:'HLT-24-R'},
-   'neglect cult':{end:'HLT-24-D'},
-   '*':{end:'HLT-24-T'}
+   'expert staff':()=>wpick([[{t:'주인이 엡솜염 약욕과 항생제를 며칠 이어 갔습니다. {n}의 배가 조금씩 가라앉았습니다.',c:'good',fx:{h:-10},sick:'aero',run:()=>hlt_treat('aero')},4],[{end:'HLT-24-R'},2],[stay,4]]),
+   'learner':()=>wpick([[{t:'주인이 검색한 대로 엡솜염 약욕을 했습니다. {n}의 비늘이 조금씩 몸에 붙기 시작했습니다.',c:'good',fx:{h:-12},sick:'aero',run:()=>hlt_treat('aero')},3],[{end:'HLT-24-R'},2],[{t:'주인은 방법을 찾다가 밤을 새웠습니다. 결정을 내리지 못했습니다.',c:'bad',sick:'aero',fx:{h:-10}},5]]),
+   'grandma':()=>wpick([[{t:'"물고기도 아프면 병원 가야지." 할머니가 {n}을 수의사에게 데려갔습니다. 주사를 맞은 {n}의 배가 조금씩 가라앉았습니다.',c:'good',fx:{h:-10},sick:'aero',run:()=>hlt_treat('aero')},3],[{end:'HLT-24-R'},2],[stay,5]]),
+   'neglect cult':()=>R()<.45?{end:'HLT-24-D'}:{t:'주인은 {n}이 살이 쪘다고 생각했습니다.',c:'bad',fx:{h:-12},sick:'aero'},
+   '*':()=>R()<.35?{end:'HLT-24-T'}:{t:'주인은 부푼 {n}을 보고 "좀 더 두고 보자"고 했습니다.',c:'bad',fx:{h:-10},sick:'aero'}
   });
 }
-fev([{id:'HLT-24',tier:'fact',cd:40,when:()=>hlt_free('aero'),
-  w:()=>(hlt_ill('aero')?4:.4)*((S.f.fat||0)>.2?1.6:1)*(fl('old')?1.6:1)*(isSp('@gold','betta','guppy','platy','koi','oscar')?1.4:.7),
+const hlt_24sink=k=>hlt_hold(60,'HLT-24-D',{t:'{n}은 바닥에서 하루를 더 넘겼습니다.',c:'bad',fx:{h:-10},sick:'aero'},1,k||1);
+fev([{id:'HLT-24',tier:'fact',cd:50,when:()=>hlt_free('aero'),
+  w:()=>(hlt_ill('aero')?2:.4)*((S.f.fat||0)>.2?1.6:1)*(fl('old')?1.6:1)*(isSp('@gold','betta','guppy','platy','koi','oscar')?1.4:.7),
   p:'배가 계속 부풀어 오릅니다. 위에서 보면 비늘이 몸에서 들떠 솔방울처럼 일어서 있습니다. 눈이 조금 튀어나왔습니다. {n}은…',
   o:[
    {l:'먹이가 떨어지면 그래도 수면으로 올라간다',chk:['g',60],
@@ -550,7 +581,7 @@ fev([{id:'HLT-24',tier:'fact',cd:40,when:()=>hlt_free('aero'),
     no:()=>hlt_hold(60,'HLT-24-D',{t:'{n}은 중간에서 멈췄다가 다시 가라앉았습니다.',c:'bad',fx:{h:-10},sick:'aero'})},
    {l:'주인 손가락이 유리에 닿으면 그쪽으로 다가간다',chk:['c',50],ok:()=>hlt_24owner(),
     no:()=>hlt_hold(60,'HLT-24-D',{t:'주인은 {n}이 살이 쪘다고 생각했습니다.',c:'bad',fx:{h:-10},sick:'aero'})},
-   {l:'바닥에서 거의 움직이지 않는다',ok:()=>R()<.7?(R()<.5?hlt_24owner():{end:'HLT-24-D'}):{t:'{n}은 바닥에서 하루를 더 넘겼습니다.',c:'bad',fx:{h:-12},sick:'aero'}}
+   {l:'바닥에서 거의 움직이지 않는다',ok:()=>R()<.4?hlt_24owner():hlt_24sink(1.3)}
   ]}]);
 
 /* EV-HLT-25 뒤집힌 배 — 부레 이상 (치료 루트)
@@ -575,7 +606,7 @@ fev([{id:'HLT-25',tier:'fact',sp:['oranda','ryukin','betta','comet','koi'],cd:35
 
 /* EV-HLT-26 머리의 구멍 — HLLE
    [출처: HLLE 원인 가설(수질·영양·활성탄·Hexamita)과 오스카 사례, "원인 미확정" 명시] */
-function hlt_26hold(){return hlt_hold(60,'HLT-26-D',{t:'{n}의 머리에 구멍이 하나 더 늘었습니다.',c:'bad',fx:{h:-8},sick:'hex'},isSp('apisto','altum')?.7:1)}
+function hlt_26hold(){return hlt_hold(60,'HLT-26-D',{t:'{n}의 머리에 구멍이 하나 더 늘었습니다.',c:'bad',fx:{h:-8},sick:'hex'},isSp('apisto','altum')?.7:1,.7)}
 fev([{id:'HLT-26',tier:'fact',sp:['oscar','apisto','altum','arowana'],cd:40,when:()=>hlt_free('hex'),
   w:()=>(hlt_ill('hex')?3:1)*(isSp('oscar')?2:1)*(S.f.wq<60||fl('hlt_feeder')?1.5:.6)*(isKind('content','casual','decor','shared','techbro')?1.4:1),
   p:'눈 위쪽 피부에 작은 구멍이 몇 개 생겼습니다. 구멍이 옆줄을 따라 늘어섭니다. 유리에 비친 얼굴이 낯섭니다. {n}은…',
@@ -593,7 +624,7 @@ fev([{id:'HLT-26',tier:'fact',sp:['oscar','apisto','altum','arowana'],cd:40,when
 
 /* EV-HLT-27 항문의 빨간 실 — 카말라누스
    [출처: Camallanus cotti 생활사·병리, 라이브베어러 양식장 감염 보고] */
-function hlt_27hold(mod){return hlt_hold(55,'HLT-27-D',{t:'{n}은 먹고 또 먹었습니다. 몸은 조금 더 말랐습니다.',c:'bad',fx:{h:-8,fat:-.15},sick:'skinny',set:{hlt_camal:1}},(mod||1)*(isSp('guppy')?.7:isSp('@predator')?1.3:1))}
+function hlt_27hold(mod){return hlt_hold(55,'HLT-27-D',{t:'{n}은 먹고 또 먹었습니다. 몸은 조금 더 말랐습니다.',c:'bad',fx:{h:-8,fat:-.15},sick:'skinny',set:{hlt_camal:1}},(mod||1)*(isSp('guppy')?.7:isSp('@predator')?1.3:1),.75)}
 fev([{id:'HLT-27',tier:'fact',sp:['guppy','platy','betta','neon','apisto','cory','oscar','arowana','channa','peapuffer'],need:{qt:0},cd:45,when:()=>hlt_free('skinny'),
   w:()=>(isSp('@livebearer')?2.5:isSp('betta')?(isKind('mill')?1:.2):1)*(isKind('mill','breeder','casual','gift','relay')?1.5:1),
   p:'배가 홀쭉해지는데 먹이는 계속 먹고 싶습니다. 꼬리 근처에서 무언가 가늘고 붉은 것이 흔들립니다. 몸을 웅크리면 그것이 다시 안으로 들어갑니다. {n}은…',
@@ -610,7 +641,7 @@ fev([{id:'HLT-27',tier:'fact',sp:['guppy','platy','betta','neon','apisto','cory'
 
 /* EV-HLT-28 새로 온 잉어 한 마리 — KHV
    [출처: 코이 헤르페스바이러스(CyHV-3) 병리·수온 범위·폐사율·보균(OIE/WOAH 매뉴얼), 국내 수산생물전염병 지정 여부(수산생물질병 관리법)] */
-function hlt_28hold(mod){return hlt_hold(70,'HLT-28-D',{t:'연못의 잉어 대부분이 떠오른 뒤에도 {n}은 살아 있었습니다. 바이러스는 {n}의 몸속에 남았습니다.',c:'bad',fx:{h:-25,st:.2},run:()=>{S.f.carrier='khv';setFl('hlt_khvc',1)},mem:'연못이 조용해졌다. 혼자 남았다.'},mod)}
+function hlt_28hold(mod){return hlt_hold(70,'HLT-28-D',{t:'연못의 잉어 대부분이 떠오른 뒤에도 {n}은 살아 있었습니다. 바이러스는 {n}의 몸속에 남았습니다.',c:'bad',fx:{h:-25,st:.2},run:()=>{S.f.carrier='khv';setFl('hlt_khvc',1)},mem:'연못이 조용해졌다. 혼자 남았다.'},mod,.4)}
 fev([{id:'HLT-28',tier:'fact',sp:['koi'],need:{pond:1,qt:0,season:['spring','autumn']},cd:80,when:()=>hlt_free('khv'),
   w:()=>isKind('grandma','decor','touch','release','breeder')?2:isKind('expert')?.3:1,
   log:'연못에 새 잉어 한 마리가 들어왔습니다.',
@@ -618,7 +649,7 @@ fev([{id:'HLT-28',tier:'fact',sp:['koi'],need:{pond:1,qt:0,season:['spring','aut
   o:[
    {l:'폭포 물줄기 가까이 간다',chk:['w',50],ok:()=>hlt_28hold(1.25),no:()=>hlt_28hold()},
    {l:'사람들이 오면 손바닥 쪽으로 다가간다',chk:['c',60],
-    ok:()=>hlt_by({'expert':()=>R()<.5?{end:'HLT-28-K'}:{t:'주인이 바로 수산 질병 신고를 했습니다. 연못의 수온을 바꾸고 몇 주를 버텼습니다.',c:'sub',run:hlt_then(()=>hlt_28hold(1.4))},
+    ok:()=>hlt_by({'expert':()=>R()<.2?{end:'HLT-28-K'}:{t:'주인이 바로 수산 질병 신고를 했습니다. 연못의 수온을 바꾸고 몇 주를 버텼습니다.',c:'sub',run:hlt_then(()=>hlt_28hold(1.4))},
       'grandma breeder':{t:'주인이 이상한 걸 알아채고 수의사를 불렀습니다.',c:'sub',run:hlt_then(()=>hlt_28hold(1.3))},
       '*':{t:'"날이 더워서 그래." 주인은 그렇게 말했습니다.',c:'bad',run:hlt_then(()=>hlt_28hold())}}),
     no:()=>hlt_28hold()},
@@ -627,8 +658,8 @@ fev([{id:'HLT-28',tier:'fact',sp:['koi'],need:{pond:1,qt:0,season:['spring','aut
 
 /* EV-HLT-29 붉어지는 아가미 — 금붕어 헤르페스 (CyHV-2)
    [출처: Cyprinid herpesvirus 2(금붕어 조혈기 괴사증) 병리·수온, 국내 금붕어 집단 폐사 보고] */
-function hlt_29hold(mod){return hlt_hold(60,'HLT-29-D',()=>isSp('comet')&&fst().g>=75&&isKind('decor')?{end:'HLT-29-H'}
-  :{t:'같이 온 금붕어들이 떠오른 뒤에도 {n}은 살아 있었습니다.',c:'bad',fx:{h:-20},run:()=>{S.f.carrier='cyhv2'}},mod)}
+function hlt_29hold(mod){return hlt_hold(55,'HLT-29-D',()=>isSp('comet')&&fst().g>=75&&isKind('decor')?{end:'HLT-29-H'}
+  :{t:'같이 온 금붕어들이 떠오른 뒤에도 {n}은 살아 있었습니다.',c:'bad',fx:{h:-20},run:()=>{S.f.carrier='cyhv2'}},mod,.45)}
 fev([{id:'HLT-29',tier:'fact',sp:['@gold'],need:{qt:0},cd:80,when:()=>hlt_free('cyhv2'),
   w:()=>(isKind('gift','casual','relay','decor','shared')?2:1)*(['spring','autumn'].includes(season())?1.5:.6),
   p:'같이 온 금붕어 한 마리가 어제부터 바닥에 가라앉아 있습니다. 오늘은 두 마리입니다. 숨이 빨라지고 몸에 힘이 들어가지 않습니다. {n}은…',
@@ -646,8 +677,8 @@ fev([{id:'HLT-29',tier:'fact',sp:['@gold'],need:{qt:0},cd:80,when:()=>hlt_free('
 function hlt_30inf(p){
   if(R()>p*(isSp('neon')?1:.3))return {t:'{n}은 무리와 함께 그 자리를 떠났습니다.',fx:{w:1}};
   return hlt_by({
-   'expert staff':{end:'HLT-24-R'},
-   'learner':()=>R()<.5?{end:'HLT-24-R'}:hlt_hold(30,'HLT-30-D',{t:'{n}의 등 근육 한쪽이 조금 하얘졌습니다.',c:'bad',fx:{h:-10},sick:'neond'}),
+   'expert staff':()=>R()<.4?{end:'HLT-24-R'}:{t:'주인은 {n}을 따로 옮겼습니다. 치료법이 없는 병이었습니다.',c:'sub',fx:{h:-6},sick:'neond'},
+   'learner':()=>R()<.25?{end:'HLT-24-R'}:hlt_hold(30,'HLT-30-D',{t:'{n}의 등 근육 한쪽이 조금 하얘졌습니다.',c:'bad',fx:{h:-10},sick:'neond'}),
    '*':()=>hlt_hold(30,'HLT-30-D',{t:'{n}의 등 근육 한쪽이 조금 하얘졌습니다.',c:'bad',fx:{h:-10},sick:'neond'},isSp('neon')?.6:1.3)
   });
 }
@@ -688,7 +719,7 @@ function hlt_32hold(mod){return hlt_hold(55,'HLT-32-D',{t:'{n}은 한쪽 아가�
 function hlt_32owner(){
   return hlt_by({
    'expert staff':()=>R()<.85?{t:'주인이 아가미를 들여다보고 흡충 약을 넣었습니다. 일주일 뒤 한 번 더 넣었습니다.',c:'good',fx:{h:-3},set:{hlt_flukes:0},run:()=>fevNear('qt')}:hlt_32hold(),
-   'alchemist eager':()=>R()<(isSp('@airbreather')?.3:0)?{t:'주인이 포르말린을 두 배로 넣고 에어 펌프를 껐습니다. {n}은 수면 공기를 마시며 그 밤을 넘겼습니다.',c:'sub',fx:{h:-15},set:{hlt_flukes:0}}:{end:'HLT-32-F'},
+   'alchemist eager':()=>R()>hlt_doom(isSp('@airbreather')?.6:1.2)?{t:'주인이 포르말린을 두 배로 넣고 에어 펌프를 껐습니다. {n}은 '+(isSp('@airbreather')?'수면 공기를 마시며':'수면에 입을 대고')+' 그 밤을 넘겼습니다. 아가미 새엽 끝이 하얗게 상했습니다.',c:'bad',fx:{h:-18,st:.15},set:{hlt_flukes:0,inj_gill:1}}:{end:'HLT-32-F'},
    'learner':()=>isSp('@scaleless')?hlt_med():R()<.65?{t:'주인이 라벨대로 포르말린을 넣고, 에어 펌프를 세게 틀었습니다.',c:'good',fx:{h:-6},set:{hlt_flukes:0}}:hlt_32hold(),
    '*':{t:'주인은 백점병 약을 넣었습니다. 아가미 속의 것은 그대로였습니다.',c:'bad',run:hlt_then(()=>hlt_32hold())}
   });
@@ -704,7 +735,7 @@ fev([{id:'HLT-32',tier:'fact',need:{qt:0},cd:45,
 
 /* EV-HLT-33 봄 연못의 궤양 — 면역보다 먼저 깨어나는 세균
    [출처: 잉어 궤양병(Aeromonas salmonicida 비정형 등)과 봄철 수온·면역 지연] */
-function hlt_33hold(mod){return hlt_hold(70,'HLT-33-D',{t:'{n}의 옆구리에 둥근 흉터가 남았습니다.',c:'bad',fx:{h:-15},set:{hlt_wound:1}},(mod||1)*(isSp('comet')?.85:1))}
+function hlt_33hold(mod){return hlt_hold(60,'HLT-33-D',{t:'{n}의 옆구리에 둥근 흉터가 남았습니다.',c:'bad',fx:{h:-15},set:{hlt_wound:1}},(mod||1)*(isSp('comet')?.85:1),.35)}
 fev([{id:'HLT-33',tier:'fact',sp:['koi','comet','oranda','ryukin'],need:{pond:1,season:'spring'},cd:60,
   w:()=>(fl('hlt_wintered')||fl('hlt_wound')?2.5:1)*(isSp('koi')?1.5:1),
   p:'물이 조금씩 따뜻해집니다. 몸은 아직 겨울처럼 무겁습니다. 옆구리 비늘 한 장이 빠진 자리가 붉게 동그랗게 번집니다. {n}은…',
@@ -737,7 +768,7 @@ fev([{id:'HLT-34',tier:'fact',sp:['@gold','koi'],need:{hlt_old:1},cd:60,w:()=>is
 
 /* EV-HLT-35 터지지 않은 알 — 알막힘
    [출처: 금붕어 알막힘(egg retention) 원인·증상(관상어 수의 자료)] */
-function hlt_35hold(mod){return hlt_hold(55,'HLT-35-D',{t:'{n}의 배 속 알이 조금씩 흡수되었습니다. 배가 가라앉았습니다.',c:'good',fx:{h:-6}},(mod||1)*(isSp('betta')?1.5:isSp('comet')?1.3:1)*(isSp('oranda','ryukin')?.85:1))}
+function hlt_35hold(mod){return hlt_hold(55,'HLT-35-D',{t:'{n}의 배 속 알이 조금씩 흡수되었습니다. 배가 가라앉았습니다.',c:'good',fx:{h:-6}},(mod||1)*(isSp('betta')?1.5:isSp('comet')?1.3:1)*(isSp('oranda','ryukin')?.85:1),.6)}
 fev([{id:'HLT-35',tier:'fact',sp:['@gold','koi','betta'],need:{season:'spring'},cd:80,when:()=>fem(),
   w:()=>(isKind('casual','gift','grandma','decor')?1.6:1)*(fSameCount()===0?1.5:.7),
   p:'봄이 왔는데 배가 계속 무겁습니다. 몸 안의 것이 나가지 않습니다. 배가 한쪽으로 단단하게 부풀었습니다. {n}은…',
@@ -745,7 +776,7 @@ fev([{id:'HLT-35',tier:'fact',sp:['@gold','koi','betta'],need:{season:'spring'},
    {l:'수초와 장식에 배를 대고 문지른다',chk:['g',45],ok:{t:'{n}이 수초 사이에 알을 쏟아 냈습니다. 배가 가벼워졌습니다.',c:'good',fx:{g:2}},no:()=>hlt_35hold()},
    {l:'주인이 다가오면 배를 보이며 천천히 돈다',chk:['c',60],
     ok:()=>hlt_by({'expert learner staff':{t:'주인이 수온을 조금씩 바꾸고 수컷을 한 마리 들였습니다. 며칠 뒤 {n}이 알을 낳았습니다.',c:'good',fx:{h:2}},
-      'eager':{end:'HLT-35-M'},
+      'eager':()=>R()<.4?{end:'HLT-35-M'}:hlt_35hold(),
       '*':()=>hlt_35hold()}),
     no:()=>hlt_35hold()},
    {l:'바닥에서 가만히 있는다',ok:()=>hlt_35hold()}
@@ -759,7 +790,7 @@ fev([{id:'HLT-35',tier:'fact',sp:['@gold','koi','betta'],need:{season:'spring'},
    [출처: 메틸렌블루·항생제의 질산화 세균 영향, 관상어 약품 병용 주의(제조사 라벨)] */
 function hlt_36hold(mod){
   const n=60+(isSp('neon','altum','apisto')?15:0)+(isSp('@scaleless')?10:0);
-  return hlt_hold(n,'HLT-36-D',{t:'{n}은 버텼습니다. 물에서는 다시 그 냄새가 올라오기 시작했습니다.',c:'bad',fx:{h:-15,wq:-15},set:{cycled:0,slime_loss:isSp('@scaleless')?1:0,hlt_cocktail:0},run:()=>{S.f.snails=0}},(mod||1)*(isSp('pleco','bichir','gar')?1.3:1));
+  return hlt_hold(n,'HLT-36-D',{t:'{n}은 버텼습니다. 물에서는 다시 그 냄새가 올라오기 시작했습니다.',c:'bad',fx:{h:-15,wq:-15},set:{cycled:0,slime_loss:isSp('@scaleless')?1:0,hlt_cocktail:0},run:()=>{S.f.snails=0}},(mod||1)*(isSp('pleco','bichir','gar')?1.3:1),.25);
 }
 fev([{id:'HLT-36',tier:'fact',own:['alchemist','eager','content'],need:{hlt_medkit:1},cd:35,w:()=>(isKind('alchemist')?4:1.2)*(fl('hlt_cocktail')?3:1),
   p:'물이 파랗게 물들었다가, 다음 날 노랗게, 그다음 날 초록빛으로 바뀝니다. 여과기 스펀지가 원래 색을 잃었습니다. 사흘째부터 다시 그 냄새가 납니다. {n}은…',
@@ -775,7 +806,7 @@ fev([{id:'HLT-36',tier:'fact',own:['alchemist','eager','content'],need:{hlt_medk
 
 /* EV-HLT-37 비늘 없는 몸에 소금
    [출처: 비늘 없는 어종·담수 가오리 염분 민감성(사육 문헌), 소금욕 농도와 삼투 손상] */
-function hlt_37hold(mod){return hlt_hold(45,'HLT-37-D',{t:'{n}의 점막이 군데군데 벗겨진 채 남았습니다.',c:'bad',fx:{h:-12},set:{slime_loss:1}},(mod||1)*(isSp('motoro','cory')?.9:1))}
+function hlt_37hold(mod){return hlt_hold(45,'HLT-37-D',{t:'{n}의 점막이 군데군데 벗겨진 채 남았습니다.',c:'bad',fx:{h:-12},set:{slime_loss:1}},(mod||1)*(isSp('motoro','cory')?.9:1),.6)}
 fev([{id:'HLT-37',tier:'fact',sp:['@scaleless'],need:{hlt_salt:1},cd:30,
   w:()=>isKind('learner','grandma','eager','casual','alchemist')?2:1,
   p:()=>'물이 조금 짭짤해졌습니다. 몸의 미끈한 점액이 뭉쳐 떨어지는 느낌이 듭니다. '+(isSp('motoro')?'원반 가장자리':'수염')+' 끝이 쓰라립니다. {n}은…',
@@ -793,7 +824,7 @@ fev([{id:'HLT-37',tier:'fact',sp:['@scaleless'],need:{hlt_salt:1},cd:30,
    [출처: 구리 약제의 무척추·연골어·비늘 없는 어종 독성, 구리 이온 측정과 유효 농도 범위(제조사 라벨)] */
 function hlt_38hold(add){
   const n=55+(add||0)+(isSp('@puffer')?10:0)+(isSp('@scaleless')?20:0)+(isSp('altum','neon')?15:0)-(isSp('@gold','koi','pleco','bichir','gar')?10:0);
-  return hlt_hold(n,'HLT-38-D',{t:'{n}은 버텼습니다. 바닥에는 빈 달팽이 껍데기가 흩어져 있었습니다.',c:'bad',fx:{h:-12},set:{inj_gill:1}},isKind('staff')?1.5:1);
+  return hlt_hold(n,'HLT-38-D',{t:'{n}은 버텼습니다. 바닥에는 빈 달팽이 껍데기가 흩어져 있었습니다.',c:'bad',fx:{h:-12},set:{inj_gill:1}},isKind('staff')?1.5:1,.6);
 }
 fev([{id:'HLT-38',tier:'fact',need:{hlt_medkit:1},cd:45,
   w:()=>(isKind('alchemist','eager','learner','staff')?1.6:.6)*(hlt_ill('velvet')||hlt_ill('ich')?2:1)*(isSp('@puffer','@scaleless','altum','neon')?1.4:1),
@@ -809,7 +840,7 @@ fev([{id:'HLT-38',tier:'fact',need:{hlt_medkit:1},cd:45,
 
 /* EV-HLT-39 보라색 물 — 과망간산칼륨 과량
    [출처: 과망간산칼륨 어류 치료 농도와 과량 시 아가미 손상(어병 치료 매뉴얼)] */
-function hlt_39hold(mod){return hlt_hold(60,'HLT-39-D',{t:'{n}은 갈색 물 속에서 하루를 넘겼습니다.',c:'bad',fx:{h:-12},set:{inj_gill:1}},(mod||1)*(isSp('@airbreather')&&!isSp('cory')?1.3:1)*(isSp('@small','@scaleless')?.75:1)*(isSp('koi')?1.2:1))}
+function hlt_39hold(mod){return hlt_hold(60,'HLT-39-D',{t:'{n}은 갈색 물 속에서 하루를 넘겼습니다.',c:'bad',fx:{h:-12},set:{inj_gill:1}},(mod||1)*(isSp('@airbreather')&&!isSp('cory')?1.3:1)*(isSp('@small','@scaleless')?.75:1)*(isSp('koi')?1.2:1),.6)}
 fev([{id:'HLT-39',tier:'fact',cd:60,w:()=>isKind('alchemist','eager','grandma','breeder')?1.5:.25,
   log:'주인이 "옛날엔 이걸로 다 소독했다"며 과망간산칼륨을 풀었습니다.',
   p:'물이 진한 보라색으로 변했습니다. 몇 시간 뒤 보라색이 갈색으로 바뀝니다. 아가미 안이 화끈거리고 몸 표면이 뻣뻣해집니다. {n}은…',
@@ -825,13 +856,13 @@ fev([{id:'HLT-39',tier:'fact',cd:60,w:()=>isKind('alchemist','eager','grandma','
 
 /* EV-HLT-40 눈과 아가미를 덮는 혹 — 오란다 육혹
    [출처: 오란다 육혹(wen) 과성장과 수의 외과 절제 사례] */
-function hlt_40hold(){return hlt_hold(50,'HLT-40-D',{t:'{n}은 혹 아래로 먹이 냄새를 따라다녔습니다. 몸이 조금 말랐습니다.',c:'bad',fx:{h:-8,fat:-.1},set:{hlt_wen:1}})}
+function hlt_40hold(){return hlt_hold(50,'HLT-40-D',{t:'{n}은 혹 아래로 먹이 냄새를 따라다녔습니다. 몸이 조금 말랐습니다.',c:'bad',fx:{h:-8,fat:-.1},set:{hlt_wen:1}},1,.6)}
 fev([{id:'HLT-40',tier:'fact',sp:['oranda'],need:{hlt_mid:1,hlt_wencut:0},cd:60,
   w:()=>isKind('breeder','mill','content','grandma','expert')?2:1,
   p:'머리의 혹이 해마다 커졌습니다. 이제 눈 위로 내려와 한쪽이 잘 보이지 않습니다. 아가미 뚜껑을 열 때 혹이 걸립니다. {n}은…',
   o:[
    {l:'주인 손가락을 따라 헤엄친다',chk:['c',70],
-    ok:()=>hlt_by({'expert learner staff grandma':()=>R()<.8?(R()<.35?{end:'HLT-40-H'}:{t:'수의사가 {n}을 마취하고 눈을 덮은 혹을 잘라 냈습니다. {n}은 다시 주인 손가락을 보았습니다.',c:'good',fx:{h:-8},set:{hlt_wencut:1}}):hlt_40hold(),
+    ok:()=>hlt_by({'expert learner staff grandma':()=>R()<.8?(R()<.15?{end:'HLT-40-H'}:{t:'수의사가 {n}을 마취하고 눈을 덮은 혹을 잘라 냈습니다. {n}은 다시 주인 손가락을 보았습니다.',c:'good',fx:{h:-8},set:{hlt_wencut:1}}):hlt_40hold(),
       'breeder content mill':{t:'"혹이 클수록 등급이 높아." 주인은 그대로 두었습니다.',c:'bad',run:hlt_then(hlt_40hold)},
       '*':()=>hlt_40hold()}),
     no:()=>hlt_40hold()},
@@ -841,7 +872,7 @@ fev([{id:'HLT-40',tier:'fact',sp:['oranda'],need:{hlt_mid:1,hlt_wencut:0},cd:60,
 
 /* EV-HLT-41 젖혀지는 아가미 뚜껑 — 아로와나 아가미 말림
    [출처: 아로와나 아가미 말림(gill curl) 원인 가설(수질·산소·성장기)과 외과 교정 사례] */
-function hlt_41hold(){return hlt_hold(50,'HLT-41-D',{t:'{n}의 아가미 뚜껑 가장자리가 조금 더 젖혀졌습니다.',c:'bad',fx:{h:-8},set:{hlt_gcurl:1,inj_gill:1}})}
+function hlt_41hold(){return hlt_hold(50,'HLT-41-D',{t:'{n}의 아가미 뚜껑 가장자리가 조금 더 젖혀졌습니다.',c:'bad',fx:{h:-8},set:{hlt_gcurl:1,inj_gill:1}},1,.7)}
 fev([{id:'HLT-41',tier:'fact',sp:['arowana','oscar','channa'],cd:50,
   when:()=>fl('hlt_gcurl')||S.f.wq<75||tankL()<fx_().minL,
   w:()=>(isSp('arowana')?3:.3)*(isKind('decor','content','casual','techbro')?1.4:1),
@@ -849,7 +880,7 @@ fev([{id:'HLT-41',tier:'fact',sp:['arowana','oscar','channa'],cd:50,
   o:[
    {l:'수면 가까이에서 주인이 오는 쪽을 바라본다',chk:['c',65],
     ok:()=>hlt_by({'expert staff learner':()=>R()<.7?{t:'주인이 수질부터 바로잡았습니다. 수의사가 젖혀진 가장자리를 다듬었습니다.',c:'good',fx:{h:-4},set:{hlt_gcurl:0}}:hlt_41hold(),
-      'decor':()=>R()<.4?{end:'HLT-41-H'}:{t:'"용이 숨을 크게 쉰다." 주인은 좋은 징조라며 손님들에게 자랑했습니다.',c:'bad',run:hlt_then(hlt_41hold)},
+      'decor':()=>R()<.2?{end:'HLT-41-H'}:{t:'"용이 숨을 크게 쉰다." 주인은 좋은 징조라며 손님들에게 자랑했습니다.',c:'bad',run:hlt_then(hlt_41hold)},
       'techbro':{t:'주인은 질산염 센서를 하나 더 달았습니다. 물은 갈지 않았습니다.',c:'bad',run:hlt_then(hlt_41hold)},
       '*':()=>hlt_41hold()}),
     no:()=>hlt_41hold()},
@@ -862,7 +893,7 @@ fev([{id:'HLT-41',tier:'fact',sp:['arowana','oscar','channa'],cd:50,
 function hlt_42hold(mod){return hlt_hold(55,'HLT-42-D',{t:'{n}은 휜 몸으로 몇 달을 더 살았습니다.',c:'bad',fx:{h:-10,fat:-.1},sick:'tb'},(mod||1)*(isSp('@small')?.7:isSp('@gold','koi','oscar')?1.3:1))}
 function hlt_42owner(){
   return hlt_by({
-   'expert staff':()=>R()<.6?{end:'HLT-24-R'}:{t:'주인은 수조를 비우고 소독하기로 했습니다. {n}만은 따로 옮겨 지켜보기로 했습니다.',c:'sub',sick:'tb'},
+   'expert staff':()=>R()<.3?{end:'HLT-24-R'}:{t:'주인은 수조를 비우고 소독하기로 했습니다. {n}만은 따로 옮겨 지켜보기로 했습니다.',c:'sub',sick:'tb'},
    'learner':{t:'주인이 항생제를 썼습니다. 한동안 나아 보였습니다.',c:'sub',sick:'tb',run:()=>hlt_treat('tb',1)},
    '*':()=>hlt_42hold()
   });
@@ -914,8 +945,8 @@ fev([{id:'HLT-44',tier:'fact',sp:['altum','wildbetta','apisto','clownloach'],onc
    [출처: 관상어 격리·치료 표준 절차(수족관 관리 교재)] */
 function hlt_45catch(hurt){
   if(isSp('channa','bichir')&&!S.f.lid&&R()<.35)return hlt_hold(70,'HLT-45-D',{t:'{n}이 밤에 격리 수조 틈으로 빠져나왔다가, 아침에 책상 밑에서 발견되었습니다. 먼지를 뒤집어쓴 채 아가미를 움직이고 있었습니다.',c:'bad',fx:{h:-15},near:'lid'});
-  if(isSp('arowana','gar','koi','motoro')&&!S.f.lid&&R()<.25)return {t:'좁은 격리 수조에서 {n}이 몸을 튕겼습니다.',c:'bad',run:()=>q(null,null,()=>fCr('jump'))};
-  if(isKind('expert','learner')&&R()<.2)return {end:'HLT-45-H'};
+  if(isSp('arowana','gar','koi')&&!S.f.lid&&R()<.25)return {t:'좁은 격리 수조에서 {n}이 몸을 튕겼습니다.',c:'bad',run:()=>q(null,null,()=>fCr('jump'))};
+  if(isKind('expert','learner')&&R()<.06)return {end:'HLT-45-H'};
   return {t:'격리 수조에서 정량의 약, 매일의 환수, 기록장. {n}은 나았습니다.'+(hurt?' 잡히는 동안 생긴 상처는 남았습니다.':''),c:'good',fx:hurt?{fin:.12,h:-4}:{h:5},set:{qt:1},run:()=>hlt_cure()};
 }
 fev([{id:'HLT-45',tier:'fact',own:['expert','learner','staff','breeder','grandma'],need:{hlt_sick:1},cd:40,

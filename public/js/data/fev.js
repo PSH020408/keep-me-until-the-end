@@ -127,6 +127,10 @@ const TIERW={real:{fact:1.25,likely:1,story:.3,big:0},story:{fact:.85,likely:1,s
 const tierW=e=>{const t=TIERW[S.mode]||TIERW.real;return e.big?t.big:(t[e.tier||'likely']||1)};
 const TIER_MARK={fact:'📌',likely:'',story:'😂'};
 
+/* balance knobs: how much easier the hidden checks are, and how much rarer a death is among weighted outcomes */
+const FEV_CHK={pre:1.6,home:1.25,wild:1.2};
+const FEV_DEATHW={pre:.35,home:.5,wild:.6};
+
 /* ---------- 5. registry ---------- */
 const FEV=[],FEVEND={};
 function fev(list){list.forEach(e=>{e.stage=e.stage||'home';FEV.push(e)})}
@@ -153,13 +157,15 @@ const valOf=(v,...a)=>typeof v==='function'?v(...a):v;
 function fevChance(chk){
   chk=valOf(chk);if(!chk)return 1;
   const [k,need]=chk;if(need>capOf(k))return -1;
-  const s=fst()[k],m=(MODES[S.mode]||{}).chk||1;
+  const s=fst()[k],m=((MODES[S.mode]||{}).chk||1)*(S.preOwner?FEV_CHK.pre:S.wild?FEV_CHK.wild:FEV_CHK.home);
   return clamp(Math.pow(s/need,2)*m,.05,.95);
 }
 /* apply an outcome: text, numbers, flags, memory, owner learning, an ending */
 function fevOut(o,e){
   if(!o)return;
-  if(Array.isArray(o)){o=wpick(o.map(z=>[z[1],valOf(z[0])]));}   // [[weight, outcome], …]
+  /* weighted outcomes: deaths among them are damped by stage (balance without saving anyone afterwards) */
+  if(Array.isArray(o)){const dk=(S.preOwner?FEV_DEATHW.pre:S.wild?FEV_DEATHW.wild:FEV_DEATHW.home)*(S.mode==='story'?.55:1);
+    o=wpick(o.map(z=>{const out=z[1],w=valOf(z[0]);const kills=out&&typeof out==='object'&&out.end&&(FEVEND[out.end]||{}).kind==='bad';return [out,w*(kills?dk:1)]}));}
   o=valOf(o,e);if(!o)return;
   const f=S.f;
   if(o.t)addLog(T(valOf(o.t)),o.c||'sub');
@@ -248,7 +254,7 @@ function fevFinish(ref){
   if(S.ending)return;
   const id=typeof ref==='string'?ref:ref.id, E=typeof ref==='string'?FEVEND[ref]:ref;
   if(!E){console.warn('fev: no ending',id);return}
-  if(E.kind==='bad'&&fevSaved(E))return;
+  /* v0.11: no near-miss save — a catalogue death is a death */
   const f=S.f;f.endKey='ev:'+id;
   const lines=valOf(E.l).map(t=>T(valOf(t)));
   if(E.kind==='bad'&&!S.preOwner&&f.own){const a=E.after===false?null:valOf(E.after)||AFTER[kindOf()];if(a)lines.push(T(a))}
@@ -320,7 +326,7 @@ const FEV_PRE_P={origin:.4,trade:.35,shop:.35};
 const FEV_WILD_P=.22;
 (()=>{const _w=wildTick;wildTick=function(){const r=_w();if(S&&S.f&&S.wild&&!S.done&&!S.ending&&!S.waiting&&!S.queue.length&&!fevHappyTry('wild')&&R()<FEV_WILD_P)fevTry('wild');return r}})();
 /* at home: part of the choice moments and the everyday lines come from the catalogue (fish.js fishTick) */
-const FEV_HOME_P=.45;
+const FEV_HOME_P=.4;
 
 /* how each new kind of owner first appears */
 const KINTRO={

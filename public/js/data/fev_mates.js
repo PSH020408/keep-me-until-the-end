@@ -88,7 +88,8 @@ function mat_01fail(fast){
     return {t:'오스카가 {n}을 입에 넣었다가 곧 뱉어 냈습니다. {n}이 세운 가슴지느러미 가시가 오스카의 입천장에 걸렸던 것입니다. 골판 몇 장이 긁히고, 몸의 점액이 벗겨졌습니다.',c:'bad',fx:{h:-16,st:.15},mem:'큰 입 안이 캄캄했다. 가시를 세웠다. 다시 물 밖이었다.',near:'mates'}}
   if(!fast&&isSp('platy','altum')&&!fl('mat_01_hit')){
     return {t:'오스카가 {n}을 물었지만, 몸 높이 때문에 한 번에 삼키지 못하고 놓았습니다. 옆구리 비늘이 떨어지고 지느러미 끝이 찢겼습니다.',c:'bad',fx:{h:-14,fin:.15,st:.15},set:{mat_01_hit:1},run:()=>{S.cd['evMAT-01']=S.tick+8},near:'mates'}}
-  return {end:'MAT-01-D'};
+  if(R()<.6)return {end:'MAT-01-D'};
+  return {t:'오스카의 입이 {n}을 물었다가 놓쳤습니다. 이빨에 긁힌 옆구리의 점막이 벗겨지고, 꼬리지느러미가 절반쯤 찢겨 나갔습니다.',c:'bad',fx:{h:-15,fin:.3,st:.2},set:{slime_loss:1},run:()=>{S.cd['evMAT-01']=S.tick+8},near:'mates'};
 }
 fev([{id:'MAT-01',tier:'fact',sp:['neon','guppy','platy','cory','apisto','peapuffer','altum','ghost'],own:['casual','eager','gift','shared','relay','decor'],
   need:{mate_sp:'oscar'},cd:20,w:()=>isSp('neon','guppy')?1.6:isSp('platy','altum','apisto','peapuffer')?1:.5,
@@ -106,7 +107,7 @@ fev([{id:'MAT-01',tier:'fact',sp:['neon','guppy','platy','cory','apisto','peapuf
 
 /* EV-MAT-02 사냥하는 쪽 — the predator's side [출처: 코리도라스·소형 메기 가시로 인한 포식어 질식 사례] [출처: 폴립테루스 후각 의존 야간 포식] */
 function mat_02spine(){
-  if(R()<.45)return {end:'MAT-02-D'};
+  if(R()<.25)return {end:'MAT-02-D'};
   return {t:'코리도라스의 가시가 {n}의 인두 벽에 걸렸습니다. {n}은 사흘 동안 입을 다물지 못하다가, 걸린 것을 겨우 뱉어 냈습니다. 찢긴 점막 자리가 붉게 부었습니다.',c:'bad',fx:{h:-22,st:.2},
     run:()=>{if(isKind('expert','learner','staff')&&mat_learns()){setFl('learned_no_spiny',1);mat_part('cory','주인은 "가시 있는 메기류는 합사 금지"라고 적어 두고 코리도라스를 다른 수조로 옮겼습니다.')}}};
 }
@@ -248,7 +249,9 @@ function mat_07salt(){
   if(isSp('neon'))return {t:'짜진 물에서 {n}의 파란 줄이 낮에도 흐려졌습니다. 먹이 시간에도 수초 사이에서 나오지 않았습니다.',c:'bad',fx:{st:.2,h:-8},add:{thin:1},set:{salt:'mid'}};
   const ch=clamp(Math.pow(fst().g/40,2)*(S.r>.6?1.4:1),.05,.9);
   if(R()<ch)return {t:'{n}의 피부 점액이 두꺼워지고 하얗게 엉겼습니다. 며칠 뒤 주인이 물을 갈았고, {n}은 들뜬 점액을 달고 버텼습니다.',c:'bad',fx:{h:-22,st:.2},set:{salt:'mid'}};
-  return {end:'MAT-07-D'};
+  if(R()<.15)return {end:'MAT-07-D'};
+  return R()<.5?{t:'짜진 물에서 {n}의 아가미 새엽이 부어올랐습니다. 아가미 뚜껑이 쉬지 않고 들썩였고, 며칠 동안 먹이를 뱉어 냈습니다. 새엽 가장자리는 끝내 하얗게 상한 채 남았습니다.',c:'bad',fx:{h:-20,st:.25},set:{salt:'mid',inj_gill:1},add:{thin:1}}
+    :{t:'짜진 물에서 {n}의 피부 점막이 군데군데 벗겨져 떨어졌습니다. 맨살이 드러난 옆구리가 붉게 일어났습니다.',c:'bad',fx:{h:-18,st:.2},set:{salt:'mid',slime_loss:1}};
 }
 const mat_07apart=()=>{S.f.mates=S.f.mates.filter(m=>m.id===S.sp.id);S.f.fl.mat_npc=0;S.f.noMates=1};
 fev([{id:'MAT-07',tier:'fact',sp:['fig8','cory','neon','clownloach','ghost','motoro','guppy','platy'],own:['learner','eager','alchemist','casual'],
@@ -330,7 +333,7 @@ fev([{id:'MAT-09',tier:'fact',sp:['oranda','ryukin','comet','pleco'],own:['eager
 const mat_10split=()=>{if(mat_learns(isKind('breakup')?-.1:0))mat_partSame(isKind('eager')?'주인은 칸막이를 다시 넣었습니다. 투명한 칸막이였습니다.':'주인은 두 수컷을 다른 수조로 나눴습니다.')};
 function mat_10fail(){
   if(isSp('wildbetta'))return {t:'두 수컷이 입을 맞물고 한참 밀어냈습니다. 먼저 입을 놓은 것은 {n}이었습니다. {n}은 그 뒤로 수조 구석에서 지냈습니다.',c:'bad',fx:{h:-6,st:.15},set:{subordinate:1},run:mat_10split};
-  if(R()<.5)return {end:'MAT-10-D'};
+  if(R()<.3)return {end:'MAT-10-D'};
   return {t:'저녁에 주인이 둘을 발견해 떼어 놓았습니다. {n}의 꼬리지느러미는 기조 사이로 갈라져 있었고, 한쪽 눈에 하얀 줄이 생겨 있었습니다.',c:'bad',fx:{fin:.35,h:-15,st:.2},sick:R()<.4?'finrot':null,
     run:()=>mat_partSame()};
 }
@@ -442,7 +445,8 @@ fev([{id:'MAT-15',tier:'fact',sp:['cory'],own:['casual','eager','gift','shared',
    [출처: 담수 가오리 자상 응급처치(온수 침수)] [출처: 담수 가오리 독침 자연 탈락·재생, 자상 증상] */
 function mat_16cut(){setFl('barb_cut',1);
   if(mat_roll('g',35))return {t:'잘린 자리의 피부가 하얗게 들떴다가, 몇 주에 걸쳐 아물었습니다.',c:'bad',fx:{h:-25,st:.2}};
-  return {end:'MAT-16-D'};
+  if(R()<.4)return {end:'MAT-16-D'};
+  return {t:'잘린 자리가 붓고 하얀 고름이 고였습니다. 꼬리 위쪽 살이 한 겹 썩어 떨어진 뒤에야 분홍 살이 차올랐습니다. 꼬리는 그 뒤로 짧고 뭉툭했습니다.',c:'bad',fx:{h:-35,st:.3},set:{inj_skin:1}};
 }
 function mat_16sting(){setFl('sting_owner',1);
   const base={t:'꼬리가 휘었습니다. 독침이 주인의 손등에 박혔습니다. 주인이 비명을 지르며 손을 뺐습니다.',c:'bad'};
@@ -470,7 +474,7 @@ function mat_17fate(){
   if(isKind('expert','learner','content','staff')&&R()<.6)return {t:isKind('content')?'주인은 "1,000L 수조 만들기" 영상을 찍기 시작했습니다. 새 수조가 들어왔습니다.':'주인은 거실 한쪽을 비우고 큰 수조를 들였습니다.',c:'good',fx:{st:-.1,i:.08},run:mat_17big};
   if(isSp('koi')&&R()<.4)return {t:'{n}은 마당에 연못이 있는 집으로 갔습니다.',c:'neutral',run:()=>fRehome('주인은 {n}을 연못 있는 집에 분양했습니다.',{tank:'pond',own:'gift'})};
   if(isSp('channa','bichir'))return {t:'몸을 돌릴 자리가 없는 밤마다 {n}은 뚜껑 가장자리를 주둥이로 밀었습니다.',c:'bad',fx:{h:-6},add:{escapey:1}};
-  if(R()<.45)return {end:'MAT-17-D'};
+  if(R()<.25)return {end:'MAT-17-D'};
   return {t:'"원래 손가락만 했는데요." 주인은 {n}의 사진을 당근 나눔에 올렸습니다.',c:'bad',run:()=>fRehome('{n}은 당근 나눔 글과 함께 다음 집으로 갔습니다.')};
 }
 fev([{id:'MAT-17',tier:'fact',sp:['oscar','arowana','gar','pleco','channa','koi','motoro','bichir'],own:['casual','eager','gift','content','relay','decor','release','learner'],
@@ -608,13 +612,14 @@ fev([{id:'MAT-23',tier:'fact',sp:['guppy','platy'],own:['casual','gift','shared'
    {l:'바닥 구석에 가만히 있는다',ok:mat_23hard}
   ]}]);
 
+const mat_24fail=()=>R()<.45?{end:'MAT-24-D'}:{t:'큰 물고기의 입이 {n}을 빨아들였다가 다시 뱉어 냈습니다. 꼬리지느러미 절반이 그 입 속에 남았습니다.',c:'bad',fx:{h:-8,fin:.3},set:{inj_fin:1}};
 /* EV-MAT-24 태어나자마자 — a newborn livebearer in the farm pond (origin, the sieve moment) [출처: 난태생어 성어의 치어 포식] */
 fev([{id:'MAT-24',stage:'origin',tier:'fact',sp:['guppy','platy'],when:()=>!fl('wild'),once:1,
   p:'{n}은 방금 태어났습니다. 몸이 펴지자마자 지느러미를 젓습니다. 바로 위에서 큰 물고기들이 떨어지는 작은 것들을 하나씩 입에 넣고 있습니다. {n}은…',
   o:[
-   {l:'수면의 뜬 수초 뿌리 사이로 올라간다',chk:()=>['w',isSp('platy')?10:15],ok:{t:'{n}은 뜬 수초 뿌리 사이에 몸을 끼웠습니다. 큰 입들은 그 아래를 지나갔습니다.',c:'good',fx:{w:1}},no:{end:'MAT-24-D'}},
-   {l:'바닥 자갈 틈으로 내려간다',chk:()=>['g',isSp('platy')?10:15],ok:{t:'{n}은 자갈 틈으로 내려갔습니다. 그 틈은 큰 입이 들어오기에는 좁았습니다.',c:'good',fx:{g:1}},no:{end:'MAT-24-D'}},
-   {l:'그 자리에서 움직이지 않는다',ok:()=>mat_roll('g',isSp('platy')?7:10)?{t:'큰 물고기는 {n} 바로 옆의 다른 새끼를 삼키고 지나갔습니다.',fx:{g:1}}:{end:'MAT-24-D'}}
+   {l:'수면의 뜬 수초 뿌리 사이로 올라간다',chk:()=>['w',isSp('platy')?10:15],ok:{t:'{n}은 뜬 수초 뿌리 사이에 몸을 끼웠습니다. 큰 입들은 그 아래를 지나갔습니다.',c:'good',fx:{w:1}},no:mat_24fail},
+   {l:'바닥 자갈 틈으로 내려간다',chk:()=>['g',isSp('platy')?10:15],ok:{t:'{n}은 자갈 틈으로 내려갔습니다. 그 틈은 큰 입이 들어오기에는 좁았습니다.',c:'good',fx:{g:1}},no:mat_24fail},
+   {l:'그 자리에서 움직이지 않는다',ok:()=>mat_roll('g',isSp('platy')?7:10)?{t:'큰 물고기는 {n} 바로 옆의 다른 새끼를 삼키고 지나갔습니다.',fx:{g:1}}:mat_24fail()}
   ]}]);
 
 /* EV-MAT-25 거품집 — the bubble nest, both sexes [출처: 베타 암컷 산란 준비 시 세로 줄무늬] [출처: 베타 번식 시 수컷의 암컷 공격, 산란 후 분리 권장] */
@@ -626,7 +631,7 @@ function mat_25after(){
   return {t:'수컷이 {n}을 거품집 아래에서 몰아냈습니다. 지느러미가 찢긴 {n}을 저녁에 주인이 건져 냈습니다.',c:'bad',fx:{fin:.3,h:-12},
     run:()=>{if(isKind('content')&&R()<.4){setFl('learned_remove_female',1);addLog(T('영상에 "암컷 빼세요" 댓글이 수백 개 달렸습니다. 주인은 다음엔 빼겠다고 답했습니다.'),'sub')}}};
 }
-fev([{id:'MAT-25',tier:'fact',sp:['betta','wildbetta'],own:['breeder','eager','content','mill','breakup','expert'],need:{spawnset:1,brood:0},cd:30,w:()=>isKind('breeder','mill')?3:1,
+fev([{id:'MAT-25',tier:'fact',sp:['betta'],own:['breeder','eager','content','mill','breakup','expert'],need:{spawnset:1,brood:0},cd:30,w:()=>isKind('breeder','mill')?3:1,
   p:()=>{setFl('mat_ready',R()<.5?1:0);
     return fem()?'커다란 지느러미의 수컷이 몸을 펼치고 수면의 거품 아래로 갑니다. 수컷이 돌아볼 때마다 {n} 쪽으로 다가옵니다. {n}은…'
       :'수면 한쪽에 {n}이 만든 거품이 손바닥만큼 모였습니다. 주인이 작은 컵을 기울여 다른 베타 한 마리를 넣습니다. 그 물고기의 몸에 '+(mat_25ready()?'세로 줄무늬가 짙게':'가로 줄무늬가 희미하게')+' 떠 있습니다. {n}은…'},
@@ -666,7 +671,7 @@ fev([{id:'MAT-27',stage:'origin',tier:'fact',sp:['arowana'],when:()=>fl('wild')&
     no:{t:'{n}의 입이 저절로 열렸습니다. 새끼들이 입 밖으로 흩어졌습니다. 딱정벌레는 이미 떠내려간 뒤였습니다.',c:'bad',fx:{st:.1}}},
    {l:'물에 잠긴 나무뿌리 사이로 들어간다',chk:()=>['w',fl('thin')?50:40],ok:{t:'노 젓는 소리가 나무뿌리 앞을 지나갔습니다. 며칠 뒤 {n}이 입을 열자 새끼들이 흩어져 나갔고, {n}은 다시 사냥을 시작했습니다.',c:'good',fx:{w:2}},
     no:()=>R()<.5?{end:'MAT-27-D'}:{t:'그물이 나무뿌리에 걸려 찢어졌습니다. 채집꾼들은 욕을 하며 다른 쪽으로 갔습니다.',c:'neutral',fx:{st:.1}}},
-   {l:'그 자리에 가만히 떠 있다',ok:()=>mat_roll('g',15)?{t:'노 젓는 소리가 멀어졌습니다.',fx:{g:1}}:{end:'MAT-27-D'}}
+   {l:'그 자리에 가만히 떠 있다',ok:()=>mat_roll('g',15)?{t:'노 젓는 소리가 멀어졌습니다.',fx:{g:1}}:R()<.5?{end:'MAT-27-D'}:{t:'그물 테두리가 {n}의 몸을 훑고 지나갔습니다. {n}은 그물코 사이로 빠져나갔지만, 옆구리 비늘이 줄지어 뜯기고 한쪽 눈의 각막이 하얗게 긁혔습니다. 놀란 입이 열려 새끼들이 흩어졌습니다.',c:'bad',fx:{h:-14,st:.15},set:{inj_eye:1,inj_skin:1}}}
   ]}]);
 
 /* EV-MAT-28 무지갯빛 부부 [출처: 레인보우 스네이크헤드 번식 행동 문헌]
@@ -756,7 +761,10 @@ fev([{id:'MAT-32',tier:'fact',sp:['comet','oranda','ryukin','koi'],need:{season:
 
 /* EV-MAT-33 하얀 접시 위의 선별 — fry sorting at the farm (origin, the sieve moment)
    [출처: 팬시 금붕어 치어 선별 도태 관행] [출처: AVMA 안락사 지침 — 사전 마취 없는 냉동의 부적절성, 근친 교배 구피 척추 기형] */
-const mat_33cull=()=>({end:R()<.5?'MAT-33-D':'MAT-33-F'});
+/* most culled fry are graded down to the cheapest tub rather than destroyed; part of them still go to the cup */
+const mat_33cull=()=>R()<.3?{end:R()<.5?'MAT-33-D':'MAT-33-F'}:R()<.5
+  ?{t:'손가락이 {n}을 집어 가장 싼 "먹이용" 통에 던졌습니다. 손가락에 눌렸던 자리의 점막이 벗겨져 하얗게 들떴습니다.',c:'bad',fx:{h:-10},set:{slime_loss:1,grade:'feeder'}}
+  :{t:'{n}은 다른 치어 수십 마리와 함께 컵에 쓸려 "덤" 봉지로 갔습니다. 컵 가장자리에 눌린 한쪽 눈의 각막이 하얗게 흐려졌습니다.',c:'bad',fx:{h:-8},set:{inj_eye:1}};
 const mat_33keep=()=>({t:isSp('betta')?'{n}은 "애완용 저가" 칸으로 옮겨졌습니다.':isSp('platy')?'{n}은 마트 판매용 통으로 옮겨졌습니다.':'{n}은 "중간 등급" 통으로 옮겨졌습니다.',c:'neutral',set:isSp('guppy')?{bentback:1}:{}});
 fev([{id:'MAT-33',stage:'origin',tier:'fact',sp:['guppy','platy','betta','oranda','ryukin'],when:()=>!fl('wild'),once:1,
   p:()=>'그물이 치어 무리를 한 번에 떠 올립니다. 하얀 접시 위에 쏟아진 치어들 사이로 사람의 눈이 하나씩 훑고 지나갑니다. {n}의 '+(isSp('oranda','ryukin')?'꼬리가 다른 치어보다 한 갈래 적습니다':isSp('guppy')?'등이 조금 휘어 있습니다':isSp('platy')?'무늬가 부모와 다릅니다':'지느러미 끝이 고르지 않습니다')+'. {n}은…',
