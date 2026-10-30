@@ -45,7 +45,7 @@ function statSnap(){if(!S)return {};const f=S.f,o={h:clamp(S.health,0,100),i:cla
 function showDelta(a,b){
   if(!S||S.done||S.ending||!a||!b)return;
   const ch=[];
-  DLAB.forEach(([k,l,sg,id])=>{if(a[k]===undefined||b[k]===undefined)return;const d=Math.round(b[k]-a[k]);if(Math.abs(d)<1)return;
+  DLAB.forEach(([k,l,sg,id])=>{if(a[k]===undefined||b[k]===undefined)return;const d=Math.round((b[k]-a[k])*(['p','g','w','c'].includes(k)?10:1));if(Math.abs(d)<1)return;
     ch.push({t:l+' '+(d>0?'+':'−')+Math.abs(d),good:d*sg>0});
     const el=id&&$(id);if(el&&el.classList){el.classList.remove('up','down');void el.offsetWidth;el.classList.add(d*sg>0?'up':'down');setTimeout(()=>el.classList.remove('up','down'),1400)}});
   if(b.ill&&b.ill!==a.ill&&typeof DZ!=='undefined'&&DZ[b.ill])ch.push({t:'병: '+DZ[b.ill].n,good:false});
@@ -73,7 +73,9 @@ function render(){
   const F=S.f,pre=!!(F&&S.preOwner),wild=!!S.wild;
   if(F&&S.temper&&typeof fst==='function')fst();
   /* the fish's own stats */
-  [['mPow','p'],['mGuts','g'],['mWits','w'],['mCharm','c']].forEach(([id,k])=>{const el=$(id);if(!el)return;el.hidden=!(F&&F.st);if(!el.hidden)meter(el,F.st[k])});
+  [['mPow','p'],['mGuts','g'],['mWits','w'],['mCharm','c']].forEach(([id,k])=>{const el=$(id);if(!el)return;el.hidden=!(F&&F.st);if(!el.hidden){
+    /* v0.14: shown ×10, the bar filled toward this species' ceiling */
+    const cap=typeof capOf==='function'?capOf(k):100,v=F.st[k];meter(el,v);el.querySelector('.v').textContent=Math.round(v*10);el.querySelector('.fill').style.width=clamp(v/cap*100,0,100)+'%';el.classList.toggle('low',v/cap<.3)}});
   /* what the owner keeps: skill, temperature, water, care (in the wild: the river's temperature and food) */
   const own=$('ownRow');if(own)own.hidden=pre;
   const oh=$('ownHead');if(oh)oh.textContent=wild?'강물':'주인 몫';

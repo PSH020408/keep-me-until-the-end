@@ -1,4 +1,4 @@
-# Career mode (육성) — v0.13
+# Career mode (육성) — v0.13, revised in v0.14
 
 Author: PARK, SEHO
 
@@ -199,7 +199,70 @@ The title is chosen Princess Maker style from how the life ended and what was bu
 
 The grade shows as a card on the ending screen and as the last line of the story, so it reaches the memorial.
 
-## Balance (800 lives each, 어려움)
+## v0.14 changes (after the 24,000-life report)
+
+The report showed that growth rarely beat the house's unfairness. These changes fix that.
+
+**Skills**
+
+- Two new skills for the two biggest killers:
+  - 면역력: disease progresses 35% slower, and a disease death is survived 40% of the time.
+  - 버티는 몸: neglect, starvation and stress deaths are survived 40% of the time, and health is lost 25% slower when nobody looks.
+- A save now reads "★ 스킬 발동!" in the log.
+
+**Skill shop**
+
+- Every affordable skill is shown, not just nine.
+- Skills that answer a current threat come first, marked 추천 with the reason. Threats include sick, neglect, bad water, no lid, a cat, no heater, a big tankmate, a medicine-happy owner, a small fish near the intake, summer, an owner who flushes, and age.
+- Up to three recommended skills the fish cannot yet afford are shown greyed, with the SP missing.
+
+**Turns**
+
+- At home a step is half as long. A turn still comes every second step, so careers about double in length (mean 32 turns, up to ~95).
+- Catalogue events roll on half of those steps, so a life holds about as many as before. The wild keeps its own pace.
+
+**Display**
+
+- Stats are shown ×10 on the card, the meters, the change chips and the ending (힘 310/750, +40).
+- The meters fill toward the species ceiling.
+
+**Prologue**
+
+- Deaths before an owner are cut. Step deaths ×0.45, catalogue deaths weighted 0.2, culling halved.
+- About 16% of lives on 어려움 now end before an owner, down from 25%.
+- More species come from home breeders. Farms are about 53% of lives, down from 61%.
+
+**벼랑 끝**
+
+- Need 65% of the ceiling, chance (stat/need)^2.2 − 0.08, at most 75%.
+
+**Grades**
+
+- Re-banded for longer careers: G 0, F 30, E 50, D 75, C 105, B 140, A 180, S 215, SS 250.
+- Contest wins add 4 each.
+
+**Bond stories**
+
+- Each companion has three chapters, at bond 30, 60 and 90: twelve in all.
+- Each is a choice that raises a stat, gives 12 SP, and lifts mood and the bond.
+
+**출전 (contests)**
+
+- From turn 6, about every seven turns, the card offers one of five contests: photo contest, trick video, fish show, a twelve-hour stream, aquascape model.
+- Each has a visible stat requirement and costs 25 energy.
+- A win gives 20 SP, mood, owner bond and a 🏆 line. A loss gives stress and a bad line.
+- Three wins in a lived-out life earn the title 대회 그랜드슬램.
+
+**계승 (legacy)**
+
+- A career graded B or better is remembered in the browser.
+- The next career starts with the stat that fish built raised by 4–10% of the ceiling, and +10 SP.
+
+**Rare events**
+
+- About 140 catalogue events whose endings were almost never reached in 8,000 simulated lives are three times as likely.
+
+## Balance (800 lives each, 어려움, v0.13)
 
 Two choice policies:
 

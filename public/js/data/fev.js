@@ -129,7 +129,7 @@ const TIER_MARK={fact:'📌',likely:'',story:'😂'};
 
 /* balance knobs: how much easier the hidden checks are, and how much rarer a death is among weighted outcomes */
 const FEV_CHK={pre:1.6,home:1.25,wild:1.2};
-const FEV_DEATHW={pre:.35,home:.5,wild:.6};
+const FEV_DEATHW={pre:.2,home:.5,wild:.6};
 
 /* ---------- 5. registry ---------- */
 const FEV=[],FEVEND={};

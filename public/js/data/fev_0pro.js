@@ -10,7 +10,7 @@
 
 /* ---------- which track ---------- */
 /* share of each species that comes from a home breeder (rest of the non-wild ones: farms) */
-const PRO_BREEDER={betta:.45,guppy:.45,apisto:.45,oranda:.35,ryukin:.35,koi:.3,platy:.35,cory:.2,peapuffer:.12,altum:.08,oscar:.15,comet:.1,fig8:.08,pleco:.15,neon:.06};
+const PRO_BREEDER={betta:.55,guppy:.55,apisto:.55,oranda:.45,ryukin:.45,koi:.4,platy:.45,cory:.3,peapuffer:.2,altum:.15,oscar:.25,comet:.2,fig8:.15,pleco:.25,neon:.12,motoro:.25,arowana:.1,channa:.15,bichir:.2};
 /* v0.12: the fixed lines of the prologue, several of each (the same four lines opened two lives in three) */
 const PRO_L={
  crew:r=>pick(['채집꾼들이 그물을 들고 '+r+'에 들어왔습니다.','건기가 되자 '+r+'의 물이 얕아졌습니다. 그 무렵 채집꾼들이 들어왔습니다.',r+' 물가에 작은 배 두 척이 대어졌습니다. 배 바닥에는 빈 양동이가 쌓여 있었습니다.','새벽, '+r+' 위로 손전등 불빛 몇 개가 흔들렸습니다. 채집꾼들이었습니다.']),
@@ -97,7 +97,7 @@ fevEnd({
 fishPrologue=function(){
   const x=fx_(),f=S.f,t=f.track||'wild';
   const steps=[];const step=fn=>steps.push(fn);
-  const die=(p,key)=>S.ending||R()<p*(f.odds&&f.odds[key]||1)*modeK('die')&&(fEnd(key),true);
+  const die=(p,key)=>S.ending||R()<p*(f.odds&&f.odds[key]||1)*modeK('die')*.45&&(fEnd(key),true);   // v0.14: the prologue is a taste of 억까, not where most lives end
   const grow=m=>{S.ageM+=m;S.month+=m;f.len=Math.max(f.len,x.cm*clamp(.05+S.ageM/(S.sp.life*.2),.05,x.start||.4))};
   /* a catalogue moment: the choice, or an automatic event, then whatever follows */
   const moment=(stage,before)=>q(null,null,()=>{const c=proChoice(stage);if(!c)return;
@@ -146,7 +146,7 @@ fishPrologue=function(){
       :PRO_L.hatch(x.farm)),'neutral',()=>{S.env='farm'});q(null,null,next)});
     step(()=>{q(T(S.sp.id==='betta'?'선별 작업자가 병을 하나씩 들어 불빛에 비춰 보았습니다.':S.sp.id==='koi'?'양식장 사람들이 치어를 체에 걸러 무늬를 하나씩 살폈습니다.':PRO_L.sort()),'sub',()=>{grow(1.5);f.path.push('선별')});
       moment('origin');
-      q(null,null,()=>{if(escaped())return;if(S.ending)return;if(R()<(x.cull||.03)*(f.odds.cull||1)){fEnd('cull');return}q(T(PRO_L.kept()),'sub');next()})});
+      q(null,null,()=>{if(escaped())return;if(S.ending)return;if(R()<(x.cull||.03)*(f.odds.cull||1)*.5){fEnd('cull');return}q(T(PRO_L.kept()),'sub');next()})});
     step(()=>{const bot=S.sp.id==='betta';
       q(T(bot?'{n}은 손바닥만 한 병에 혼자 담겼습니다. 출하 전 며칠은 먹이가 없었습니다.':PRO_L.ship()),'sub',()=>{S.env=bot?'bottles':'box';S.status='출하';S.health-=8;grow(clamp(S.sp.life*.04,1,5));f.path.push(bot?'병 사육':'출하')});
       moment('trade');
@@ -160,7 +160,7 @@ fishPrologue=function(){
       q(null,null,()=>{grow(clamp(S.sp.life*.04,1,4));next()})});
     step(()=>{q(T(f.preShop==='friend'?'치어가 수십 마리로 불어나자 주인은 "다 키울 수는 없다"며 한 마리씩 들여다보았습니다.':'브리더가 치어를 한 마리씩 떠서 지느러미와 몸 모양, 무늬를 살폈습니다. 옆에는 빈 양동이가 놓여 있었습니다.'),'sub',()=>{f.path.push('브리더 선별')});
       moment('origin');
-      q(null,null,()=>{if(escaped())return;if(S.ending)return;if(R()<(x.cull||.05)*(f.odds.cull||1)*.8){fEnd('cull');return}q(T('{n}은 "분양할" 쪽에 남았습니다.'),'sub');next()})});
+      q(null,null,()=>{if(escaped())return;if(S.ending)return;if(R()<(x.cull||.05)*(f.odds.cull||1)*.4){fEnd('cull');return}q(T('{n}은 "분양할" 쪽에 남았습니다.'),'sub');next()})});
   }
 
   /* the shop (or the breeder's sale) */
