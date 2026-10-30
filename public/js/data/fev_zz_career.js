@@ -1,0 +1,379 @@
+/* ---------- v0.13: career mode (육성) — a raising game in the manner of Uma Musume and Princess Maker ----------
+   From the day the fish has an owner, every second step is a turn on the 육성 card:
+     · four trainings (힘 · 근성 · 지능 · 매력), each with a facility level that rises with use,
+       an energy cost (기력) and a failure rate that climbs as energy runs low
+     · rest, play (컨디션), signalling sickness, buying skills with skill points (SP)
+     · companions (주인, 합사어, 수조 달팽이 느림보, 유리 속의 나) appear on trainings; training with them builds a bond,
+       and a full bond on a companion's favourite training is a 우정 훈련
+     · six scheduled 고비 (goals) with a visible stat requirement; passing pays, failing hurts
+     · skills that turn some of the house's unfairness (억까) — a jump with no lid, the cat, the intake, a dose of
+       medicine — into something the fish can live through, once it has grown enough to have them
+     · at the end: a grade (G → SS) and a title, Princess Maker style
+   Everything else (hazards, catalogue events, endings) keeps running between turns. */
+
+const CAR_STATS={p:'힘',g:'근성',w:'지능',c:'매력'};
+const CAR_MOOD=['최악','나쁨','보통','좋음','최고'],CAR_MOODK=[.8,.9,1,1.1,1.2];
+const car=()=>S&&S.f&&S.f.car;
+const carHas=k=>{const c=car();return !!(c&&c.sk&&c.sk[k])};
+const carOn=()=>!!(S&&S.f&&S.f.own&&!S.preOwner&&!S.wild);
+
+/* ---------- the four trainings ---------- */
+const CAR_TR={
+ p:{n:'힘 훈련',gain:{p:3,g:1},vit:-21,
+   lv:['여과기 물살 거슬러 헤엄치기','수조 끝에서 끝까지 전력 왕복','출수구 급류 정면 돌파','물살 속 제자리 버티기 30분','여과기를 최대로 틀어 놓은 날의 사투'],
+   ok:['{n}은 물살 앞에서 꼬리를 쉬지 않고 저었습니다. 처음엔 밀려나던 몸이 이제 제자리를 지켰습니다.','{n}이 수조를 끝에서 끝까지 왕복했습니다. 몸통 옆 근육이 단단해졌습니다.','{n}은 출수구 바로 앞까지 거슬러 올라가 한참을 버텼습니다.']},
+ g:{n:'근성 훈련',gain:{g:3,p:1},vit:-19,
+   lv:['배고픔 참고 먹이 기다리기','숨 아끼며 바닥에 붙어 있기','조명 꺼진 밤 혼자 버티기','물 갈기 전날의 탁한 물 견디기','"물고기는 원래 아무것도 안 해도 돼"라는 말 견디기'],
+   ok:['{n}은 먹이가 떨어지기 전까지 움직이지 않고 기다렸습니다.','{n}은 바닥에 배를 대고 숨을 아꼈습니다. 오래 버티는 법을 몸이 익혔습니다.','{n}은 불 꺼진 수조에서 지느러미 하나 흔들리지 않고 밤을 넘겼습니다.']},
+ w:{n:'지능 훈련',gain:{w:3,c:1},vit:4,
+   lv:['수조 구석구석 지도 그리기','그림자 모양 구분하기','먹이 시간 외우기','주인 발소리와 남의 발소리 구분하기','여과기 소리로 고장 미리 알아채기'],
+   ok:['{n}은 수조의 틈과 굴, 물살이 약한 곳을 하나하나 외웠습니다.','{n}은 손 그림자, 뜰채 그림자, 고양이 그림자를 구분하게 되었습니다.','{n}은 주인이 사료통을 집기 전에 이미 수면에 가 있었습니다.']},
+ c:{n:'매력 훈련',gain:{c:3,w:1},vit:-15,
+   lv:['유리 앞에서 재롱 부리기','주인 손가락 따라가기','지느러미 활짝 펴고 멈추기','카메라 쪽으로 정확히 돌아보기','주인이 우울한 날을 알아보고 유리 앞에 나와 있기'],
+   ok:['{n}이 유리 앞에서 주인 손가락을 따라 이리저리 헤엄쳤습니다. 주인이 웃었습니다.','{n}은 지느러미를 끝까지 펴고 주인 앞에서 멈췄습니다.','{n}은 주인이 수조 앞에 앉으면 제일 먼저 나와 있었습니다.']}
+};
+const CAR_FACK=[1,1.15,1.3,1.45,1.6];
+
+/* ---------- companions ---------- */
+const CAR_PAL={
+ owner:{n:'주인',fav:'c',when:()=>true,
+   fr:['주인이 유리에 손가락을 대자 {n}이 그 손가락을 따라 수조를 한 바퀴 돌았습니다. 주인은 그날 처음으로 {n}에게 "잘했어"라고 말했습니다.','주인이 수조 앞에 의자를 당겨 앉았습니다. {n}은 주인이 일어설 때까지 유리 앞을 떠나지 않았습니다. 주인은 그날 물을 갈고 사진을 서른 장 찍었습니다.']},
+ mate:{n:()=>{const m=S.f.mates.find(m=>m.n>0&&m.id!==S.sp.id);return m?'합사어 '+(FX[m.id]&&SP.find(s=>s.id===m.id)?SP.find(s=>s.id===m.id).name:'친구'):'합사어'},fav:'p',
+   when:()=>S.f.mates.some(m=>m.n>0&&m.id!==S.sp.id),
+   fr:['{n}과 합사어가 나란히 물살을 거슬러 올랐습니다. 먼저 지친 쪽은 없었습니다.','합사어가 앞에서 물살을 갈라 주었고, {n}은 그 뒤에서 한 번도 밀리지 않았습니다.']},
+ snail:{n:'수조 달팽이 「느림보」',fav:'g',when:()=>S.f.tank!=='pond',
+   fr:['달팽이 느림보가 유리를 한 칸 오르는 동안 {n}은 물살 앞에서 버텼습니다. 느림보는 그날 유리 끝까지 올라갔습니다. 둘 다 처음이었습니다.','느림보가 껍데기 속으로 들어가 사흘을 버티는 동안 {n}도 사흘을 버텼습니다. 사흘째 저녁, 둘은 동시에 고개를 내밀었습니다.']},
+ mirror:{n:'유리 속의 나',fav:'w',when:()=>S.f.tank!=='pond',
+   fr:['유리 속의 {n}이 먼저 방향을 틀었습니다. {n}은 그보다 먼저 틀었습니다. 처음으로 이겼습니다.','유리 속의 {n}과 마주 보던 {n}이 한쪽 지느러미만 접었습니다. 유리 속의 {n}도 그랬습니다. 서로를 완전히 이해한 순간이었습니다.']}
+};
+const carPalName=k=>valOf(CAR_PAL[k].n);
+
+/* ---------- skills ---------- */
+const CAR_SK=[
+ {k:'safe',n:'부상 방지',cost:25,d:'훈련 실패율 -6%p'},
+ {k:'nap',n:'꿀잠',cost:25,d:'휴식으로 회복하는 기력 +15'},
+ {k:'intake',n:'흡입구 회피',cost:35,d:'여과기 흡입구 사고를 70% 확률로 피함'},
+ {k:'dead',n:'죽은 척 장인',cost:40,d:'죽은 척을 들켜 변기에 버려지는 일을 70% 피함 · 기절 연기 구출 엔딩 확률 ↑'},
+ {k:'cat',n:'고양이 무시',cost:40,d:'고양이 습격을 60% 확률로 피함'},
+ {k:'charm',n:'애교 장인',cost:45,d:'주인의 관심이 식는 속도 30% 감소'},
+ {k:'med',n:'약 냄새 감지',cost:50,d:'약·세제·살충제 중독을 55% 확률로 버팀'},
+ {k:'p',n:'괴력',cost:50,d:'힘을 쓰는 선택의 성공률 ↑'},
+ {k:'g',n:'맷집',cost:50,d:'근성을 쓰는 선택의 성공률 ↑'},
+ {k:'w',n:'눈치',cost:50,d:'지능을 쓰는 선택의 성공률 ↑'},
+ {k:'c',n:'아이컨택',cost:50,d:'매력을 쓰는 선택의 성공률 ↑'},
+ {k:'cold',n:'겨울잠 체질',cost:55,d:'추위로 죽는 일을 45% 확률로 버팀'},
+ {k:'oxy',n:'산소 절약',cost:55,d:'산소 부족을 55% 확률로 버팀'},
+ {k:'land',n:'점프 착지술',cost:60,d:'수조 밖으로 떨어져도 50% 확률로 스스로 되돌아옴'},
+ {k:'hide',n:'숨바꼭질 고수',cost:60,d:'포식자에게 잡아먹히는 결말을 35% 확률로 피함'},
+ {k:'gill',n:'강철 아가미',cost:70,d:'더러운 물·암모니아로 잃는 체력 30% 감소 · 물 사고를 35% 확률로 버팀'},
+ {k:'revive',n:'기사회생',cost:150,d:'생에 한 번, 죽음의 문턱에서 버팀 (자연사 제외)'}
+];
+const carSkill=k=>CAR_SK.find(s=>s.k===k);
+
+/* ---------- goals (고비) ---------- */
+const CAR_GOAL=[
+ {n:'첫 달 — 새 물 버티기',at:.05,k:'g',r:.4,
+  p:'새 수조에 온 지 한 달. 물이 아직 자리를 잡지 못했습니다. 아가미가 따끔거리고 숨이 가쁩니다. 이 달을 넘기면 이 물이 {n}의 물이 됩니다. {n}은…',
+  o:[['g','바닥에 붙어 숨을 아끼며 버틴다'],['c','주인이 볼 때마다 수면에서 뻐끔거려 물갈이를 조른다'],['w','출수구 아래, 산소가 섞이는 자리를 찾아낸다']],
+  pass:'{n}은 첫 달을 넘겼습니다. 물에서 나던 냄새가 사라졌습니다. 이 물이 {n}의 물이 되었습니다.',
+  fail:()=>{S.f.wq-=25;S.health-=18;return '첫 달의 물이 {n}의 아가미를 붉게 부풀렸습니다. 새엽 끝이 상해 한동안 숨이 얕았습니다.'}},
+ {n:'첫 계절의 변화',at:.15,k:'w',r:.5,
+  p:'창밖의 계절이 바뀌었습니다. 물 온도가 하루에도 몇 번씩 오르내립니다. {n}은…',
+  o:[['w','수조에서 온도가 가장 덜 변하는 자리를 찾는다'],['g','몸을 낮추고 바뀌는 물에 천천히 몸을 맞춘다'],['c','히터 쪽을 맴돌아 주인이 온도계를 보게 만든다']],
+  pass:'{n}은 첫 계절의 변화를 넘겼습니다. 바뀐 물에도 몸이 금방 맞춰졌습니다.',
+  fail:()=>{S.health-=22;S.f.coldShock=1;return '바뀐 물이 {n}의 몸을 흔들었습니다. 며칠 동안 지느러미를 몸에 붙인 채 바닥에 있었습니다.'}},
+ {n:'다 자란 몸 — 수조가 좁아질 때',at:.27,k:'c',r:.6,
+  p:'{n}의 몸이 커졌습니다. 돌아설 때마다 꼬리가 유리에 닿기 시작합니다. 주인은 아직 모릅니다. {n}은…',
+  o:[['c','주인 앞에서 몸을 끝까지 펴고 유리 끝에서 끝까지 헤엄친다'],['w','주인이 수조 사진을 찍을 때마다 정확히 몸 길이가 보이게 선다'],['p','유리벽을 꼬리로 쳐서 소리를 낸다']],
+  pass:()=>{if(typeof tankUp==='function'&&tankL()<fx_().minL)tankUp();return '주인이 {n}과 수조를 번갈아 보았습니다. "너 이렇게 컸어?"'},
+  fail:()=>{S.f.stunt=(S.f.stunt||0)+.3;S.f.stress+=.15;return '주인은 눈치채지 못했습니다. {n}의 몸은 그 수조에 맞춰 자라기를 멈추기 시작했습니다.'}},
+ {n:'주인의 권태기',at:.42,k:'c',r:.7,
+  p:'주인이 수조 앞에 앉는 시간이 줄었습니다. 휴대폰 화면만 봅니다. 사료는 생각날 때 들어옵니다. {n}은…',
+  o:[['c','주인이 지나갈 때마다 유리 앞에 나와 기다린다'],['w','주인이 오는 시간을 외워 미리 수면에 가 있는다'],['g','아무것도 바라지 않고 이끼를 갉으며 버틴다']],
+  pass:()=>{S.interest=clamp(S.interest+.3,0,1);return '어느 저녁, 주인이 휴대폰을 내려놓고 수조 앞에 다시 앉았습니다. "미안. 요즘 정신이 없었어."'},
+  fail:()=>{S.interest=clamp(S.interest-.25,.02,1);if(R()<.35&&typeof fDispose==='function'&&!S.waiting)q(null,null,()=>fDispose());return '주인의 의자는 수조 앞에서 침대 옆으로 옮겨졌습니다.'}},
+ {n:'한여름 밤의 정전',at:.58,k:'g',r:.8,
+  p:'열대야가 이어지던 밤, 집 안의 모든 소리가 한꺼번에 멎었습니다. 여과기가 멈추고 물이 미지근하게 고입니다. 아침까지 여섯 시간입니다. {n}은…',
+  o:[['g','움직임을 최소로 줄이고 바닥에서 버틴다'],['w','수면의 가장 얇은 물층을 찾아 입을 댄다'],['p','꼬리로 수면을 쳐서 물을 섞는다']],
+  pass:'전기가 들어왔을 때 {n}은 수면 아래에서 아가미를 천천히 움직이고 있었습니다. 주인은 그날 무정전 전원장치를 샀습니다.',
+  fail:()=>{if(!S.waiting&&typeof fCr==='function'){q(null,null,()=>fCr('oxygen'));return '아침이 오기 전에 물속 산소가 먼저 바닥났습니다.'}S.health-=30;return '아침까지 {n}은 수면에서 입을 벌리고 있었습니다. 아가미 새엽이 검붉게 부었습니다.'}},
+ {n:'노년의 겨울',at:.78,k:'g',r:.9,
+  p:'{n}은 늙었습니다. 지느러미가 예전처럼 펴지지 않습니다. 올겨울은 유난히 깁니다. {n}은…',
+  o:[['g','먹이를 조금씩, 그래도 매일 먹는다'],['c','주인이 유리 앞에 올 때마다 마지막 힘으로 나간다'],['w','따뜻한 물이 도는 자리에 몸을 붙이고 힘을 아낀다']],
+  pass:()=>{S.health=clamp(S.health+20,0,S.hMax||100);return '{n}은 그 겨울을 넘겼습니다. 봄이 오자 주인은 {n}의 사진을 휴대폰 배경으로 바꿨습니다.'},
+  fail:()=>{S.health-=30;return '겨울은 {n}의 몸에서 많은 것을 가져갔습니다. 봄이 와도 {n}은 바닥 가까이에서 지냈습니다.'}}
+];
+const carNeed=g=>Math.max(8,Math.round(capOf(g.k)*g.r));
+const carNextGoal=()=>{const c=car();return c?CAR_GOAL[c.gi]:null};
+const carGoalTurn=i=>{const c=car();return c.goalAt[i]};
+const carChance=(k,need)=>{const c=car(),s=fst()[k];return clamp(Math.pow(s/Math.max(1,need),2.5)*CAR_MOODK[c.mood]*(carHas(k)?1.15:1)*(S.mode==='story'?1.25:1)-.05,.05,.92)};
+const carChanceL=x=>x>=.8?'가능성 높음':x>=.55?'가능성 보통':x>=.3?'가능성 낮음':'가능성 희박';
+
+/* ---------- setting up the career ---------- */
+function carInit(){
+  const f=S.f;if(f.car)return f.car;
+  const turnsLeft=Math.max(8,Math.round((S.sp.life-S.ageM)/(S.dt*2)));
+  const startBond={expert:30,breeder:20,learner:25,content:15,casual:10,gift:5,mill:0}[f.own]||10;
+  f.car={turn:0,vit:100,mood:2,sp:0,fac:{p:1,g:1,w:1,c:1},facN:{p:0,g:0,w:0,c:0},bond:{owner:startBond,mate:0,snail:0,mirror:0},
+    sk:{},gi:0,gpass:0,gfail:0,goalAt:CAR_GOAL.map(g=>Math.round((g.at*S.sp.life-S.ageM)/(S.dt*2))),total:turnsLeft,fr:0};
+  /* a goal already past by age (a fish bought old) is skipped */
+  f.car.goalAt=f.car.goalAt.map(t=>t<0?-1:Math.max(2,t));
+  while(f.car.gi<CAR_GOAL.length&&f.car.goalAt[f.car.gi]<0)f.car.gi++;
+  /* the trip and the new water leave the fish at the bottom: the career builds it up again, toward the species ceiling */
+  const st=fst();for(const k of ['p','g','w','c'])st[k]=Math.max(Math.round(capOf(k)*.25),Math.round(Math.min(st[k],capOf(k))*.6));
+  carHookEnd();
+  addLog(T('새 집에 온 {n}은 몸도 마음도 바닥이었습니다. 처음부터 다시 쌓아야 합니다.'),'sub');
+  addLog(T('★ 육성이 시작되었습니다. {n}의 하루하루는 이제 당신이 정합니다. 억까는 계속됩니다. 이겨 내려면 자라야 합니다.'),'star');
+  return f.car;
+}
+fTrainDue=function(){const f=S.f;return f&&!S.preOwner&&!S.wild&&f.own&&!S.waiting&&!S.ending&&S.tick>=(f.trainAt||1e9)};
+
+/* ---------- one turn ---------- */
+fTrain=function(){
+  const f=S.f,c=carInit();f.trainAt=S.tick+2;c.turn++;
+  /* moods drift with the body */
+  if(f.stress>.6&&R()<.3)c.mood=Math.max(0,c.mood-1);
+  if(S.health<40&&R()<.3)c.mood=Math.max(0,c.mood-1);
+  if(S.health>80&&f.stress<.25&&R()<.15)c.mood=Math.min(4,c.mood+1);
+  if(c.vit<15){S.health-=3}
+  /* the owner wakes up once the bond is strong */
+  if(c.bond.owner>=70&&!c.awake){c.awake=1;S.r=clamp(S.r+.12,0,.95);f.lazy=0;f.grow=1;
+    addLog(T('★ 주인이 {n}을 위해 사육 책을 세 권 샀습니다. 처음으로 끝까지 읽었습니다. (주인 실력 ↑)'),'star')}
+  /* a goal on its turn */
+  const g=CAR_GOAL[c.gi];
+  if(g&&c.goalAt[c.gi]>=0&&c.turn>=c.goalAt[c.gi])return carGoal(g);
+  carHub();
+};
+function carStrip(){
+  const c=car(),g=CAR_GOAL[c.gi],left=g&&c.goalAt[c.gi]>=0?Math.max(0,c.goalAt[c.gi]-c.turn):null;
+  const st=fst();
+  return [['기력',Math.round(c.vit)+'/100',c.vit],['컨디션',CAR_MOOD[c.mood]],['SP',String(c.sp)],
+    ['스탯','힘 '+Math.round(st.p)+'/'+capOf('p')+' · 근성 '+Math.round(st.g)+'/'+capOf('g')+' · 지능 '+Math.round(st.w)+'/'+capOf('w')+' · 매력 '+Math.round(st.c)+'/'+capOf('c')],
+    ['다음 고비',g&&left!=null?g.n+' · '+(left?left+'턴 뒤':'이번 턴')+' · 필요 '+CAR_STATS[g.k]+' '+carNeed(g):'남은 고비 없음 — 끝까지'],
+    ['인연',Object.keys(CAR_PAL).filter(k=>CAR_PAL[k].when()).map(k=>carPalName(k)+' ♥'+Math.round(c.bond[k])).join(' · ')]];
+}
+const carFail=k=>{const c=car();return clamp((c.vit<55?(55-c.vit)*1.7:0)+S.f.stress*14+(S.f.ill?10:0)-(carHas('safe')?6:0),0,90)};
+function carHub(){
+  const f=S.f,c=car();
+  /* companions show up on a training this turn */
+  const pal={};
+  Object.keys(CAR_PAL).forEach(k=>{if(CAR_PAL[k].when()&&R()<.5){const t=pick(['p','g','w','c']);(pal[t]=pal[t]||[]).push(k)}});
+  const opts=[];
+  ['p','g','w','c'].forEach(k=>{const tr=CAR_TR[k],lv=c.fac[k],fail=Math.round(carFail(k)),ps=pal[k]||[];
+    const fr=ps.filter(p=>c.bond[p]>=80&&CAR_PAL[p].fav===k);
+    const mul=CAR_FACK[lv-1]*CAR_MOODK[c.mood]*(ps.length?1.1:1)*(fr.length?1.5:1);
+    const gs=Object.entries(tr.gain).map(([s,v])=>CAR_STATS[s]+' +'+Math.max(1,Math.round(v*mul*capOf(s)/60*growOf(s)))).join(' · ');
+    opts.push({l:tr.n+' — '+tr.lv[lv-1]+(fr.length?' ★우정':''),d:gs+' · 기력 '+(tr.vit>0?'+':'')+tr.vit+' · 실패율 '+fail+'% · 시설 Lv.'+lv+(ps.length?' · 함께: '+ps.map(p=>carPalName(p)+'♥'+Math.round(c.bond[p])).join(', '):''),c:'neutral',r:'',
+      fx:()=>carTrain(k,ps,fr,fail)})});
+  /* one special training from the old schedule or the ★ list */
+  const sp=carSpecialPick();
+  if(sp)opts.push({l:'특별 훈련 — '+valOf(sp.l),d:(sp.d||'')+' · 기력 -18',c:'neutral',r:'',fx:()=>carSpecial(sp)});
+  opts.push({l:pick(['휴식 — 수초 그늘에서 푹 쉰다','휴식 — 바닥에 배를 대고 아무것도 안 한다']),d:'기력 +'+(45+(carHas('nap')?15:0))+' 안팎 · 체력 조금 회복',c:'neutral',r:'',fx:carRest});
+  opts.push({l:'놀기 — 수조 안에서 하고 싶은 것을 한다',d:'컨디션 ↑ · 기력 +12',c:'neutral',r:'',fx:carPlay});
+  if(f.ill)opts.push({l:'아픈 티 내기 — 주인이 알아채도록 유리 앞에 붙는다',d:'주인이 병을 알아챌 확률 ↑ · 기력 +8',c:'neutral',r:'',fx:carSignal});
+  const can=CAR_SK.filter(s=>!c.sk[s.k]&&s.cost<=c.sp);
+  if(can.length)opts.push({l:'스킬 배우기 — SP '+c.sp,d:'배울 수 있는 스킬 '+can.length+'개 · 턴을 쓰지 않음',c:'neutral',r:'',fx:()=>q(null,null,carShop)});
+  askChoice({who:'육성 — '+c.turn+'턴째',p:typeof z_prompt==='function'?z_prompt():'앞으로 몇 주가 흘러갑니다. {n}은…',o:opts,strip:carStrip()});
+}
+function carTrain(k,ps,fr,fail){
+  const f=S.f,c=car(),tr=CAR_TR[k];
+  c.vit=clamp(c.vit+(tr.vit>0?tr.vit:tr.vit*(R()*.3+.85)),0,100);
+  if(R()*100<fail){
+    const pool=TRAIN.filter(t=>t.gain&&t.gain[k]&&t.fail&&t.fail.length&&trainOk(t)).flatMap(t=>t.fail).filter(failFits);
+    const z=pool.length?pick(pool):['{n}은 무리하다 몸을 다쳤습니다. 한동안 지느러미를 접고 바닥에 붙어 있었습니다.',X({h:-6})];
+    addLog(T('훈련 실패 — '+z[0]),'bad');if(z[1])z[1]();fStat(k,-2);c.mood=Math.max(0,c.mood-1);S.health-=4;
+    if(c.vit<20&&R()<.3)f.fin+=.1;
+    return}
+  const mul=CAR_FACK[c.fac[k]-1]*CAR_MOODK[c.mood]*(ps.length?1.1:1)*(fr.length?1.5:1)*(R()<.12?1.6:1);
+  for(const s in tr.gain){const v=Math.max(1,Math.round(tr.gain[s]*mul*capOf(s)/60));fStat(s,v);f.tinv=f.tinv||{p:0,g:0,w:0,c:0};f.tinv[s]=(f.tinv[s]||0)+v}
+  c.sp+=2+c.fac[k]+(fr.length?4:0);
+  if(fr.length){addLog(T('★ 우정 훈련! '+pick(CAR_PAL[fr[0]].fr)),'star');c.fr++;if(fr[0]==='owner')S.interest=clamp(S.interest+.06,0,1)}
+  else addLog(T(pick(tr.ok)),'neutral');
+  ps.forEach(p=>{c.bond[p]=clamp(c.bond[p]+7+R()*4,0,100);if(p==='owner')S.interest=clamp(S.interest+.03,0,1)});
+  c.facN[k]++;if(c.facN[k]>=4&&c.fac[k]<5){c.facN[k]=0;c.fac[k]++;addLog(T('「'+tr.n+'」 시설 레벨이 '+c.fac[k]+'이 되었습니다 — '+tr.lv[c.fac[k]-1]),'good')}
+  f.tsum=(f.tsum||0)+1;f.stress=clamp(f.stress+.01,0,1.2);
+}
+function carSpecialPick(){
+  if(R()>.55)return null;
+  const pool=TRAIN.filter(t=>(t.t||t.g||t.sp)&&trainOk(t));
+  const tier=typeof z_tier==='function'?z_tier():0;
+  const spx=typeof Z_SPX!=='undefined'?Z_SPX.filter(s=>s.tier<=tier&&(!s.need||s.need())):[];
+  const all=pool.concat(spx,spx);return all.length?pick(all):null;
+}
+function carSpecial(x){
+  const f=S.f,c=car();c.vit=clamp(c.vit-18,0,100);
+  if(R()*100<carFail()+6){const fs=x.fail.filter(failFits),z=fs.length?pick(fs):['{n}은 무리하다 몸을 다쳤습니다.',X({h:-6})];addLog(T(z[0]),'bad');if(z[1])z[1]();c.mood=Math.max(0,c.mood-1);return}
+  const k=(.8+R()*.6)*CAR_MOODK[c.mood];
+  for(const s in x.gain){const v=Math.round(x.gain[s]*k);fStat(s,v);f.tinv=f.tinv||{};f.tinv[s]=(f.tinv[s]||0)+v}
+  addLog(T(typeof x.ok[0]==='function'?x.ok[0]():x.ok[0]),'good');if(x.ok[1])x.ok[1]();
+  f.tlv=f.tlv||{};const key=x.id||valOf(x.l);f.tlv[key]=(f.tlv[key]||0)+1;f.tsum=(f.tsum||0)+1;c.sp+=5;
+}
+function carRest(){
+  const c=car(),r=R(),nap=carHas('nap')?15:0;
+  if(r<.15){c.vit=clamp(c.vit+65+nap,0,100);c.mood=Math.min(4,c.mood+1);S.health=clamp(S.health+8,0,S.hMax||100);addLog(T('{n}은 바닥에 배를 대고 아주 깊이 쉬었습니다. 일어났을 때 몸이 가벼웠습니다.'),'good')}
+  else if(r<.25){c.vit=clamp(c.vit+22+nap,0,100);addLog(T(pick(['쉬려 했지만 주인이 밤새 조명을 켜 두었습니다. {n}은 반쯤만 쉬었습니다.','쉬려던 자리에 합사어가 먼저 누워 있었습니다. {n}은 구석에서 대충 쉬었습니다.','주인이 밤새 게임을 했습니다. 모니터 불빛이 수조 유리에서 번쩍였습니다.'])),'sub')}
+  else{c.vit=clamp(c.vit+45+nap,0,100);S.health=clamp(S.health+5,0,S.hMax||100);addLog(T(pick(['{n}은 수초 그늘에서 지느러미를 접고 푹 쉬었습니다.','{n}은 아무것도 하지 않고 하루를 보냈습니다. 그것도 실력이었습니다.','{n}은 유목 밑에서 오래 잤습니다.'])),'neutral')}
+}
+const CAR_PLAY=[
+ [3,'{n}은 수면의 거품을 하나씩 터뜨리며 오후를 보냈습니다. 마지막 거품은 여과기가 만든 것이었고, 끝이 없었습니다.',1],
+ [3,'{n}은 유목 터널을 열 번 왕복했습니다. 열한 번째에 주인이 박수를 쳤습니다.',1,c=>{c.bond.owner=clamp(c.bond.owner+3,0,100)}],
+ [3,'{n}은 수초 사이에 숨었다가 주인이 찾으면 나오는 놀이를 했습니다. 주인은 그게 놀이인 줄 몰랐습니다.',1],
+ [2,'{n}이 바닥에 떨어진 사료 알갱이를 굴리며 놀았습니다. 알갱이는 결국 {n}의 배 속으로 들어갔습니다.',1],
+ [2,'{n}은 유리에 비친 자기 모습에게 지느러미를 흔들었습니다. 상대도 똑같이 흔들었습니다. 둘은 사이가 좋아졌습니다.',1,c=>{c.bond.mirror=clamp(c.bond.mirror+5,0,100)}],
+ [2,'{n}이 기포기 물방울을 타고 수면까지 올라갔다가 내려오기를 반복했습니다. 엘리베이터 같았습니다.',1],
+ [2,'달팽이 느림보의 껍데기 위에 잠깐 올라타 보았습니다. 느림보는 화를 내지 않았습니다. 느림보는 화를 낼 줄 몰랐습니다.',1,c=>{c.bond.snail=clamp(c.bond.snail+5,0,100)}],
+ [1,'그날 {n}은 수조에서 가장 좋은 하루를 보냈습니다. 아무 일도 일어나지 않았습니다.',2],
+ [1,'노는 데 정신이 팔려 {n}은 히터 줄에 몸이 감겼습니다. 금방 빠져나왔지만 기분이 상했습니다.',-1],
+ [1,'주인이 놀아 준다며 유리를 손톱으로 계속 두드렸습니다. {n}은 놀고 싶지 않아졌습니다.',-1]
+];
+function carPlay(){const c=car(),e=wpick(CAR_PLAY.map(z=>[z,z[0]]));c.vit=clamp(c.vit+12,0,100);c.mood=clamp(c.mood+e[2],0,4);S.f.stress=clamp(S.f.stress-.06,0,1.2);
+  addLog(T(e[1]+(e[2]>0?' (컨디션 ↑)':' (컨디션 ↓)')),e[2]>0?'good':'bad');if(e[3])e[3](c)}
+function carSignal(){const c=car();c.vit=clamp(c.vit+8,0,100);S.interest=clamp(S.interest+.15+(c.bond.owner/400),0,1);
+  addLog(T(c.bond.owner>=40?'{n}이 유리 앞에 붙어 움직이지 않자 주인이 한참 들여다보았습니다. "너 어디 아파?"':'{n}이 유리 앞에 붙어 있었습니다. 주인은 "밥 달라고?" 하며 지나갔다가, 조금 뒤 다시 돌아와 들여다보았습니다.'),'sub')}
+function carShop(){
+  const c=car(),can=CAR_SK.filter(s=>!c.sk[s.k]);
+  const opts=can.filter(s=>s.cost<=c.sp).slice(0,9).map(s=>({l:s.n+' — SP '+s.cost,d:s.d,c:'neutral',r:'',fx:()=>{c.sp-=s.cost;c.sk[s.k]=1;addLog(T('★ 스킬 「'+s.n+'」을 익혔습니다. '+s.d),'star');q(null,null,carHub)}}));
+  opts.push({l:'그만두고 돌아간다',d:'SP '+c.sp+' 그대로',c:'neutral',r:'',fx:()=>q(null,null,carHub)});
+  askChoice({who:'육성 — 스킬',p:'{n}이 지금까지 익힌 것으로 배울 수 있는 기술입니다. 하나를 고르세요.',o:opts,strip:carStrip(),noEcho:0});
+}
+function carGoal(g){
+  const c=car(),need=carNeed(g);
+  const opts=g.o.map(([k,l])=>{const ch=carChance(k,need);return {l,d:CAR_STATS[k]+' '+Math.round(fst()[k])+' / 필요 '+need+' · '+carChanceL(ch),c:'neutral',r:'',
+    fx:()=>{const ok=R()<ch;c.gi++;while(c.gi<CAR_GOAL.length&&c.goalAt[c.gi]<0)c.gi++;
+      if(ok){c.gpass++;c.sp+=25+c.gpass*5;c.mood=Math.min(4,c.mood+1);c.bond.owner=clamp(c.bond.owner+8,0,100);fStat(k,3);
+        addLog(T('◎ 고비 통과 — '+g.n+'. '+valOf(g.pass)),'star');remember('고비를 넘었다. 몸이 한 뼘 커진 것 같았다.',1.3)}
+      else{c.gfail++;c.mood=Math.max(0,c.mood-1);addLog(T('✕ 고비 실패 — '+g.n+'. '+valOf(g.fail)),'bad');
+        if(S.health<=0&&!S.ending){render();q(null,null,()=>fEnd(fCause()))}}}}});
+  askChoice({who:'고비 — '+g.n,p:g.p,o:opts,strip:carStrip()});
+}
+
+/* ---------- skills at work: checks, deaths and the body between turns ---------- */
+(()=>{const _c=fevChance;fevChance=function(chk){const v=_c(chk);const k=valOf(chk);if(v>0&&k&&car()&&carHas(k[0]))return clamp(v*1.15,.05,.95);return v}})();
+const CAR_SAVE={jump:['land',.5],escape:['land',.4],cat:['cat',.6],intake:['intake',.7],cold:['cold',.45],oxygen:['oxy',.55],
+  poison:['med',.55],tapwater:['gill',.35],shock:['gill',.35],cycle:['gill',.35],flushalive:['dead',.7],eaten:['hide',.35],feeder:['hide',.35],mauled:['hide',.35]};
+const CAR_SAVECAT={'점프사':'land','탈출':'land','중독':'med','약욕':'med','산소 부족':'oxy','동사':'cold','잡아먹힘':'hide','싸움':'hide','물잡이 실패':'gill','수질 쇼크':'gill','과열':'oxy'};
+const CAR_SAVEL={
+ land:'「점프 착지술」 — {n}은 바닥에 떨어지자마자 몸을 둥글게 말았다가 튕겨 수조로 되돌아갔습니다. 옆구리 비늘이 바닥에 한 줄 남았습니다.',
+ cat:'「고양이 무시」 — 앞발이 수면을 긁는 순간 {n}은 이미 바닥 돌 밑에 있었습니다. 고양이는 젖은 발을 털고 돌아갔습니다.',
+ intake:'「흡입구 회피」 — 흡입구가 {n}의 꼬리를 끌어당겼지만 {n}은 몸을 비틀어 빠져나왔습니다. 꼬리지느러미 끝이 조금 뜯겨 나갔습니다.',
+ cold:'「겨울잠 체질」 — {n}은 대사를 바닥까지 낮추고 물이 다시 데워질 때까지 버텼습니다. 지느러미 끝이 하얗게 상했습니다.',
+ oxy:'「산소 절약」 — {n}은 아가미를 아주 천천히 움직이며 수면의 얇은 물층에서 숨을 이어 갔습니다. 아침까지 버텼습니다.',
+ med:'「약 냄새 감지」 — 물에서 쓴 냄새가 나자 {n}은 출수구 바로 아래, 새 물이 섞이는 자리에 붙었습니다. 피부가 따끔거렸지만 버텼습니다.',
+ gill:'「강철 아가미」 — 독한 물이 아가미를 태웠지만, 단련된 새엽은 끝까지 숨을 놓지 않았습니다. {n}은 살아남았습니다.',
+ dead:'「죽은 척 장인」 — 뜰채가 닿는 순간 {n}이 몸을 뒤집어 헤엄쳤습니다. 주인이 비명을 지르며 뜰채를 놓쳤습니다.',
+ hide:'「숨바꼭질 고수」 — 큰 입이 닫히기 직전 {n}은 유목 틈으로 몸을 끼워 넣었습니다. 등지느러미 끝만 물려 나갔습니다.',
+ revive:'「기사회생」 — 모든 것이 멈추려던 순간, {n}의 아가미가 한 번 더 움직였습니다. 그리고 또 한 번. {n}은 돌아왔습니다.'
+};
+function carTrySave(sk,p){
+  const c=car();if(!c||!carOn()||!c.sk[sk])return false;if(R()>p*(c.mood>=3?1.1:1))return false;
+  addLog(T('★ '+CAR_SAVEL[sk]),'star');S.health=clamp(S.health-(18+R()*14),1,S.hMax||100);c.mood=Math.max(0,c.mood-1);
+  const near={land:'lid',cat:'lid',intake:'intake_guard',cold:'heater',med:'label',gill:'dechlor',hide:'mates'}[sk];if(near&&typeof fevNear==='function')fevNear(near);
+  return true;
+}
+function carRevive(){const c=car();if(!c||!carOn()||!c.sk.revive||c.revived)return false;c.revived=1;addLog(T('★ '+CAR_SAVEL.revive),'star');S.health=18;S.f.wq=Math.max(S.f.wq,35);if(S.f.ill)S.f.ill.sev=Math.min(S.f.ill.sev,.3);return true}
+
+/* ---------- 벼랑 끝 (last stand): a death the fish could still fight becomes one desperate choice ----------
+   Twice a life (three times on 쉬움), never right after another one, never for a deliberate killing or
+   for what no fish can fight (winter river, old age, euthanasia). The stat decides; failing is the death. */
+const CAR_STAND_KEYS={disease:'body',neglect:'water',cycle:'water',tapwater:'water',shock:'water',poison:'water',stress:'body',starve:'body',stunt:'body',
+  oxygen:'air',jump:'floor',escape:'floor',cat:'cat',intake:'intake',eaten:'bite',mauled:'bite',fight:'bite',nipped:'bite',cold:'cold',noair:'air'};
+const CAR_STAND_CAT={'질병':'body','기생충':'body','방치':'water','물잡이 실패':'water','중독':'water','수질 쇼크':'water','산소 부족':'air','점프사':'floor','탈출':'floor',
+  '잡아먹힘':'bite','싸움':'bite','합사':'bite','동사':'cold','스트레스':'body','성장 정체':'body','굶주림':'body','과열':'air','이사':'water','약욕':'water'};
+const CAR_STAND={
+ body:{p:'몸이 더는 버티지 못할 것 같습니다. 아가미가 점점 느려지고, 지느러미가 몸에 붙습니다. {n}은…',
+   o:[['g','마지막 힘까지 아가미를 움직인다'],['c','주인이 볼 때까지 유리 앞에서 몸을 뒤집지 않고 버틴다'],['w','물이 가장 깨끗한 자리를 찾아 몸을 옮긴다']],
+   ok:'{n}은 벼랑 끝에서 버텼습니다. 다음 날 아침에도 아가미가 움직였습니다.',fix:()=>{if(S.f.ill)S.f.ill.sev=Math.min(S.f.ill.sev,.45);S.interest=clamp(S.interest+.15,0,1)}},
+ water:{p:'물이 독처럼 변했습니다. 아가미가 타는 것 같고, 숨을 쉴 때마다 더 아픕니다. {n}은…',
+   o:[['c','수면에서 크게 뻐끔거려 주인을 부른다'],['w','출수구 바로 아래, 새 물이 섞이는 자리를 찾는다'],['g','숨을 최대한 아끼며 버틴다']],
+   ok:'주인이 수면에서 헐떡이는 {n}을 보고 물을 절반 갈았습니다. {n}은 살아남았습니다.',fix:()=>{S.f.wq=Math.max(S.f.wq,50)}},
+ air:{p:'물속에 숨이 남아 있지 않습니다. 수면의 얇은 물층마저 미지근합니다. {n}은…',
+   o:[['g','움직임을 멈추고 아가미만 아주 천천히 움직인다'],['p','꼬리로 수면을 쳐서 공기를 섞는다'],['w','수면과 유리가 만나는 모서리의 물층을 찾는다']],
+   ok:'{n}은 숨을 이어 갔습니다. 아침, 물이 다시 돌기 시작했습니다.',fix:()=>{S.f.wq=Math.max(S.f.wq,40)}},
+ floor:{p:'{n}은 마룻바닥 위에 있습니다. 물은 몸 길이 세 개만큼 위에 있습니다. 아가미가 마르기 시작합니다. {n}은…',
+   o:[['p','온몸을 튕겨 수조 받침을 향해 뛴다'],['g','아가미를 아끼며 누군가 올 때까지 버틴다'],['w','바닥의 물기를 따라 미끄러진다']],
+   ok:'{n}은 다시 물속에 있었습니다. 옆구리 비늘 몇 장이 바닥에 남았습니다. 주인은 그날 뚜껑을 샀습니다.',fix:()=>{if(S.f.tank!=='pond'){S.f.lid=1;S.f.lidShift=0}}},
+ cat:{p:'고양이 발톱이 수면을 갈랐습니다. 다음 발톱은 {n}을 향하고 있습니다. {n}은…',
+   o:[['w','바닥 돌 밑으로 파고든다'],['p','발톱을 피해 수조 반대편까지 전력으로 헤엄친다'],['c','유리 앞에서 몸을 크게 펴 주인을 부른다']],
+   ok:'발톱은 {n}의 등지느러미 끝만 긁고 지나갔습니다. 주인이 달려와 고양이를 들어 올렸습니다.',fix:()=>{if(S.f.tank!=='pond'){S.f.lid=1}}},
+ intake:{p:'흡입구가 {n}의 꼬리를 빨아들입니다. 몸이 점점 망 쪽으로 끌려갑니다. {n}은…',
+   o:[['p','꼬리를 비틀어 힘으로 빼낸다'],['g','버티며 주인이 여과기를 끌 때까지 기다린다'],['w','몸을 옆으로 눕혀 빨아들이는 힘을 줄인다']],
+   ok:'{n}은 꼬리지느러미 끝을 흡입구에 남기고 빠져나왔습니다.',fix:()=>{S.f.fin+=.1;if(typeof setFl==='function')setFl('intake_guard',1)}},
+ bite:{p:'큰 입이 바로 뒤에 있습니다. 물살이 뒤에서 당겨집니다. {n}은…',
+   o:[['p','몸을 틀어 한 번에 반대쪽으로 튀어 나간다'],['w','좁은 틈으로 몸을 밀어 넣는다'],['g','물려도 놓지 않고 빠져나올 때까지 버틴다']],
+   ok:'{n}은 꼬리 끝을 물린 채 빠져나왔습니다. 그날 밤 주인은 수조에 칸막이를 꽂았습니다.',fix:()=>{S.f.fin+=.15;S.f.walled=1}},
+ cold:{p:'물이 얼음처럼 차갑습니다. 지느러미가 굳어 가고, 몸이 옆으로 기웁니다. {n}은…',
+   o:[['g','대사를 낮추고 바닥에서 버틴다'],['c','유리 앞에서 마지막으로 몸을 흔들어 주인을 부른다'],['w','히터가 있던 자리, 물이 조금이라도 덜 찬 곳을 찾는다']],
+   ok:'주인이 굳어 가는 {n}을 보고 그날 밤 히터를 사 왔습니다. {n}은 살아남았습니다.',fix:()=>{S.f.heater=1;S.f.coldShock=0}}
+};
+const CAR_STAND_NO=['학대','변기','냉동','쓰레기','방생','보내 줌','버려짐','도태','미판매'];
+function carStand(scene,die){
+  const c=car(),f=S.f;if(!c||!carOn()||S.waiting||S.ending)return false;
+  const max=S.mode==='story'?3:2;if((c.stand||0)>=max||(c.standAt||-99)>S.tick-8)return false;
+  const sc=CAR_STAND[scene];if(!sc)return false;c.stand=(c.stand||0)+1;c.standAt=S.tick;
+  const opts=sc.o.map(([k,l])=>{const need=Math.max(8,Math.round(capOf(k)*.55)),ch=clamp(Math.pow(fst()[k]/need,2)*CAR_MOODK[c.mood]*(carHas(k)?1.15:1)*(S.mode==='story'?1.3:1),.05,.85);
+    return {l,d:CAR_STATS[k]+' '+Math.round(fst()[k])+' / 필요 '+need+' · '+carChanceL(ch),c:'neutral',r:'',fx:()=>{
+      if(R()<ch){S.health=Math.round(10+R()*10);c.vit=clamp(c.vit-30,0,100);c.mood=0;sc.fix();fStat(k,2);
+        addLog(T('★ 벼랑 끝 — '+sc.ok),'star');remember('끝인 줄 알았다. 끝이 아니었다.',1.5)}
+      else q(null,null,die)}}});
+  addLog(T('벼랑 끝입니다.'),'bad');
+  askChoice({who:'벼랑 끝 — 살아남기',p:sc.p,o:opts,strip:carStrip()});
+  return true;
+}
+const CAR_NOREV=['natural','euth','free','apex'];
+(()=>{const _e=fEnd;fEnd=function(key,arg){
+  if(!S.ending&&carOn()&&car()){const sv=CAR_SAVE[key];
+    if(sv&&carTrySave(sv[0],sv[1]))return;
+    if(!CAR_NOREV.includes(key)&&carRevive())return;
+    if(CAR_STAND_KEYS[key]&&carStand(CAR_STAND_KEYS[key],()=>_e(key,arg)))return}
+  return _e(key,arg)}})();
+(()=>{const _c=fCr;fCr=function(k,a){if(!S.ending&&carOn()&&car()){const sv=CAR_SAVE[k];if(sv&&carTrySave(sv[0],sv[1]))return true}return _c(k,a)}})();
+(()=>{const _f=fevFinish;fevFinish=function(ref){
+  const id=typeof ref==='string'?ref:ref&&ref.id,E=typeof ref==='string'?FEVEND[ref]:ref;
+  if(E&&E.kind==='bad'&&!S.ending&&carOn()&&car()){const sk=CAR_SAVECAT[E.cat];if(sk&&carTrySave(sk,.45))return;if(carRevive())return;
+    if(!CAR_STAND_NO.some(w=>(E.cat||'').includes(w))&&carStand(CAR_STAND_CAT[E.cat]||'body',()=>_f(ref)))return}
+  return _f(ref)}})();
+(()=>{const _t=fishTick;fishTick=function(){const h0=S.health,i0=S.interest,c=car();const r=_t.apply(this,arguments);
+  if(c&&carOn()&&!S.ending){if(c.sk.gill&&S.health<h0&&S.f.wq<55)S.health+=(h0-S.health)*.3;if(c.sk.charm&&S.interest<i0)S.interest+=(i0-S.interest)*.3}
+  return r}})();
+/* playing dead as a skill makes the fake-death rescue likelier */
+(()=>{const _p=fevPool;fevPool=function(stage,hap){return _p(stage,hap).map(([e,w])=>[e,w*(e.id==='HAP-13'&&carHas('dead')?2:1)])}})();
+
+/* ---------- the end: grade and title ---------- */
+const CAR_RANK=[[0,'G'],[30,'F'],[45,'E'],[60,'D'],[75,'C'],[95,'B'],[115,'A'],[145,'S'],[175,'SS']];
+const CAR_OWNERKILL=['neglect','cycle','poison','flushalive','tapwater','left','shock','cook','freezer','trash','sink','squeeze','swallow'];
+function carGrade(calm){
+  const c=car(),st=fst();const rel=k=>st[k]/Math.max(1,capOf(k));
+  const score=['p','g','w','c'].reduce((a,k)=>a+rel(k)*12,0)+c.gpass*10-c.gfail*6+Object.keys(c.sk).length*3+clamp(S.ageM/S.sp.life,0,1)*45+c.bond.owner/6+(calm?20:0)+c.fr*3;
+  const rank=CAR_RANK.filter(r=>score>=r[0]).pop()[1];
+  const key=String(S.f.endKey||''),prim=typeof z_primary==='function'?z_primary():'g',minRel=Math.min(...['p','g','w','c'].map(rel));
+  let t;
+  if(calm){
+    if(c.gpass>=CAR_GOAL.length-1&&['S','SS'].includes(rank))t=['끝까지 해낸 물고기','모든 고비를 넘었습니다. 서약서의 첫 줄 "끝까지 함께"를, 물고기 쪽에서 먼저 지켰습니다.'];
+    else if(c.bond.owner>=90)t=['가족이 된 물고기','주인의 휴대폰 배경은 끝까지 {n}이었습니다.'];
+    else if(minRel>=.7)t=['만능 물고기','힘, 근성, 지능, 매력. 수조에서 필요한 건 다 가졌습니다. 수조가 좁았을 뿐입니다.'];
+    else t={p:['수조의 왕','{n}이 지나가면 물살도 길을 비켰습니다.'],g:['불사조','억까가 올 때마다 {n}은 한 번 더 지느러미를 폈습니다.'],w:['수조의 현자','{n}은 주인보다 먼저 여과기 고장을 알았습니다.'],c:['거실의 아이돌','{n}의 사진첩은 주인 가족 사진보다 두꺼웠습니다.']}[prim];
+  }else{
+    if(S.ageM/S.sp.life<.12)t=['너무 짧았던 생','육성이 시작되기도 전에 끝났습니다. 이 물고기의 잘못은 아니었습니다.'];
+    else if(CAR_OWNERKILL.some(k=>key.startsWith(k)))t=['억까의 증인','{n}은 할 수 있는 것을 다 했습니다. 마지막 한 수는 사람이 두었습니다.'];
+    else if(/eaten|feeder|mauled|PRED|TYR-D/.test(key))t=['먹이사슬의 한 칸','더 큰 입은 언제나 있습니다. 그 입을 수조에 넣은 건 사람이었습니다.'];
+    else if(/^(disease|HLT|ev:HLT)/.test(key)||/^ev:HLT/.test(key))t=['병과 싸운 물고기','약은 늦었고, 그래도 {n}은 끝까지 수면으로 올라왔습니다.'];
+    else if(/^(cold|freeze)|동사/.test(key+S.endCat))t=['겨울을 넘지 못한 물고기','히터 하나 값이었습니다.'];
+    else if(/jump|LID|점프/.test(key+S.endCat))t=['뚜껑이 없던 밤','뚜껑 하나 값이었습니다.'];
+    else if(key==='euth'||/보내 줌/.test(S.endCat||''))t=['보내진 물고기','마지막에 고통을 줄여 준 사람이 있었습니다.'];
+    else if(Object.keys(c.sk).length>=3)t=['끝까지 싸운 물고기','익힌 기술 '+Object.keys(c.sk).length+'개로 여러 번 살아남았습니다. 이번 한 번이 모자랐습니다.'];
+    else if(c.gfail>c.gpass)t=['고비를 넘지 못한 물고기','다음 생이 있다면, 더 일찍 자랄 시간이 필요했습니다.'];
+    else t=['여기까지 온 물고기','{n}이 넘긴 고비는 '+c.gpass+'개였습니다.'];
+  }
+  return {score:Math.round(score),rank,title:t[0],desc:T(t[1])};
+}
+(()=>{const _l=endLife;endLife=function(lines,cat,fact,pl,calm,fx,pred){
+  const c=car();if(c&&S.f&&S.f.own&&!S.preOwner&&c.turn>0){const g=carGrade(!!calm);c.result=g;
+    lines=lines.concat([T('★ 육성 평가 '+g.rank+' — 칭호 「'+g.title+'」. '+g.desc+' (고비 '+c.gpass+'/'+(c.gpass+c.gfail)+' 통과 · 스킬 '+Object.keys(c.sk).length+'개 · '+c.turn+'턴)')])}
+  return _l(lines,cat,fact,pl,calm,fx,pred)}})();
+function carHookEnd(){if(typeof showEnd!=='function'||showEnd.__car)return;const _s=showEnd;showEnd=function(cat,fact,calm){const r=_s(cat,fact,calm);
+  try{const c=car();if(c&&c.result){const E=$('ending'),h=E&&E.querySelector('h2');const d=document.createElement('div');d.className='grade';
+    d.innerHTML='<span class="rk"></span><div><b class="tt"></b><p class="ds"></p><p class="mt"></p></div>';
+    d.querySelector('.rk').textContent=c.result.rank;d.querySelector('.tt').textContent='「'+c.result.title+'」';d.querySelector('.ds').textContent=c.result.desc;
+    const st=fst();d.querySelector('.mt').textContent='힘 '+Math.round(st.p)+' · 근성 '+Math.round(st.g)+' · 지능 '+Math.round(st.w)+' · 매력 '+Math.round(st.c)+' · 고비 '+c.gpass+'/'+(c.gpass+c.gfail)+' · 스킬 '+Object.keys(c.sk).map(k=>carSkill(k).n).join(', ')+(Object.keys(c.sk).length?'':'없음')+' · 우정 훈련 '+c.fr+'회';
+    if(h&&h.nextSibling)E.insertBefore(d,h.nextSibling);else if(E)E.appendChild(d)}}catch(e){}
+  return r};showEnd.__car=1}

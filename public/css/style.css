@@ -505,3 +505,19 @@ body.ingame .helpbtn{display:inline-block!important}
 /* v0.10: an option this species can never take — shown, greyed, not clickable */
 .opts button.dis,.opts button.dis:hover{opacity:.42;cursor:not-allowed;border-style:dashed;background:transparent;border-color:var(--line)}
 .opts button.dis small{color:var(--pen)}
+
+/* v0.13: career mode — the status strip on the 육성 card and the grade on the ending */
+.hubstrip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px 10px;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--bg)}
+.hubstrip .hs{display:flex;flex-direction:column;min-width:0}
+.hubstrip .hs.wide{grid-column:1/-1}
+.hubstrip .hl{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.06em}
+.hubstrip .hv{font-size:13px;line-height:1.35;font-variant-numeric:tabular-nums}
+.hubstrip .hb{display:block;height:5px;background:var(--bar);border-radius:3px;margin-top:3px;overflow:hidden}
+.hubstrip .hb b{display:block;height:100%;background:#3A6A9A}
+.hubstrip .hb b.low{background:var(--pen)}
+@media (max-width:620px){.hubstrip{grid-template-columns:repeat(2,minmax(0,1fr));padding:6px 8px}.hubstrip .hv{font-size:12px}}
+.grade{display:flex;gap:14px;align-items:center;border:2px solid var(--ink);border-radius:12px;padding:12px 14px}
+.grade .rk{font-family:var(--display);font-size:46px;line-height:1;min-width:1.4em;text-align:center;color:var(--pen)}
+.grade .tt{font-family:var(--hand);font-weight:400;font-size:26px;line-height:1.1}
+.grade p{margin:2px 0 0;font-size:13.5px}
+.grade .mt{color:var(--muted);font-size:12px}

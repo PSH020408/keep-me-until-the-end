@@ -14,7 +14,7 @@ A browser life-simulation about the promises we make to the animals we keep.
 > signed six promises. You choose its temperament, make its choices when it matters, raise it
 > through the seasons — and watch which promises are struck out in red pen.
 
-**Status:** public beta (v0.12.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.13.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
@@ -38,7 +38,13 @@ A browser life-simulation about the promises we make to the animals we keep.
    the fix and put it off, some learn the wrong lesson. Owners change: a fish can be passed on
    through a second-hand app, a move, a hospital stay or a break-up, and a charming fish is more
    often taken by someone who will try.
-4. **Raising the fish.** Five stats of its own — health (HP), strength, guts, wits and charm — and
+4. **Career mode (육성, v0.13).** Once the fish has an owner, every second step is a turn on the 육성 card —
+   train 힘 · 근성 · 지능 · 매력 (energy cost, failure rate, facility levels), rest, play, signal sickness, buy
+   skills. Companions (the owner, a tankmate, a snail, the fish's own reflection) build bonds and give 우정 훈련;
+   six goals arrive on schedule with a visible requirement; skills and 벼랑 끝 last stands let a fish that has
+   grown live through the house's unfairness. The life ends with a grade (G → SS) and a title. See
+   [docs/CAREER.md](docs/CAREER.md).
+5. **Raising the fish.** Five stats of its own — health (HP), strength, guts, wits and charm — and
    four the owner keeps — skill, water temperature, water quality and care. Each species has its own
    ceiling and training speed (a neon tetra never gets strong, a gar does), and its own training,
    each with a hidden cost (an arowana that practises jumping jumps more). Every few months a schedule
@@ -46,13 +52,13 @@ A browser life-simulation about the promises we make to the animals we keep.
    up to Lv.3, and the training level opens ★ special trainings (staring down a tankmate, playing
    dead, a double jump, surfing the filter outlet…). The stat the player builds opens a route —
    star, tyrant, genius, survivor — and each route has a climax that can end the life either way.
-5. **Events.** About 370 catalogue events across the whole chain — capture, export, air cargo,
+6. **Events.** About 450 catalogue events across the whole chain — capture, export, air cargo,
    shop tanks, the home, water and disease, tankmates and breeding, each kind of owner, and Korean
    rivers after a release. Choices describe only what the fish senses; the stat being checked and
    the odds are hidden (chance = (stat / need)², 5–95%). An option beyond the species' ceiling is
    shown greyed — "{n}의 몸으로는 할 수 없다" — and there is always a passive option. Things no fish
    can dodge (a drug that spreads through the water, a 4 ℃ river for a tropical fish) have no choice.
-6. **The ending.** Three kinds: a bad ending, a black-comedy happy ending with a bitter last line,
+7. **The ending.** Three kinds: a bad ending, a black-comedy happy ending with a bitter last line,
    or 보내 줌 (a caring owner's humane euthanasia when nothing else can be done). A stamp with the cause, the life lived against the life possible, the six
    promises with the broken ones struck out, the fish's happiest memory and last words, and one
    real, sourced fact. A life can be kept in the **주마등** (*revolving lantern* — "life flashing
@@ -157,6 +163,7 @@ decisions, in short:
 | v0.10.0 | 2026-10-13 | event layer: species ceilings, hidden checks, 22 owner kinds, 372 catalogue events, 415 endings, truth tiers, no inner voice |
 | v0.11.0 | 2026-10-13 | prologue rebuilt with three visible origin tracks and escapes, 54 track events, all old endings rewritten, near-miss save removed, ~10 catalogue events per life |
 | v0.12.0 | 2026-10-13 | playtest fixes: picked options kept in the log, disease order fixed, training levels and ★ special trainings, stat routes with climaxes, fewer relapses and four new diseases, several versions of the common endings and of the prologue |
+| v0.13.0 | 2026-10-30 | career mode (육성): turn card with energy, mood, facility levels, companions and 우정 훈련, 17 skills against 억까, 벼랑 끝 last stands, six goals, grade G–SS and titles; 24 comic events |
 
 Every row is expanded in [LOG.md](LOG.md).
 
@@ -179,7 +186,8 @@ public/            the site (index.html, css/, js/, img/, og.png, favicon)
   js/fish.js             the fish life loop, hazards, endings
   js/data/fev.js         event layer: species ceilings, owner kinds, hidden checks, flags, endings, truth tiers
   js/data/fev_*.js       the catalogue as data (origin, trade, home, health, mates, owners A/B, wild + happy endings;
-                         fev_zgrow.js: training levels, ★ trainings, route climaxes, ending versions)
+                         fev_zgrow.js: training levels, ★ trainings, route climaxes, ending versions;
+                         fev_zz_career.js: career mode; fev_zz_fun.js: comic home events)
   js/art/fish.js         painted fish in a tank drawn to scale
   js/share.js            shared memorial (Supabase REST, opt-in, sanitised)
 tools/sim.mjs      headless balance simulation (prints endings, owner anchors, learning vs. not)

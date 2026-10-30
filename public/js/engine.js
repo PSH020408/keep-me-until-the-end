@@ -449,7 +449,13 @@ function askChoice(c,cb){
   const p=document.createElement('p');p.className='prompt';const pf=typeof pondify==='function'?pondify:x=>x;p.textContent=pf(T(c.p));
   const list=document.createElement('div');list.className='opts';
   opts.forEach(o=>{const b=document.createElement('button');b.textContent=pf(T(o.l));if(o.d){const sm=document.createElement('small');sm.textContent=pf(T(o.d));b.appendChild(sm)}if(o.dis){b.disabled=true;b.className='dis'}else b.onclick=()=>resolve(o);list.appendChild(b)});
-  box.append(who,p,list);
+  /* v0.13: the 육성 card carries a status strip (turn, energy, mood, SP, next goal, bonds) */
+  let strip=null;
+  if(c.strip){strip=document.createElement('div');strip.className='hubstrip';
+    c.strip.forEach(([lab,val,pct])=>{const cell=document.createElement('div');cell.className='hs';const l=document.createElement('span');l.className='hl';l.textContent=lab;const v=document.createElement('span');v.className='hv';v.textContent=val;cell.append(l,v);
+      if(typeof pct==='number'){const tr=document.createElement('i');tr.className='hb';const fi=document.createElement('b');fi.style.width=Math.max(0,Math.min(100,pct))+'%';if(pct<35)fi.className='low';tr.appendChild(fi);cell.appendChild(tr)}
+      if(/스탯|다음 고비|인연/.test(lab))cell.classList.add('wide');strip.appendChild(cell)})}
+  if(strip)box.append(who,strip,p,list);else box.append(who,p,list);
   /* on phones the choice is a bottom sheet, so the page does not need to move */
   const sheetUI=!!(document.body&&document.body.classList&&document.body.classList.contains('ingame'));
   if(box.scrollIntoView&&!sheetUI) box.scrollIntoView({block:'nearest',behavior:'smooth'});
