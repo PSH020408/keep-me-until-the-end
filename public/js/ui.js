@@ -164,13 +164,13 @@ function showEnd(cat,fact,calm){
   const b1=document.createElement('button');b1.className='btn';b1.textContent='다른 생물 보내기';b1.onclick=()=>spin();
   const b2=document.createElement('button');b2.className='btn ghost';b2.textContent='같은 종으로 다시';const sid=S.sp.id;b2.onclick=()=>start(sid);
   row.append(b1,b2);E.appendChild(row);
-  /* keep this life? only a kept life goes into 주마등 */
+  /* keep this life? only a kept life goes into 명예의 전당 */
   const keep=document.createElement('div');keep.className='keep';
-  keep.innerHTML='<p>이 생을 <b>주마등</b>에 남기시겠습니까?</p><span class="sub">남긴 생은 아래 주마등에서 눌러 다시 볼 수 있습니다. 어떻게 살다 어떻게 끝났는지.</span>'+(typeof shareOn==='function'&&shareOn()?'<label class="pubchk"><input type="checkbox" checked> 모두의 주마등에도 올리기 <small>물고기, 결말, 마지막 한마디가 다른 사람에게 보입니다.</small></label>':'')+'<div class="row"><button class="btn">남기기</button><button class="btn ghost">남기지 않기</button></div>';
+  keep.innerHTML='<p>이 생을 <b>명예의 전당</b>에 남기시겠습니까?</p><span class="sub">남긴 생은 아래 명예의 전당에서 눌러 다시 볼 수 있습니다. 어떻게 살다 어떻게 끝났는지.</span>'+(typeof shareOn==='function'&&shareOn()?'<label class="pubchk"><input type="checkbox" checked> 모두의 명예의 전당에도 올리기 <small>물고기, 결말, 마지막 한마디가 다른 사람에게 보입니다.</small></label>':'')+'<div class="row"><button class="btn">남기기</button><button class="btn ghost">남기지 않기</button></div>';
   const kb=keep.querySelector('.btn:not(.ghost)'),nb=keep.querySelector('.btn.ghost');
   kb.onclick=()=>{S.memId='m'+Date.now();const rec=lifeRecord(cat,calm,fact,kept,al,pct);saveMem(rec);const ck=keep.querySelector('.pubchk input'),pub=!!(ck&&ck.checked);
-    keep.innerHTML='<p class="done">주마등에 남겼습니다.</p>'+(pub?'<span class="sub pubst">모두의 주마등에 올리는 중…</span>':'');
-    if(pub)sharePost(rec).then(ok=>{const st=keep.querySelector('.pubst');if(st)st.textContent=ok?'모두의 주마등에도 올렸습니다. 다른 사람들도 이 생을 다시 볼 수 있습니다.':'모두의 주마등에 올리지 못했습니다. 내 주마등에는 남아 있습니다.'})};
+    keep.innerHTML='<p class="done">명예의 전당에 남겼습니다.</p>'+(pub?'<span class="sub pubst">모두의 명예의 전당에 올리는 중…</span>':'');
+    if(pub)sharePost(rec).then(ok=>{const st=keep.querySelector('.pubst');if(st)st.textContent=ok?'모두의 명예의 전당에도 올렸습니다. 다른 사람들도 이 생을 다시 볼 수 있습니다.':'모두의 명예의 전당에 올리지 못했습니다. 내 명예의 전당에는 남아 있습니다.'})};
   nb.onclick=()=>{keep.innerHTML='<p class="done muted">남기지 않았습니다.</p>'};
   E.insertBefore(keep,row);
   if(!skipping&&E.scrollIntoView) setTimeout(()=>E.scrollIntoView({behavior:'smooth',block:'start'}),400);
@@ -276,14 +276,14 @@ $('nick').addEventListener('input',nickShow);nickShow();
 $('nick').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();spin()}});
 $('skipBtn').onclick=()=>{if(!S||S.done)return;skipping=true;stop();if(S.pending)S.pending.resolve(pick(S.pending.opts));let n=0;while(!S.done&&n++<8000){if(S.pending)S.pending.resolve(pick(S.pending.opts));tick()}skipping=false;stageKey='';render();if($('ending').scrollIntoView)$('ending').scrollIntoView({behavior:'smooth',block:'start'})};
 
-/* 주마등 v2: the old automatic memorial (kiwojuseyo-mem) is cleared once; only lives the player chose to keep are stored */
+/* 명예의 전당 v2: the old automatic memorial (kiwojuseyo-mem) is cleared once; only lives the player chose to keep are stored */
 const KEY='kiwojuseyo-lantern';
 let mem=[];try{localStorage.removeItem('kiwojuseyo-mem');mem=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){}
 let memAll=false,memSel=null;
-/* entries saved before 주마등 had no story and were stored automatically; they stay, but cannot be replayed */
+/* entries saved before 명예의 전당 had no story and were stored automatically; they stay, but cannot be replayed */
 function storeMem(){mem.forEach((m,i)=>{if(i>=40&&m.story){delete m.story}});try{localStorage.setItem(KEY,JSON.stringify(mem))}catch(e){mem.forEach((m,i)=>{if(i>=12)delete m.story});try{localStorage.setItem(KEY,JSON.stringify(mem))}catch(e2){}};drawMem()}
 function saveMem(m){mem.unshift(m);mem=mem.slice(0,200);storeMem()}
-/* what 주마등 keeps of one life: the story as it was logged, the broken promises, the end */
+/* what 명예의 전당 keeps of one life: the story as it was logged, the broken promises, the end */
 function lifeRecord(cat,calm,fact,kept,al,pct){
   let st=(S.story||[]).filter(x=>x.t);
   if(st.length>32){const keep=st.slice(-14);st=st.slice(0,-14).filter(x=>x.c!=='pick').concat(keep)}
@@ -296,7 +296,7 @@ function lifeRecord(cat,calm,fact,kept,al,pct){
 }
 function drawMem(){
   const ul=$('memList');ul.innerHTML='';const tools=$('memTools');
-  if(!mem.length){$('memSummary').textContent='끝난 생을 남기면 여기에 쌓입니다. 누르면 그 생이 주마등처럼 지나갑니다.';if(tools)tools.hidden=true;return}
+  if(!mem.length){$('memSummary').textContent='끝난 생을 남기면 여기에 쌓입니다. 누르면 그 생을 처음부터 다시 볼 수 있습니다.';if(tools)tools.hidden=true;return}
   const nat=mem.filter(m=>m.calm).length;
   $('memSummary').textContent='남겨 둔 생 '+mem.length+' · 끝까지 산 생 '+nat+' ('+Math.round(nat/mem.length*100)+'%) · 눌러서 다시 보기';
   if(tools){tools.hidden=false;$('memMore').hidden=mem.length<=8;$('memMore').textContent=memAll?'접기':'모두 보기 ('+mem.length+')'}
@@ -316,7 +316,7 @@ if($('memMore'))$('memMore').onclick=()=>{memAll=!memAll;drawMem()};
 if($('memClear'))$('memClear').onclick=memClearAll;
 drawMem();
 
-/* ---------- 주마등: a saved life passing by, fast ---------- */
+/* ---------- 명예의 전당: a saved life passing by, fast ---------- */
 let reelT=null;
 function replay(m){
   const box=$('lantern'),film=$('lanFilm'),sum=$('lanSum');if(!box)return;
