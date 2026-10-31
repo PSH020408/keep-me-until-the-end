@@ -222,8 +222,8 @@ function drawStage(force){
   if(STG.fish.el.parentNode!==host)host.appendChild(STG.fish.el);
   /* the others in the water: tankmates at home, siblings before an owner */
   const ids=[];
-  if(P.school)for(let i=0;i<P.school;i++)ids.push([S.sp.id,.55]);
-  else if(!S.done)f.mates.filter(m=>m.n>0&&RIG[m.id]).forEach(m=>{for(let j=0;j<Math.min(m.n,3);j++)ids.push([m.id,Math.max(.35,Math.min(.8,m.cm/Math.max(1,f.len||1)))])});
+  if(P.school)for(let i=0;i<P.school;i++)ids.push([S.sp.id,.86+Math.random()*.14]);
+  else if(!S.done)f.mates.filter(m=>m.n>0&&RIG[m.id]).forEach(m=>{for(let j=0;j<Math.min(m.n,3);j++)ids.push([m.id,m.id===S.sp.id?.86+Math.random()*.14:Math.max(.35,Math.min(1.1,m.cm/Math.max(1,f.len||1)))])});
   const mkey=ids.slice(0,5).map(z=>z[0]).join(',')+'|'+(room?'r':'i');
   if(mkey!==STG.mkey){STG.mkey=mkey;
     const keep=STG.mates;STG.mates=[];
@@ -235,7 +235,8 @@ function drawStage(force){
   const len=room?W*Math.max(.18,Math.min(.62,.2+.45*g)):W*Math.max(.26,Math.min(.52,.24+.32*g));
   const hmax=(host.clientHeight||200)*(room?.5:.46),nat=RIG[S.sp.id]||{w:560,h:200};const len2=Math.min(len,hmax*nat.w/nat.h);
   STG.baseLen=len2;STG.fish.setLen(Math.round(len2*(STG.dir&&STG.dir.small?.55:STG.dir&&STG.dir.big?1.2:1)));
-  STG.mates.forEach(m=>m.setLen(Math.round(Math.max(W*.07,Math.min(W*.3,len*m.r*.8)))));
+  /* the same species is the same size as ours; other species keep their real proportion (within reason) */
+  STG.mates.forEach(m=>m.setLen(Math.round(m.id===S.sp.id?len2*m.r:Math.max(W*.07,Math.min(W*.42,len2*m.r)))));
   /* how the fish looks now */
   STG.fish.o.sick=!S.done&&(S.health<35||!!(f.ill&&f.ill.sev>.5));
   stFishState(P);

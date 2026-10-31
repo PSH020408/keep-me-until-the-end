@@ -192,3 +192,4 @@
 @media (prefers-reduced-motion:reduce){.stg *{animation-duration:0s!important;animation-iteration-count:1!important}}
 .stg.solo .actor.mate{opacity:0;transition:opacity .4s}
 .stg.schoolmode .actor.mate:not(.same){opacity:0;transition:opacity .4s}
+.actor:not(.mate)>.act-in{filter:drop-shadow(0 0 7px rgba(255,250,220,.55))}

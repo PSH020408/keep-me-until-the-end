@@ -138,7 +138,7 @@ function stApply(d){
     let acc=F.inner.querySelector('.acc');if(d&&d.acc){if(!acc){acc=document.createElement('img');acc.alt='';F.inner.appendChild(acc)}acc.className='acc acc-'+d.acc.split('-')[1];acc.src='img/mob/'+d.acc+'.webp'}else if(acc)acc.remove();
     if(d&&d.zone){F.tx=(d.zone[0]+d.zone[2])/2;F.ty=(d.zone[1]+d.zone[3])/2}
   }
-  if(d&&d.school&&STG.mates.filter(m=>m.id===S.sp.id).length<4){const host=STG.world;for(let i=0;i<5;i++){const m=new Swimmer(S.sp.id,{mate:1,speed:.9});m.el.classList.add('same');m.r=.7;m.x=.2+i*.14;m.y=.6+(i%2)*.1;m.tx=m.x;m.ty=m.y;m.setLen((STG.fish?STG.fish.px:120)*.7);host.insertBefore(m.el,STG.fish?STG.fish.el:null);STG.mates.push(m)}}
+  if(d&&d.school&&STG.mates.filter(m=>m.id===S.sp.id).length<4){const host=STG.world;for(let i=0;i<5;i++){const m=new Swimmer(S.sp.id,{mate:1,speed:.9});m.el.classList.add('same');m.r=.86+Math.random()*.14;m.x=.2+i*.14;m.y=.6+(i%2)*.1;m.tx=m.x;m.ty=m.y;m.setLen(Math.round((STG.baseLen||120)*m.r));host.insertBefore(m.el,STG.fish?STG.fish.el:null);STG.mates.push(m)}}
   if(d&&d.school&&d.acc)STG.mates.filter(m=>m.id===S.sp.id).forEach(m=>{if(m.inner.querySelector('.acc'))return;const a=document.createElement('img');a.alt='';a.className='acc acc-'+d.acc.split('-')[1];a.src='img/mob/'+d.acc+'.webp';m.inner.appendChild(a)});
   STG.mates.forEach(m=>{if(!(d&&d.acc)){const a=m.inner.querySelector('.acc');if(a)a.remove()}});
   /* actors */
