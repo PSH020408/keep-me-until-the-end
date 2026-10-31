@@ -212,10 +212,10 @@ function stepText(){const st=$('stepLabel');if(!st||!S)return;const d=S.dt*30.4,
 function barDraw(){const b=$('tickFill');if(!b||!b.style)return;const share=timer&&stepDur?clamp(1-(nextAt-Date.now())/stepDur,0,1):done;b.style.transform='scaleX('+share.toFixed(4)+')';const t=b.closest&&b.closest('.tick');if(t&&t.classList)t.classList.toggle('held',!timer)}
 function barLoop(){barDraw();stepText();frame=timer&&typeof requestAnimationFrame==='function'?requestAnimationFrame(barLoop):null}
 /* done = share of the current step already passed; kept across speed changes, 정지 and choices */
-function run(){stop();if(paused||!S||S.done||S.waiting){barDraw();stepText();return}
-  stepDur=STEP/speed;nextAt=Date.now()+stepDur*(1-done);
-  timer=setTimeout(()=>{timer=null;done=0;barDraw();tick();run()},stepDur*(1-done));
-  if(!frame)barLoop();
+/* v0.19: turn-based. Time only moves between choices: the story plays straight on to the next choice
+   (a few hundred steps at most per slice, so the page never freezes) and then waits for the player. */
+function run(){stop();if(!S||S.done||S.waiting){barDraw();stepText();return}
+  timer=setTimeout(()=>{timer=null;let n=0;while(S&&!S.done&&!S.waiting&&n++<300)tick();if(S&&!S.done)render();run()},S.ageM<.5?250:40);
 }
 function tickBar(){barDraw()}
 function setPlay(){$('playBtn').setAttribute('aria-pressed',String(!paused));$('stopBtn').setAttribute('aria-pressed',String(paused))}
