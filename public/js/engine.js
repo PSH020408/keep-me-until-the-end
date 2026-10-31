@@ -465,7 +465,7 @@ function askChoice(c,cb){
     c.strip.forEach(([lab,val,pct])=>{const cell=document.createElement('div');cell.className='hs';cell.dataset.lab=lab;
       /* v0.16: the stats as four Uma Musume style boxes */
       if(lab==='스탯'&&typeof fst==='function'&&typeof statRank==='function'){cell.classList.add('wide','stbox');
-        [['p','힘'],['g','근성'],['w','지능'],['c','매력']].forEach(([k,n])=>{const r=statRank(k),v=fst()[k],cap=capOf(k);const x=document.createElement('div');x.className='sb';x.dataset.k=k;x.dataset.rg=rankGroup(r);
+        [['p','힘'],['g','근성'],['w','지능'],['c','매력']].forEach(([k,n])=>{const r=statRank(k),v=fst()[k],cap=statCap(k);const x=document.createElement('div');x.className='sb';x.dataset.k=k;x.dataset.rg=rankGroup(r);
           x.innerHTML='<span class="sn"></span><b class="rk"></b><span class="sv"></span><i class="hb"><b></b></i>';x.querySelector('.sn').textContent=n;x.querySelector('.rk').textContent=r;x.querySelector('.sv').textContent=Math.round(v*10)+' / '+Math.round(cap*10);x.querySelector('.hb b').style.width=Math.min(100,v/cap*100)+'%';cell.appendChild(x)});
         strip.appendChild(cell);return}
       if(lab==='컨디션')cell.dataset.mood=val;const l=document.createElement('span');l.className='hl';l.textContent=lab;const v=document.createElement('span');v.className='hv';v.textContent=val;cell.append(l,v);

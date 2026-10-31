@@ -23,11 +23,11 @@ function stDraw(){
   box.querySelector('.st-t').innerHTML=li.querySelector('p').innerHTML;
   box.querySelector('.st-n').textContent=ST.q.length?'▼ '+ST.q.length:'▼';
   /* v0.21: the three lines before this one stay below it, fading */
-  const h=box.querySelector('.st-h');if(h){h.innerHTML='';ST.hist.forEach((x,i)=>{const d=document.createElement('div');d.className='sh '+(x.className||'');d.style.opacity=String(.75-i*.18);
+  const h=box.querySelector('.st-h');if(h){h.innerHTML='';ST.hist.forEach((x,i)=>{const d=document.createElement('div');d.className='sh '+(x.className||'');d.style.opacity=String(Math.max(.5,.8-i*.1));
     const a=document.createElement('span');a.className='sa';a.textContent=x.querySelector('.t').textContent;const t=document.createElement('p');t.innerHTML=x.querySelector('p').innerHTML;d.append(a,t);h.appendChild(d)})}
 }
 function stNext(){
-  if(ST.q.length){if(ST.last){ST.hist.unshift(ST.last);ST.hist=ST.hist.slice(0,3)}ST.cur=ST.q.shift();ST.last=ST.cur;stDraw();return true}
+  if(ST.q.length){if(ST.last){ST.hist.unshift(ST.last);ST.hist=ST.hist.slice(0,300)}ST.cur=ST.q.shift();ST.last=ST.cur;stDraw();return true}
   ST.cur=null;stDraw();return false}
 function stClick(){
   if(!S||S.done)return;
@@ -115,3 +115,35 @@ function logOpen(on){document.body.classList.toggle('logopen',on)}
     if(e.key==='Escape'){logOpen(false);const b=$('choice');if(b.classList.contains('pop'))b.hidden=true;return}
     if((e.key===' '||e.key==='Enter')&&ST.cur&&!e.target.closest('input,textarea,button')){e.preventDefault();stClick()}});
 })();
+
+/* ---------- v0.22: the skills the fish has, always in sight; tap one to read it ---------- */
+function skDraw(){
+  const row=$('skillRow');if(!row)return;const c=S&&S.f&&S.f.car;
+  if(!c||S.done){row.hidden=true;return}
+  const ks=Object.keys(c.sk||{});row.hidden=false;
+  const key=ks.join(',')+'|'+(c.sp||0);if(row.dataset.k===key)return;row.dataset.k=key;
+  row.innerHTML='<span class="sk-l">스킬</span>';
+  if(!ks.length){const e=document.createElement('span');e.className='sk-none';e.textContent='아직 없음 · SP '+(c.sp||0);row.appendChild(e);return}
+  ks.forEach(k=>{const sk=typeof carSkill==='function'?carSkill(k):null;if(!sk)return;const b=document.createElement('button');b.type='button';b.className='sk-chip';b.textContent=sk.n;
+    b.onclick=e=>{e.stopPropagation();const pop=$('skPop');pop.querySelector('b').textContent=sk.n;pop.querySelector('p').textContent=sk.d+' (자동 발동)';pop.hidden=false};row.appendChild(b)});
+}
+(()=>{const _r=render;render=function(){const r=_r.apply(this,arguments);try{skDraw()}catch(e){}return r}})();
+document.addEventListener('click',e=>{const p=$('skPop');if(p&&!p.hidden&&!e.target.closest('.sk-chip'))p.hidden=true});
+
+/* ---------- v0.22: the end shows the life's best plays — every 억까 it beat ---------- */
+(()=>{if(typeof showEnd!=='function')return;const _e=showEnd;showEnd=function(cat,fact,calm){const r=_e(cat,fact,calm);
+  try{const E=$('ending');if(!E||!S)return r;const c=S.f&&S.f.car;
+    const keep=x=>(x.c||'').includes('star')&&!/육성이 시작|스킬 「/.test(x.t)||/고비 통과|벼랑 끝|버텼|이겼|우승|🏆|살아남/.test(x.t)&&(x.c||'').includes('good');
+    const H=(S.story||[]).filter(keep);
+    const stats=[];
+    if(c){if(c.saves)stats.push(['스킬로 버틴 죽음',c.saves+'번']);if(c.gpass)stats.push(['넘은 고비',c.gpass+'개']);if(c.wins)stats.push(['대회 우승',c.wins+'번']);if(c.stand)stats.push(['벼랑 끝',c.stand+'번']);
+      const sk=Object.keys(c.sk||{}).length;if(sk)stats.push(['익힌 스킬',sk+'개']);if(c.fr)stats.push(['우정 훈련',c.fr+'번'])}
+    if(typeof fl==='function'&&S.f){if(fl('wk'))stats.push(['강의 수련',fl('wk')+'번']);if(fl('wsave'))stats.push(['수련으로 버틴 죽음',fl('wsave')+'번']);if(fl('catboss'))stats.push(['고양이','부하로 둠'])}
+    if(!H.length&&!stats.length)return r;
+    const box=document.createElement('section');box.className='hilite';
+    box.innerHTML='<h3>생전 하이라이트</h3><p class="hl-sub">이 물고기가 이겨 낸 것들</p>';
+    if(stats.length){const g=document.createElement('div');g.className='hl-stats';stats.forEach(([a,b])=>{const d=document.createElement('div');d.innerHTML='<b></b><span></span>';d.querySelector('b').textContent=b;d.querySelector('span').textContent=a;g.appendChild(d)});box.appendChild(g)}
+    if(H.length){const ul=document.createElement('ol');ul.className='hl-list';H.slice(-14).forEach(x=>{const li=document.createElement('li');li.innerHTML='<span class="a"></span><p></p>';li.querySelector('.a').textContent=x.a;li.querySelector('p').textContent=x.t;ul.appendChild(li)});box.appendChild(ul)}
+    const g=E.querySelector('.grade');if(g&&g.nextSibling)E.insertBefore(box,g.nextSibling);else{const h=E.querySelector('h2');if(h&&h.nextSibling)E.insertBefore(box,h.nextSibling);else E.appendChild(box)}
+  }catch(err){}
+  return r}})();

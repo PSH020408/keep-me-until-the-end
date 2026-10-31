@@ -53,8 +53,8 @@ function fst(){const f=S.f;if(!f.st){const t=S.temper,g=k=>FGROUP[k]&&FGROUP[k](
         c:18+R()*12+(t==='friendly'?15:t==='glutton'?5:0)+g('GOLD')*10+g('LAB')*5};
   /* the old absolute values stay as the fish's instinct: before an owner, checks use whichever is higher */
   f.stI={};for(const k in f.st)f.stI[k]=Math.round(clamp(f.st[k],0,typeof capOf==='function'?capOf(k):100));
-  for(const k in f.st){const cap=typeof capOf==='function'?capOf(k):100;f.st[k]=Math.max(1,Math.round(cap*clamp((f.st[k]-8)/100,.08,.4)))}}return f.st}
-const fStat=(k,v)=>{const s=fst();s[k]=clamp(s[k]+(v>0&&typeof growOf==='function'?v*growOf(k):v),1,typeof capOf==='function'?capOf(k):100)};
+  for(const k in f.st){const cap=typeof statCap==='function'?statCap(k):100;f.st[k]=Math.max(1,Math.round(cap*clamp((f.st[k]-8)/100,.08,.4)))}}return f.st}
+const fStat=(k,v)=>{const s=fst();s[k]=clamp(s[k]+(v>0&&typeof growOf==='function'?v*growOf(k)*(typeof aptOf==='function'?aptOf(k):1):v),1,typeof statCap==='function'?statCap(k):100)};
 /* multipliers used by the hazards and the owner */
 const fChk=k=>{const v=fst()[k],f=S.f;return f.stI?Math.max(v,(f.stI[k]||0)*(S.preOwner?1:.75)):v};
 const fGutsK=()=>S.f?.7+fChk('g')/100*.6+fChk('p')/100*.3:1;   // crisis: weight of the surviving outcomes (guts, then strength)

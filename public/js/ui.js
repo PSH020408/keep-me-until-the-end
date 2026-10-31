@@ -75,7 +75,7 @@ function render(){
   /* the fish's own stats */
   [['mPow','p'],['mGuts','g'],['mWits','w'],['mCharm','c']].forEach(([id,k])=>{const el=$(id);if(!el)return;el.hidden=!(F&&F.st);if(!el.hidden){
     /* v0.14: shown ×10, the bar filled toward this species' ceiling */
-    const cap=typeof capOf==='function'?capOf(k):100,v=F.st[k];meter(el,v);el.querySelector('.v').textContent=Math.round(v*10);
+    const cap=typeof statCap==='function'?statCap(k):100,v=F.st[k];meter(el,v);el.querySelector('.v').textContent=Math.round(v*10);
     /* v0.16: the letter as a badge, coloured by its band (game UI) */
     if(typeof statRank==='function'){const r=statRank(k);let b=el.querySelector('.rk');if(!b){b=document.createElement('b');b.className='rk';el.querySelector('.top').insertBefore(b,el.querySelector('.v'))}if(b.textContent!==r){b.textContent=r;el.dataset.rg=rankGroup(r);b.classList.remove('up');void b.offsetWidth;b.classList.add('up')}}el.querySelector('.fill').style.width=clamp(v/cap*100,0,100)+'%';el.classList.toggle('low',v/cap<.3)}});
   /* what the owner keeps: skill, temperature, water, care (in the wild: the river's temperature and food) */

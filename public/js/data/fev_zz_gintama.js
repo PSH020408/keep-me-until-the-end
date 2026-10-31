@@ -15,8 +15,8 @@ const gin_g=o=>()=>{const c=gin_c();if(c){if(o.sp)c.sp+=o.sp;if(o.mood)c.mood=cl
   ['owner','mate','snail','mirror'].forEach(k=>{if(o[k])c.bond[k]=clamp(c.bond[k]+o[k],0,100)})}};
 const gin_ok=(t,g,fx,extra)=>Object.assign({t,c:'good',fx:fx||{},run:gin_g(g||{})},extra||{});
 const gin_bad=(t,g,fx,extra)=>Object.assign({t,c:'bad',fx:fx||{},run:gin_g(g||{})},extra||{});
-const gin_need=(k,r)=>()=>['p','g','w','c'].includes(k)?[k,Math.max(6,Math.round(capOf(k)*r))]:null;
-const gin_rel=k=>fst()[k]/Math.max(1,capOf(k));
+const gin_need=(k,r)=>()=>['p','g','w','c'].includes(k)?[k,Math.max(6,Math.round(statCap(k)*r))]:null;
+const gin_rel=k=>fst()[k]/statCap(k);
 const gin_top=()=>Math.max(...['p','g','w','c'].map(gin_rel));
 const gin_tank=()=>S.f&&S.f.tank!=='pond';
 
