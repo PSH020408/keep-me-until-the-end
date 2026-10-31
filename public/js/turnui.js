@@ -5,7 +5,7 @@
    · every other choice is a popup, shown only after the lines before it have been read
    The simulation itself is untouched: this file only decides when the next step runs and how it is shown. */
 
-const ST={q:[],cur:null,skip:false};
+const ST={q:[],cur:null,skip:false,hist:[]};
 const stBusy=()=>!!(ST.cur||ST.q.length);
 const stOn=()=>!skipping&&S&&!S.done&&!$('game').hidden;
 
@@ -22,9 +22,12 @@ function stDraw(){
   box.querySelector('.st-a').textContent=li.querySelector('.t').textContent;
   box.querySelector('.st-t').innerHTML=li.querySelector('p').innerHTML;
   box.querySelector('.st-n').textContent=ST.q.length?'▼ '+ST.q.length:'▼';
+  /* v0.21: the three lines before this one stay below it, fading */
+  const h=box.querySelector('.st-h');if(h){h.innerHTML='';ST.hist.forEach((x,i)=>{const d=document.createElement('div');d.className='sh '+(x.className||'');d.style.opacity=String(.75-i*.18);
+    const a=document.createElement('span');a.className='sa';a.textContent=x.querySelector('.t').textContent;const t=document.createElement('p');t.innerHTML=x.querySelector('p').innerHTML;d.append(a,t);h.appendChild(d)})}
 }
 function stNext(){
-  if(ST.q.length){ST.cur=ST.q.shift();ST.last=ST.cur;stDraw();return true}
+  if(ST.q.length){if(ST.last){ST.hist.unshift(ST.last);ST.hist=ST.hist.slice(0,3)}ST.cur=ST.q.shift();ST.last=ST.cur;stDraw();return true}
   ST.cur=null;stDraw();return false}
 function stClick(){
   if(!S||S.done)return;
@@ -87,12 +90,14 @@ function tbOpen(g,n,list){
 (()=>{const _c=askChoice;askChoice=function(c,cb){
   _c(c,cb);if(skipping||!S||!S.pending)return;
   const box=$('choice');box.classList.remove('pop');
-  if(c.strip){tbBuild();return}
+  /* only the real turn (with the four trainings) becomes the menu; a bond story or a shop with a strip stays a popup */
+  if(c.strip&&box.querySelector('.opts button[data-k="p"],.opts button[data-k="g"]')){tbBuild();return}
+  if(c.strip){const st=box.querySelector('.hubstrip');if(st)st.remove()}
   tbHide();if(stBusy())box.hidden=true;
 }})();
 
 /* a fresh life starts with an empty story */
-(()=>{const _s=start;start=function(force){ST.q=[];ST.cur=null;ST.last=null;ST.skip=false;tbHide();
+(()=>{const _s=start;start=function(force){ST.q=[];ST.cur=null;ST.last=null;ST.hist=[];ST.skip=false;tbHide();
   /* the names from the title screen: the owner's (used by makeOwner through NICK) and the fish's (given on the day it is bought) */
   const fn=(($('fname')&&$('fname').value)||'').trim().slice(0,10);
   try{localStorage.setItem('survive-names',JSON.stringify({o:(($('nick').value)||'').trim(),f:fn}))}catch(e){}

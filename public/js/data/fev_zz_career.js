@@ -485,12 +485,14 @@ function carContestOpt(){
 
 /* ---------- 계승 (legacy): a fish that did well leaves something to the next one ---------- */
 const CAR_LEG_KEY='kiwojuseyo-legacy';
-function carLegacyLoad(){try{const v=JSON.parse(localStorage.getItem(CAR_LEG_KEY)||'null');return v&&v.k&&CAR_STATS[v.k]?v:null}catch(e){return null}}
+/* v0.21: a legacy passes only to the same species (a platy's memory does not belong to a koi); one record per species */
+function carLegacyAll(){try{const v=JSON.parse(localStorage.getItem(CAR_LEG_KEY)||'null');return v&&!v.k&&typeof v==='object'?v:{}}catch(e){return {}}}
+function carLegacyLoad(){const v=carLegacyAll()[S.sp.id];return v&&v.k&&CAR_STATS[v.k]?v:null}
 function carLegacySave(g){try{if(!(['B','A'].includes(g.rank)||carTop(g.rank)))return;const k=typeof z_primary==='function'?z_primary():'g';
-  localStorage.setItem(CAR_LEG_KEY,JSON.stringify({k,rank:g.rank,title:g.title,name:S.disp,sp:S.sp.name}))}catch(e){}}
+  const all=carLegacyAll();all[S.sp.id]={k,rank:g.rank,title:g.title,name:S.disp,sp:S.sp.name};localStorage.setItem(CAR_LEG_KEY,JSON.stringify(all))}catch(e){}}
 (()=>{const _i=carInit;carInit=function(){const had=!!S.f.car;const c=_i();if(!had){const L=carLegacyLoad();if(L){
   const b={B:.04,A:.06,S:.08,SS:.1}[L.rank]||(/^U/.test(L.rank)?.12:.04);fStat(L.k,Math.round(capOf(L.k)*b));c.sp+=10;c.legacy=L;
-  addLog(T('★ 계승 — 지난 생의 「'+L.title+'」 '+L.name+'('+L.sp+', '+L.rank+')의 기억이 이어졌습니다. '+CAR_STATS[L.k]+'이 조금 높은 채로 시작합니다. (SP +10)'),'star')}}return c}})();
+  addLog(T('★ 계승 — 같은 '+L.sp+'였던 선배, 「'+L.title+'」 '+L.name+'('+L.rank+')의 기억이 이어졌습니다. '+CAR_STATS[L.k]+'이 조금 높은 채로 시작합니다. (SP +10)'),'star')}}return c}})();
 (()=>{const _g=carGrade;carGrade=function(calm){const g=_g(calm),c=car();
   if(c.wins){g.score+=c.wins*4;g.rank=CAR_RANK.filter(r=>g.score>=r[0]).pop()[1]}
   if(calm&&(c.wins||0)>=3&&!['끝까지 해낸 물고기','가족이 된 물고기'].includes(g.title)){g.title='대회 그랜드슬램';g.desc=T('{n}이 받은 상장은 '+c.wins+'장이었습니다. 수조 옆 벽이 모자랐습니다.')}

@@ -399,3 +399,55 @@ body.uma.ingame #playGrid:has(#choice[hidden]) .logwrap{grid-row:auto!important}
   box-shadow:inset 0 2px 0 rgba(0,0,0,.04);width:100%;min-width:0}
 #intro.title-screen .namebox input:focus{outline:none;border-color:var(--u-green);box-shadow:0 0 0 3px rgba(124,194,59,.25)}
 #intro.title-screen .namebox input::placeholder{color:#B5BCB0;font-size:14px}
+
+/* ---------- v0.21: no wasted space — the turn menu sits right under the stats; the story keeps three old lines ---------- */
+body.uma.ingame #playGrid{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto auto minmax(0,1fr)!important}
+body.uma.ingame #card{grid-column:1!important;grid-row:1!important}
+body.uma.ingame #turnbar{grid-column:1!important;grid-row:2!important}
+body.uma.ingame #story{grid-column:1!important;grid-row:3!important}
+body.uma.ingame #playGrid:has(#turnbar[hidden]) #story{grid-row:2/4!important}
+@media (min-width:900px){
+  body.uma.ingame #playGrid{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr)!important;grid-template-rows:minmax(0,1fr) auto!important}
+  body.uma.ingame #card{grid-column:1!important;grid-row:1!important;display:flex!important;flex-direction:column;overflow:hidden!important}
+  body.uma.ingame #turnbar{grid-column:1!important;grid-row:2!important}
+  body.uma.ingame #story{grid-column:2!important;grid-row:1/3!important}
+  body.uma.ingame #playGrid:has(#turnbar[hidden]) #card{grid-row:1/3!important}
+  body.uma.ingame #playGrid:has(#turnbar[hidden]) #story{grid-row:1/3!important}
+  body.uma.ingame #card .head{display:flex!important;flex-direction:column;flex:1;min-height:0;align-items:stretch}
+  body.uma.ingame #card .head>*{width:100%;min-width:0}
+  body.uma.ingame #card .stagewrap{flex:1;min-height:0;display:flex;flex-direction:column;align-items:stretch}
+  body.uma.ingame #card #stage>*{width:100%}
+  body.uma.ingame #card #stage{flex:1;min-height:0;display:flex}
+  body.uma.ingame #card .stage{width:100%!important;height:100%!important;max-height:none!important}
+}
+/* the turn strip in one line: energy · mood · SP · next goal (bonds behind the story) */
+body.uma.ingame .turnbar{padding:0 10px 10px;gap:6px}
+body.uma.ingame .turnbar .tb-head{padding:5px 14px 5px 24px;font-size:14px}
+body.uma.ingame .turnbar .hubstrip{display:grid!important;grid-template-columns:1.4fr .8fr .6fr 2.2fr!important;gap:4px 10px!important;padding:6px 10px!important;align-items:center}
+body.uma.ingame .turnbar .hubstrip .hs.wide{grid-column:auto!important}
+body.uma.ingame .turnbar .hubstrip .hs[data-lab="인연"]{display:none!important}
+body.uma.ingame .turnbar .hubstrip .hs[data-lab="다음 고비"]{padding:3px 8px!important}
+body.uma.ingame .turnbar .hubstrip .hs[data-lab="다음 고비"] .hv{font-size:12px;line-height:1.3}
+body.uma.ingame .turnbar .hubstrip .hv{font-size:13px}
+body.uma.ingame .turnbar .tb-menu{grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:6px}
+body.uma.ingame .turnbar .tb-btn{padding:7px 4px 6px;border-radius:14px}
+body.uma.ingame .turnbar .tb-btn i{font-size:21px}
+body.uma.ingame .turnbar .tb-flavor{display:none}
+/* the story: the line, then the three before it */
+.story .st-h{display:flex;flex-direction:column;gap:6px;margin-top:4px;border-top:1px dashed var(--u-line);padding-top:8px}
+.story .st-h .sh{display:grid;grid-template-columns:64px 1fr;gap:8px;font-size:13.5px;line-height:1.55}
+.story .st-h .sa{font-family:var(--display);font-size:11.5px;color:var(--u-sub);padding-top:2px}
+.story .st-h p{margin:0;color:var(--u-ink)}
+.story .st-h .sh.good p{color:#4C8F22}.story .st-h .sh.bad p{color:#C9584B}.story .st-h .sh.star p{color:#B07A0E}.story .st-h .sh.sub p{color:#7D8590}
+.story .st-h .dchips{display:none}
+.story .st-h:empty{display:none}
+@media (max-width:620px){
+  body.uma.ingame .turnbar .hubstrip{grid-template-columns:1.3fr .9fr .7fr!important}
+  body.uma.ingame .turnbar .hubstrip .hs[data-lab="기력"]{grid-column:auto!important}
+  body.uma.ingame .turnbar .hubstrip .hs[data-lab="다음 고비"]{grid-column:1/-1!important}
+  body.uma.ingame .turnbar .tb-menu{grid-template-columns:repeat(4,minmax(0,1fr))}
+  body.uma.ingame .turnbar .tb-btn{font-size:12px;padding:6px 2px 5px}
+  body.uma.ingame .turnbar .tb-btn i{font-size:18px}
+  .story .st-h .sh{grid-template-columns:1fr;gap:0;font-size:12.5px}
+  .story .st-h .sh:nth-child(n+3){display:none}
+}

@@ -83,9 +83,29 @@ function bloodCloud(cx,cy,r,n){let s=`<g filter="url(#f-blur)">`;
 function swimmer(svg,x,y,range,dur,opt){
   opt=opt||{};
   if(opt.still||range<2) return `<g transform="translate(${fq(x)} ${fq(y)})"><g>${opt.tilt?`<g transform="rotate(${opt.tilt})">`:''}${svg}${opt.tilt?'</g>':''}${opt.bob?`<animateTransform attributeName="transform" type="translate" values="0 0;0 ${opt.bob};0 0" dur="3.4s" repeatCount="indefinite"/>`:''}</g></g>`;
-  /* the phase comes from the clock, so a redraw (every step at high speed) continues the stroke instead of restarting it */
+  /* v0.21: an aquarium swim — eased laps, a turn that narrows through side view instead of snapping, a slow drift up and down
+     on its own clock, and a faint body wave. The phase comes from the clock, so a redraw continues the stroke. */
   const d=fq(dur),r=fq(range),bob=opt.bob||1.5,clk=(typeof performance!=='undefined'&&performance.now?performance.now():Date.now())/1000,bg=fq((opt.delay||0)-(clk%dur));
-  return `<g transform="translate(${fq(x)} ${fq(y)})"><g><animateTransform attributeName="transform" type="translate" values="${r} 0;${-r} ${bob};${r} 0" keyTimes="0;.5;1" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1" dur="${d}s" begin="${bg}s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="scale" values="1 1;-1 1" keyTimes="0;.5" calcMode="discrete" dur="${d}s" begin="${bg}s" repeatCount="indefinite"/>${opt.tilt?`<g transform="rotate(${opt.tilt})">`:''}${svg}${opt.tilt?'</g>':''}</g></g></g>`;
+  const vd=fq(dur*1.37+2),vb=fq((opt.delay||0)*.7-(clk%(dur*1.37+2))),dy=fq(Math.max(2,bob*3.2)),wd=fq(.9+(dur%5)*.12);
+  return `<g transform="translate(${fq(x)} ${fq(y)})"><g><animateTransform attributeName="transform" type="translate" values="0 0;0 ${-dy};0 ${fq(dy*.6)};0 0" keyTimes="0;.35;.75;1" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1;.45 0 .55 1" dur="${vd}s" begin="${vb}s" repeatCount="indefinite"/>`+
+    `<g><animateTransform attributeName="transform" type="translate" values="${r} 0;${-r} ${bob};${r} 0" keyTimes="0;.5;1" calcMode="spline" keySplines=".42 0 .58 1;.42 0 .58 1" dur="${d}s" begin="${bg}s" repeatCount="indefinite"/>`+
+    `<g><animateTransform attributeName="transform" type="scale" values="1 1;1 1;.15 1;-1 1;-1 1;-.15 1;1 1" keyTimes="0;.44;.5;.56;.94;.995;1" dur="${d}s" begin="${bg}s" repeatCount="indefinite"/>`+
+    `<g><animateTransform attributeName="transform" type="skewY" values="0;1.4;0;-1.4;0" dur="${wd}s" repeatCount="indefinite"/>${opt.tilt?`<g transform="rotate(${opt.tilt})">`:''}${svg}${opt.tilt?'</g>':''}</g></g></g></g></g>`;
+}
+/* v0.21: what makes it look like water — light from above, a moving shimmer, motes drifting, all inside the water box */
+function aquaFx(g,pond){
+  const {x,y,w,h}=g,id='aq'+(VCID++);
+  let s=`<defs><linearGradient id="${id}r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".38"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></linearGradient>`+
+    `<clipPath id="${id}c"><rect x="${x}" y="${y}" width="${w}" height="${h}"/></clipPath><filter id="${id}b"><feGaussianBlur stdDeviation="2.2"/></filter></defs><g clip-path="url(#${id}c)" pointer-events="none">`;
+  for(let i=0;i<3;i++){const cx=x+w*(.22+i*.28),sp=w*.07;
+    s+=`<path d="M${fq(cx-sp)} ${y}L${fq(cx+sp)} ${y}L${fq(cx+sp*2.6-12+i*6)} ${y+h}L${fq(cx-sp*1.2-12+i*6)} ${y+h}Z" fill="url(#${id}r)" opacity=".5"><animate attributeName="opacity" values=".25;.6;.3;.25" dur="${7+i*2.3}s" repeatCount="indefinite"/></path>`}
+  s+=`<g filter="url(#${id}b)" opacity="${pond?.18:.26}">`;
+  for(let i=0;i<5;i++){const cx=x+w*(.1+i*.2),cy=y+6+(i%2)*7;
+    s+=`<ellipse cx="${fq(cx)}" cy="${fq(cy)}" rx="${fq(w*.08)}" ry="2.4" fill="#FFFFFF"><animateTransform attributeName="transform" type="translate" values="0 0;${8+i*2} 2;${-6-i} 1;0 0" dur="${5+i*1.3}s" repeatCount="indefinite"/></ellipse>`}
+  s+=`</g><g fill="#FFFFFF" opacity=".55">`;
+  for(let i=0;i<9;i++){const px=x+((i*47)%Math.max(10,w-10))+5,py=y+((i*29)%Math.max(10,h-12))+6,r=.5+(i%3)*.3,dd=9+(i%4)*3;
+    s+=`<circle cx="${px}" cy="${py}" r="${r}"><animateTransform attributeName="transform" type="translate" values="0 0;${i%2?4:-4} ${-10-(i%3)*4};0 0" dur="${dd}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;.9;0" dur="${dd}s" repeatCount="indefinite"/></circle>`}
+  return s+`</g></g>`;
 }
 /* water colour by quality: clear → green → brown, plus milkiness while a new tank cycles */
 function waterCol(wq){
@@ -150,7 +170,7 @@ function tankScene(){
   /* layout: background, substrate and decoration, by how the owner furnished the tank (f.lay) */
   if(!g.shape) s+=drawLayout(g,f,bottom);
   if(g.shape==='bowl'&&f.lay&&f.lay.sub==='color') s+=`<g clip-path="url(#${g.cid})">${Array.from({length:22},(_,i)=>`<circle cx="${g.x+6+(i*29)%(g.w-12)}" cy="${bottom-3-(i*5)%7}" r="3.2" fill="${['#E86A8A','#5AA8E8','#F2C84A','#7AD08A','#F2F2F2'][i%5]}" stroke="#00000022" stroke-width=".6"/>`).join('')}</g>`;
-  if(g.shape==='pond'){s+=`<path d="M30 176q-4 -30 8 -56M40 176q6 -24 0 -44M224 176q-8 -26 4 -50" stroke="#3E6A30" stroke-width="5" fill="none"/>`}
+  if(g.shape==='pond'){s+=['M30 176q-4 -30 8 -56','M40 176q6 -24 0 -44','M224 176q-8 -26 4 -50'].map((d,i)=>`<path class="a-sway" style="transform-box:fill-box;transform-origin:50% 100%;animation-duration:${5+i}s;animation-delay:-${i*1.3}s" d="${d}" stroke="#3E6A30" stroke-width="5" fill="none" stroke-linecap="round"/>`).join('')+`<g opacity=".5">${[[60,96,9],[180,90,11],[120,120,7]].map((p,i)=>`<ellipse cx="${p[0]}" cy="${p[1]}" rx="${p[2]}" ry="${p[2]*.4}" fill="#5E8A4A"><animateTransform attributeName="transform" type="translate" values="0 0;${4-i*3} 1;0 0" dur="${9+i*2}s" repeatCount="indefinite"/></ellipse>`).join('')}</g>`}
   /* dirty water: haze, floating debris, algae */
   const haze=wq<80?(80-wq)/80*.55:0;
   const clip=g.shape?'':`<rect x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}"`;
@@ -174,7 +194,7 @@ function drawLayout(g,f,b){
   else if(L.sub==='bare') s+=`<rect x="${X0}" y="${b-3}" width="${W}" height="3" fill="#B8C4C8" opacity=".6"/>`;
   else if(L.sub!=='none') s+=`<path d="${base}" fill="#9A8E7A"/><g fill="#6E6656" opacity=".5">${Array.from({length:18},(_,i)=>`<circle cx="${X0+6+i*(W-12)/17}" cy="${b-4-(i*7)%6}" r="1.4"/>`).join('')}</g>`;
   // decoration
-  const plants=(n,col)=>Array.from({length:n},(_,i)=>{const px=X0+12+((i*53)%Math.max(20,W-24)),h=40+(i*17)%40;return `<path d="M${px} ${b-8}q${i%2?-8:8} -${h/2} ${i%2?2:-2} -${h}" stroke="${col}" stroke-width="5" fill="none" stroke-linecap="round" opacity=".9"/>`}).join('');
+  const plants=(n,col)=>Array.from({length:n},(_,i)=>{const px=X0+12+((i*53)%Math.max(20,W-24)),h=40+(i*17)%40;return `<path class="a-sway" style="transform-box:fill-box;transform-origin:50% 100%;animation-duration:${4+i%3}s;animation-delay:-${i}s" d="M${px} ${b-8}q${i%2?-8:8} -${h/2} ${i%2?2:-2} -${h}" stroke="${col}" stroke-width="5" fill="none" stroke-linecap="round" opacity=".9"/>`}).join('');
   const d=L.deco==='none'&&f.hides?'nature':L.deco;
   if(d==='nature') s+=plants(5,'#3E7A34')+`<path d="M${X0+W*.5} ${b-8}l22 -26l8 4l-10 22z" fill="#6A4E34" stroke="#4A3424" stroke-width="1.2"/>`;
   if(d==='wood') s+=`<path d="M${X0+W*.2} ${b-6}C${X0+W*.35} ${b-30} ${X0+W*.5} ${b-40} ${X0+W*.72} ${b-62}M${X0+W*.45} ${b-34}l-16 -22M${X0+W*.6} ${b-48}l14 -14" stroke="#5A4028" stroke-width="7" fill="none" stroke-linecap="round"/>`+plants(2,'#4E8A3A');
@@ -188,7 +208,7 @@ function drawLayout(g,f,b){
 function tankFront(g){
   const f=S.f;let s='';
   if(vClip(g)) return `<path d="${vesselPath(g)}" fill="none" stroke="#7FA0A8" stroke-width="2"/><path d="M${g.x+(g.shape==='bowl'?14:6)} ${g.y+6}q-4 ${g.h*.35} 2 ${g.h*.65}" stroke="#fff" stroke-width="3" opacity=".35" fill="none" stroke-linecap="round"/>`;
-  if(g.shape==='pond') return f.net?`<path d="${Array.from({length:14},(_,i)=>`M${10+i*18} 74L${10+i*18} 178`).join('')}${Array.from({length:6},(_,i)=>`M8 ${78+i*18}L252 ${78+i*18}`).join('')}" stroke="#2E2E2E" stroke-width=".5" opacity=".28"/>`:'';
+  if(g.shape==='pond') return f.net?`<defs><pattern id="pnet" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0H10M0 0V10" stroke="#2A2A2A" stroke-width=".45" fill="none"/></pattern><clipPath id="pnetc"><path d="M8 78Q130 68 252 78L250 176Q130 186 10 176Z"/></clipPath></defs><g clip-path="url(#pnetc)" opacity=".22"><rect x="0" y="60" width="260" height="130" fill="url(#pnet)"/></g><path d="M8 78Q130 92 252 78" stroke="#3A3A3A" stroke-width=".8" fill="none" opacity=".35"/>${[18,240].map(x=>`<path d="M${x} 80v-14" stroke="#6A5A44" stroke-width="2.5"/>`).join('')}`:'';
   s+=`<rect x="${g.x}" y="${g.y}" width="${g.w}" height="${g.h}" fill="none" stroke="#4A5458" stroke-width="2.6"/><path d="M${g.x+8} ${g.y+10}l14 42" stroke="#fff" stroke-width="3" opacity=".3" stroke-linecap="round"/>`;
   if(f.lid) s+=`<rect x="${g.x-3}" y="${g.y-7}" width="${g.w+6}" height="7" fill="#2E3438"/>`;
   if(f.filter==='걸이식 여과기') s+=`<rect x="${g.x+g.w-34}" y="${g.y-14}" width="24" height="30" rx="2" fill="#2E3438"/><path d="M${g.x+g.w-30} ${g.y+16}q-3 10 2 20" stroke="#EAF6FA" stroke-width="4" fill="none" opacity=".7"/>`;
@@ -241,6 +261,7 @@ function fishLiveStage(){
     inner+=swimmer(spr+ring,g.x+g.w/2,y,sick||ov==='flip'?range*.25:range,dur,{tilt:sick&&!gasp?10:0,bob:gasp?1:2});
     if(gasp&&!S.done) inner+=[0,1,2].map(i=>`<circle class="a-bubble" style="animation-delay:${i*.6}s" cx="${g.x+g.w/2-px*.4}" cy="${y-4}" r="${1+i*.4}" fill="none" stroke="#fff" stroke-width=".8"/>`).join('');
     body+=vClip(g)?`<g clip-path="url(#${g.cid})">${inner}</g>`:inner;
+    if(!vClip(g)&&!S.done)body+=aquaFx(g.shape==='pond'?{x:10,y:78,w:240,h:98}:g,g.shape==='pond');
     if(f.tank==='pond'&&season()==='winter') body+=`<path d="M10 78Q130 70 250 78L250 88Q130 82 10 88Z" fill="#EAF4F8" opacity=".75"/>`;
     return body+tankFront(g);
   }
@@ -259,10 +280,18 @@ function fishChainScene(env){
     s+=[0,1,2,3].map(i=>swimmer(fishSprite(id,'young',Math.max(12,30-i*4)),70+i*40,70+i*22,30,8+i*2,{delay:-i*2})).join('');
     return s+swimmer(fishSprite(id,pose,clamp(x.cm*3,26,90)),130,110,50,9);}
   case 'catch':{
-    let s=`<rect width="260" height="200" fill="#3A3226"/><rect y="40" width="260" height="160" fill="#6E5A3A"/><path d="M0 40L260 40" stroke="#8A7A5A" stroke-width="2"/>`;
-    s+=[0,1,2,3,4].map(i=>`<g transform="translate(${60+i*34} ${120+(i%2)*14}) rotate(${i*30})">${fishSprite(id,'young',22)}</g>`).join('');
-    s+=`<g transform="translate(130 112)">${fishSprite(id,pose,clamp(x.cm*3,30,90),{})}<animateTransform attributeName="transform" type="rotate" values="-6;6;-6" dur=".6s" repeatCount="indefinite" additive="sum"/></g>`;
-    s+=`<path d="${Array.from({length:16},(_,i)=>`M${20+i*15} 60Q${30+i*15} 120 ${20+i*15} 180`).join('')}${Array.from({length:8},(_,i)=>`M14 ${62+i*16}Q130 ${74+i*16} 246 ${62+i*16}`).join('')}" stroke="#D8D0B8" stroke-width=".9" fill="none" opacity=".75"/>`;
+    /* v0.21: the fish is in a hand net lifted at the riverbank — a mesh bag with a rim and a pole, water dripping */
+    let s=`<defs><pattern id="cnet" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0H8M0 0V8" stroke="#EDE6D0" stroke-width=".7" fill="none"/></pattern>`+
+      `<clipPath id="cbag"><path d="M44 66Q130 50 216 66Q232 128 168 172Q130 190 92 172Q28 128 44 66Z"/></clipPath></defs>`;
+    s+=`<rect width="260" height="200" fill="#8EAA92"/><rect y="0" width="260" height="58" fill="#C9D8C2"/><path d="M0 58Q70 50 130 56T260 52L260 200L0 200Z" fill="#5E8478"/>`;
+    s+=[0,1,2].map(i=>`<path d="M${30+i*90} 56L${10+i*90} 200L${56+i*90} 200Z" fill="#FFFFFF" opacity=".08"/>`).join('');
+    s+=`<path d="M216 66L258 4" stroke="#6A5034" stroke-width="6" stroke-linecap="round"/>`;
+    s+=`<path d="M44 66Q130 50 216 66Q232 128 168 172Q130 190 92 172Q28 128 44 66Z" fill="#6E8A80" opacity=".55"/>`;
+    s+=`<g clip-path="url(#cbag)">`+[0,1,2,3].map(i=>`<g transform="translate(${80+i*30} ${132+(i%2)*12}) rotate(${-20+i*25})">${fishSprite(id,'young',20)}</g>`).join('');
+    s+=`<g transform="translate(130 118)">${fishSprite(id,pose,clamp(x.cm*3,30,86),{})}<animateTransform attributeName="transform" type="rotate" values="-7;7;-7" dur=".55s" repeatCount="indefinite" additive="sum"/></g>`;
+    s+=`<rect x="0" y="40" width="260" height="160" fill="url(#cnet)" opacity=".85"/></g>`;
+    s+=`<path d="M44 66Q130 50 216 66Q130 80 44 66Z" fill="none" stroke="#5A4630" stroke-width="3"/>`;
+    s+=[0,1,2].map(i=>`<circle cx="${110+i*22}" cy="186" r="1.8" fill="#DDEEF2"><animate attributeName="cy" values="182;198" dur="${.9+i*.3}s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="${.9+i*.3}s" repeatCount="indefinite"/></circle>`).join('');
     return s;}
   case 'holding':{
     let s=`<rect width="260" height="200" fill="#5A544A"/><rect y="150" width="260" height="50" fill="#4A443C"/>`;

@@ -406,7 +406,9 @@ const plantify=t=>{const f=S&&S.f;if(typeof t!=='string'||!f||!f.lay||S.wild||S.
     .replace(/수초 잎 위/g,w[0]+' 위').replace(/수초 그늘/g,w[0]+' 그늘')
     .replace(/수초 뒤(로|에서|에)?/g,(m,j)=>d==='none'?'구석'+(j==='로'?'으로':j||''):w[0]+' 뒤'+(j||''))
     .replace(/수초(?!를)/g,w[0])};
-const pondify=t=>{t=plantify(t);return inPond()&&typeof t==='string'?t.replace(/(?<!격리 )수조(를|가|는|와|로)?/g,(m,j)=>j?josa('연못',j):'연못'):t};
+/* v0.21: a pond has no glass and no filter outlet — the training names and lines follow */
+const POND_WORDS=[[/유리 앞에서/g,'연못가에서'],[/유리 앞에/g,'연못가에'],[/유리 앞/g,'연못가'],[/여과기 물살/g,'펌프 물살'],[/여과기를 최대로 틀어 놓은 날/g,'펌프를 최대로 틀어 놓은 날'],[/출수구/g,'펌프 출구'],[/유리를/g,'수면을'],[/유리에/g,'수면에']];
+const pondify=t=>{t=plantify(t);if(!(inPond()&&typeof t==='string'))return t;POND_WORDS.forEach(([a,b])=>{t=t.replace(a,b)});return t.replace(/(?<!격리 )수조(를|가|는|와|로)?/g,(m,j)=>j?josa('연못',j):'연못')};
 (()=>{const l=FCH.find(c=>c.id==='lid');if(l){const w=l.when;l.when=()=>S.f.tank!=='pond'&&(!w||w())}})();
 const optTexts=o=>[o.l,o.d,o.r].concat((o.out||[]).map(z=>z[1]));
 TRAIN.push(
