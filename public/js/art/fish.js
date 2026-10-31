@@ -83,6 +83,10 @@ function bloodCloud(cx,cy,r,n){let s=`<g filter="url(#f-blur)">`;
 function swimmer(svg,x,y,range,dur,opt){
   opt=opt||{};
   if(opt.still||range<2) return `<g transform="translate(${fq(x)} ${fq(y)})"><g>${opt.tilt?`<g transform="rotate(${opt.tilt})">`:''}${svg}${opt.tilt?'</g>':''}${opt.bob?`<animateTransform attributeName="transform" type="translate" values="0 0;0 ${opt.bob};0 0" dur="3.4s" repeatCount="indefinite"/>`:''}</g></g>`;
+  /* v0.22: a small range is a fish holding its place (biting, facing another fish, in a net): it sways but never turns,
+     so a predator in a death scene keeps facing its prey instead of swimming backwards half the time */
+  if(range<12||opt.noflip){const r0=fq(Math.min(range,1.5)),d0=fq(Math.max(1.6,dur*.6)),b0=opt.bob||1.2;
+    return `<g transform="translate(${fq(x)} ${fq(y)})"><g><animateTransform attributeName="transform" type="translate" values="${r0} 0;${fq(-r0)} ${b0};${r0} 0" keyTimes="0;.5;1" calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1" dur="${d0}s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="skewY" values="0;1.6;0;-1.6;0" dur=".9s" repeatCount="indefinite"/>${opt.tilt?`<g transform="rotate(${opt.tilt})">`:''}${svg}${opt.tilt?'</g>':''}</g></g></g>`}
   /* v0.21: an aquarium swim — eased laps, a turn that narrows through side view instead of snapping, a slow drift up and down
      on its own clock, and a faint body wave. The phase comes from the clock, so a redraw continues the stroke. */
   const d=fq(dur),r=fq(range),bob=opt.bob||1.5,clk=(typeof performance!=='undefined'&&performance.now?performance.now():Date.now())/1000,bg=fq((opt.delay||0)-(clk%dur));
