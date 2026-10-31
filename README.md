@@ -14,7 +14,7 @@ A browser life-simulation about the promises we make to the animals we keep.
 > signed six promises. You choose its temperament, make its choices when it matters, raise it
 > through the seasons — and watch which promises are struck out in red pen.
 
-**Status:** public beta (v0.14.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.15.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
@@ -43,8 +43,8 @@ A browser life-simulation about the promises we make to the animals we keep.
    skills. Companions (the owner, a tankmate, a snail, the fish's own reflection) build bonds and give 우정 훈련;
    six goals arrive on schedule with a visible requirement; skills and 벼랑 끝 last stands let a fish that has
    grown live through the house's unfairness; the shop recommends the skill for the threat at hand. Bond stories,
-   출전 contests and 계승 (a good career gives the next one a head start) round it out. The life ends with a grade
-   (G → SS) and a title. See
+   출전 contests and 계승 (a good career gives the next one a head start) round it out. Each stat wears a letter (G → SS → UF … US). The life ends
+   with a grade (G → US) and a title. See
    [docs/CAREER.md](docs/CAREER.md).
 5. **Raising the fish.** Five stats of its own — health (HP), strength, guts, wits and charm — and
    four the owner keeps — skill, water temperature, water quality and care. Each species has its own
@@ -167,6 +167,7 @@ decisions, in short:
 | v0.12.0 | 2026-10-13 | playtest fixes: picked options kept in the log, disease order fixed, training levels and ★ special trainings, stat routes with climaxes, fewer relapses and four new diseases, several versions of the common endings and of the prologue |
 | v0.13.0 | 2026-10-30 | career mode (육성): turn card with energy, mood, facility levels, companions and 우정 훈련, 17 skills against 억까, 벼랑 끝 last stands, six goals, grade G–SS and titles; 24 comic events |
 | v0.14.0 | 2026-10-31 | final pass: skills against disease and neglect, a skill shop that recommends by threat, careers twice as long, stats ×10, fewer deaths before an owner, harder last stands and top ranks, bond stories, 출전 contests, 계승 legacy |
+| v0.15.0 | 2026-10-31 | stats start low against the species ceiling; Uma Musume style letters per stat (G → SS → UF … US) and career grades past SS |
 
 Every row is expanded in [LOG.md](LOG.md).
 

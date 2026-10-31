@@ -45,15 +45,20 @@ FEND.millcull.l=p=>[isLive()?'새끼를 덜 낳기 시작한 어미들은 번식
 
 /* ---------- 2. stats ---------- */
 function fst(){const f=S.f;if(!f.st){const t=S.temper,g=k=>FGROUP[k]&&FGROUP[k]()?1:0;
+  /* v0.15: a newborn starts low against its species ceiling (about F–D); the bonuses below are points on a 0–100 scale,
+     taken as shares of that ceiling, so no stat starts full */
   f.st={p:18+R()*12+(t==='feisty'?10:t==='glutton'?8:0)+g('PRED')*10+(fx_().big?8:0)-(fx_().cm<5?6:0),
         g:18+R()*12+(t==='feisty'?15:t==='glutton'?10:0)+g('PRED')*10+g('LAB')*8+g('AIR')*8,
         w:18+R()*12+(t==='curious'?15:t==='shy'?10:0)+g('NIGHT')*10+g('SMALL')*5,
         c:18+R()*12+(t==='friendly'?15:t==='glutton'?5:0)+g('GOLD')*10+g('LAB')*5};
-  for(const k in f.st)f.st[k]=Math.round(clamp(f.st[k],0,100))}return f.st}
-const fStat=(k,v)=>{const s=fst();s[k]=clamp(s[k]+(v>0&&typeof growOf==='function'?v*growOf(k):v),0,typeof capOf==='function'?capOf(k):100)};
+  /* the old absolute values stay as the fish's instinct: before an owner, checks use whichever is higher */
+  f.stI={};for(const k in f.st)f.stI[k]=Math.round(clamp(f.st[k],0,typeof capOf==='function'?capOf(k):100));
+  for(const k in f.st){const cap=typeof capOf==='function'?capOf(k):100;f.st[k]=Math.max(1,Math.round(cap*clamp((f.st[k]-8)/100,.08,.4)))}}return f.st}
+const fStat=(k,v)=>{const s=fst();s[k]=clamp(s[k]+(v>0&&typeof growOf==='function'?v*growOf(k):v),1,typeof capOf==='function'?capOf(k):100)};
 /* multipliers used by the hazards and the owner */
-const fGutsK=()=>S.f?.7+fst().g/100*.6+fst().p/100*.3:1;   // crisis: weight of the surviving outcomes (guts, then strength)
-const fPowK=()=>S.f?1.2-fst().p/100*.6:1;          // fin damage, bullying, fights
+const fChk=k=>{const v=fst()[k],f=S.f;return f.stI?Math.max(v,(f.stI[k]||0)*(S.preOwner?1:.75)):v};
+const fGutsK=()=>S.f?.7+fChk('g')/100*.6+fChk('p')/100*.3:1;   // crisis: weight of the surviving outcomes (guts, then strength)
+const fPowK=()=>S.f?1.2-fChk('p')/100*.6:1;          // fin damage, bullying, fights
 const fEndureK=()=>S.f?1.12-fst().g/100*.3:1;      // how fast health drains
 const fWitsK=()=>S.f?1.25-fst().w/100*.6:1;        // hazards the fish's own behaviour can avoid
 const fCharmK=()=>S.f?1.2-fst().c/100*.5:1;        // owner's loss of interest

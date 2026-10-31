@@ -76,17 +76,17 @@ const carSkill=k=>CAR_SK.find(s=>s.k===k);
 
 /* ---------- goals (고비) ---------- */
 const CAR_GOAL=[
- {n:'첫 달 — 새 물 버티기',at:.05,k:'g',r:.4,
+ {n:'첫 달 — 새 물 버티기',at:.05,k:'g',r:.3,
   p:'새 수조에 온 지 한 달. 물이 아직 자리를 잡지 못했습니다. 아가미가 따끔거리고 숨이 가쁩니다. 이 달을 넘기면 이 물이 {n}의 물이 됩니다. {n}은…',
   o:[['g','바닥에 붙어 숨을 아끼며 버틴다'],['c','주인이 볼 때마다 수면에서 뻐끔거려 물갈이를 조른다'],['w','출수구 아래, 산소가 섞이는 자리를 찾아낸다']],
   pass:'{n}은 첫 달을 넘겼습니다. 물에서 나던 냄새가 사라졌습니다. 이 물이 {n}의 물이 되었습니다.',
   fail:()=>{S.f.wq-=25;S.health-=18;return '첫 달의 물이 {n}의 아가미를 붉게 부풀렸습니다. 새엽 끝이 상해 한동안 숨이 얕았습니다.'}},
- {n:'첫 계절의 변화',at:.15,k:'w',r:.5,
+ {n:'첫 계절의 변화',at:.15,k:'w',r:.42,
   p:'창밖의 계절이 바뀌었습니다. 물 온도가 하루에도 몇 번씩 오르내립니다. {n}은…',
   o:[['w','수조에서 온도가 가장 덜 변하는 자리를 찾는다'],['g','몸을 낮추고 바뀌는 물에 천천히 몸을 맞춘다'],['c','히터 쪽을 맴돌아 주인이 온도계를 보게 만든다']],
   pass:'{n}은 첫 계절의 변화를 넘겼습니다. 바뀐 물에도 몸이 금방 맞춰졌습니다.',
   fail:()=>{S.health-=22;S.f.coldShock=1;return '바뀐 물이 {n}의 몸을 흔들었습니다. 며칠 동안 지느러미를 몸에 붙인 채 바닥에 있었습니다.'}},
- {n:'다 자란 몸 — 수조가 좁아질 때',at:.27,k:'c',r:.6,
+ {n:'다 자란 몸 — 수조가 좁아질 때',at:.27,k:'c',r:.55,
   p:'{n}의 몸이 커졌습니다. 돌아설 때마다 꼬리가 유리에 닿기 시작합니다. 주인은 아직 모릅니다. {n}은…',
   o:[['c','주인 앞에서 몸을 끝까지 펴고 유리 끝에서 끝까지 헤엄친다'],['w','주인이 수조 사진을 찍을 때마다 정확히 몸 길이가 보이게 선다'],['p','유리벽을 꼬리로 쳐서 소리를 낸다']],
   pass:()=>{if(typeof tankUp==='function'&&tankL()<fx_().minL)tankUp();return '주인이 {n}과 수조를 번갈아 보았습니다. "너 이렇게 컸어?"'},
@@ -107,6 +107,8 @@ const CAR_GOAL=[
   pass:()=>{S.health=clamp(S.health+20,0,S.hMax||100);return '{n}은 그 겨울을 넘겼습니다. 봄이 오자 주인은 {n}의 사진을 휴대폰 배경으로 바꿨습니다.'},
   fail:()=>{S.health-=30;return '겨울은 {n}의 몸에서 많은 것을 가져갔습니다. 봄이 와도 {n}은 바닥 가까이에서 지냈습니다.'}}
 ];
+/* v0.15: a low stat grows faster (the first ranks come quickly, the U ranks slowly) */
+const carCatch=s=>1+Math.max(0,.5-fst()[s]/Math.max(1,capOf(s)))*1.6;
 const carNeed=g=>Math.max(8,Math.round(capOf(g.k)*g.r));
 const carNextGoal=()=>{const c=car();return c?CAR_GOAL[c.gi]:null};
 const carGoalTurn=i=>{const c=car();return c.goalAt[i]};
@@ -126,7 +128,7 @@ function carInit(){
   f.car.goalAt=f.car.goalAt.map(t=>t<0?-1:Math.max(2,t));
   while(f.car.gi<CAR_GOAL.length&&f.car.goalAt[f.car.gi]<0)f.car.gi++;
   /* the trip and the new water leave the fish at the bottom: the career builds it up again, toward the species ceiling */
-  const st=fst();for(const k of ['p','g','w','c'])st[k]=Math.max(Math.round(capOf(k)*.25),Math.round(Math.min(st[k],capOf(k))*.6));
+  const st=fst();for(const k of ['p','g','w','c'])st[k]=Math.max(Math.round(capOf(k)*.1),Math.round(Math.min(st[k],capOf(k))*.9));
   carHookEnd();
   addLog(T('새 집에 온 {n}은 몸도 마음도 바닥이었습니다. 처음부터 다시 쌓아야 합니다.'),'sub');
   addLog(T('★ 육성이 시작되었습니다. {n}의 하루하루는 이제 당신이 정합니다. 억까는 계속됩니다. 이겨 내려면 자라야 합니다.'),'star');
@@ -154,7 +156,7 @@ function carStrip(){
   const c=car(),g=CAR_GOAL[c.gi],left=g&&c.goalAt[c.gi]>=0?Math.max(0,c.goalAt[c.gi]-c.turn):null;
   const st=fst();
   return [['기력',Math.round(c.vit)+'/100',c.vit],['컨디션',CAR_MOOD[c.mood]],['SP',String(c.sp)],
-    ['스탯',['p','g','w','c'].map(k=>CAR_STATS[k]+' '+carD(st[k])+'/'+carD(capOf(k))).join(' · ')],
+    ['스탯',['p','g','w','c'].map(k=>CAR_STATS[k]+' '+statRank(k)+' '+carD(st[k])+'/'+carD(capOf(k))).join(' · ')],
     ['다음 고비',g&&left!=null?g.n+' · '+(left?left+'턴 뒤':'이번 턴')+' · 필요 '+CAR_STATS[g.k]+' '+carD(carNeed(g)):'남은 고비 없음 — 끝까지'],
     ['인연',Object.keys(CAR_PAL).filter(k=>CAR_PAL[k].when()).map(k=>carPalName(k)+' ♥'+Math.round(c.bond[k])).join(' · ')]];
 }
@@ -168,7 +170,7 @@ function carHub(){
   ['p','g','w','c'].forEach(k=>{const tr=CAR_TR[k],lv=c.fac[k],fail=Math.round(carFail(k)),ps=pal[k]||[];
     const fr=ps.filter(p=>c.bond[p]>=80&&CAR_PAL[p].fav===k);
     const mul=CAR_FACK[lv-1]*CAR_MOODK[c.mood]*(ps.length?1.1:1)*(fr.length?1.5:1);
-    const gs=Object.entries(tr.gain).map(([s,v])=>CAR_STATS[s]+' +'+carD(Math.max(1,Math.round(v*mul*capOf(s)/60))*growOf(s))).join(' · ');
+    const gs=Object.entries(tr.gain).map(([s,v])=>CAR_STATS[s]+' +'+carD(Math.max(1,Math.round(v*mul*carCatch(s)*capOf(s)/60))*growOf(s))).join(' · ');
     opts.push({l:tr.n+' — '+tr.lv[lv-1]+(fr.length?' ★우정':''),d:gs+' · 기력 '+(tr.vit>0?'+':'')+tr.vit+' · 실패율 '+fail+'% · 시설 Lv.'+lv+(ps.length?' · 함께: '+ps.map(p=>carPalName(p)+'♥'+Math.round(c.bond[p])).join(', '):''),c:'neutral',r:'',
       fx:()=>carTrain(k,ps,fr,fail)})});
   /* one special training from the old schedule or the ★ list */
@@ -191,7 +193,7 @@ function carTrain(k,ps,fr,fail){
     if(c.vit<20&&R()<.3)f.fin+=.1;
     return}
   const mul=CAR_FACK[c.fac[k]-1]*CAR_MOODK[c.mood]*(ps.length?1.1:1)*(fr.length?1.5:1)*(R()<.12?1.6:1);
-  for(const s in tr.gain){const v=Math.max(1,Math.round(tr.gain[s]*mul*capOf(s)/60));fStat(s,v);f.tinv=f.tinv||{p:0,g:0,w:0,c:0};f.tinv[s]=(f.tinv[s]||0)+v}
+  for(const s in tr.gain){const v=Math.max(1,Math.round(tr.gain[s]*mul*carCatch(s)*capOf(s)/60));fStat(s,v);f.tinv=f.tinv||{p:0,g:0,w:0,c:0};f.tinv[s]=(f.tinv[s]||0)+v}
   c.sp+=2+c.fac[k]+(fr.length?4:0);
   if(fr.length){addLog(T('★ 우정 훈련! '+pick(CAR_PAL[fr[0]].fr)),'star');c.fr++;if(fr[0]==='owner')S.interest=clamp(S.interest+.06,0,1)}
   else addLog(T(pick(tr.ok)),'neutral');
@@ -371,7 +373,8 @@ const CAR_NOREV=['natural','euth','free','apex'];
 (()=>{const _p=fevPool;fevPool=function(stage,hap){return _p(stage,hap).map(([e,w])=>[e,w*(e.id==='HAP-13'&&carHas('dead')?2:1)])}})();
 
 /* ---------- the end: grade and title ---------- */
-const CAR_RANK=[[0,'G'],[30,'F'],[50,'E'],[75,'D'],[105,'C'],[140,'B'],[180,'A'],[215,'S'],[250,'SS']];
+const CAR_RANK=[[0,'G'],[30,'F'],[50,'E'],[75,'D'],[105,'C'],[140,'B'],[180,'A'],[215,'S'],[250,'SS'],[275,'UF'],[295,'UE'],[315,'UD'],[335,'UC'],[355,'UB'],[375,'UA'],[400,'US']];
+const carTop=r=>['S','SS'].includes(r)||/^U/.test(r);
 const CAR_OWNERKILL=['neglect','cycle','poison','flushalive','tapwater','left','shock','cook','freezer','trash','sink','squeeze','swallow'];
 function carGrade(calm){
   const c=car(),st=fst();const rel=k=>st[k]/Math.max(1,capOf(k));
@@ -380,7 +383,7 @@ function carGrade(calm){
   const key=String(S.f.endKey||''),prim=typeof z_primary==='function'?z_primary():'g',minRel=Math.min(...['p','g','w','c'].map(rel));
   let t;
   if(calm){
-    if(c.gpass>=CAR_GOAL.length-1&&['S','SS'].includes(rank))t=['끝까지 해낸 물고기','모든 고비를 넘었습니다. 서약서의 첫 줄 "끝까지 함께"를, 물고기 쪽에서 먼저 지켰습니다.'];
+    if(c.gpass>=CAR_GOAL.length-1&&carTop(rank))t=['끝까지 해낸 물고기','모든 고비를 넘었습니다. 서약서의 첫 줄 "끝까지 함께"를, 물고기 쪽에서 먼저 지켰습니다.'];
     else if(c.bond.owner>=90)t=['가족이 된 물고기','주인의 휴대폰 배경은 끝까지 {n}이었습니다.'];
     else if(minRel>=.7)t=['만능 물고기','힘, 근성, 지능, 매력. 수조에서 필요한 건 다 가졌습니다. 수조가 좁았을 뿐입니다.'];
     else t={p:['수조의 왕','{n}이 지나가면 물살도 길을 비켰습니다.'],g:['불사조','억까가 올 때마다 {n}은 한 번 더 지느러미를 폈습니다.'],w:['수조의 현자','{n}은 주인보다 먼저 여과기 고장을 알았습니다.'],c:['거실의 아이돌','{n}의 사진첩은 주인 가족 사진보다 두꺼웠습니다.']}[prim];
@@ -406,7 +409,7 @@ function carHookEnd(){if(typeof showEnd!=='function'||showEnd.__car)return;const
   try{const c=car();if(c&&c.result){const E=$('ending'),h=E&&E.querySelector('h2');const d=document.createElement('div');d.className='grade';
     d.innerHTML='<span class="rk"></span><div><b class="tt"></b><p class="ds"></p><p class="mt"></p></div>';
     d.querySelector('.rk').textContent=c.result.rank;d.querySelector('.tt').textContent='「'+c.result.title+'」';d.querySelector('.ds').textContent=c.result.desc;
-    const st=fst();d.querySelector('.mt').textContent='힘 '+carD(st.p)+' · 근성 '+carD(st.g)+' · 지능 '+carD(st.w)+' · 매력 '+carD(st.c)+' · 고비 '+c.gpass+'/'+(c.gpass+c.gfail)+' · 스킬 '+Object.keys(c.sk).map(k=>carSkill(k).n).join(', ')+(Object.keys(c.sk).length?'':'없음')+' · 우정 훈련 '+c.fr+'회';
+    const st=fst();d.querySelector('.mt').textContent='힘 '+statRank('p')+' '+carD(st.p)+' · 근성 '+statRank('g')+' '+carD(st.g)+' · 지능 '+statRank('w')+' '+carD(st.w)+' · 매력 '+statRank('c')+' '+carD(st.c)+' · 고비 '+c.gpass+'/'+(c.gpass+c.gfail)+' · 스킬 '+Object.keys(c.sk).map(k=>carSkill(k).n).join(', ')+(Object.keys(c.sk).length?'':'없음')+' · 우정 훈련 '+c.fr+'회';
     if(h&&h.nextSibling)E.insertBefore(d,h.nextSibling);else if(E)E.appendChild(d)}}catch(e){}
   return r};showEnd.__car=1}
 
@@ -483,10 +486,10 @@ function carContestOpt(){
 /* ---------- 계승 (legacy): a fish that did well leaves something to the next one ---------- */
 const CAR_LEG_KEY='kiwojuseyo-legacy';
 function carLegacyLoad(){try{const v=JSON.parse(localStorage.getItem(CAR_LEG_KEY)||'null');return v&&v.k&&CAR_STATS[v.k]?v:null}catch(e){return null}}
-function carLegacySave(g){try{if(!['B','A','S','SS'].includes(g.rank))return;const k=typeof z_primary==='function'?z_primary():'g';
+function carLegacySave(g){try{if(!(['B','A'].includes(g.rank)||carTop(g.rank)))return;const k=typeof z_primary==='function'?z_primary():'g';
   localStorage.setItem(CAR_LEG_KEY,JSON.stringify({k,rank:g.rank,title:g.title,name:S.disp,sp:S.sp.name}))}catch(e){}}
 (()=>{const _i=carInit;carInit=function(){const had=!!S.f.car;const c=_i();if(!had){const L=carLegacyLoad();if(L){
-  const b={B:.04,A:.06,S:.08,SS:.1}[L.rank]||.04;fStat(L.k,Math.round(capOf(L.k)*b));c.sp+=10;c.legacy=L;
+  const b={B:.04,A:.06,S:.08,SS:.1}[L.rank]||(/^U/.test(L.rank)?.12:.04);fStat(L.k,Math.round(capOf(L.k)*b));c.sp+=10;c.legacy=L;
   addLog(T('★ 계승 — 지난 생의 「'+L.title+'」 '+L.name+'('+L.sp+', '+L.rank+')의 기억이 이어졌습니다. '+CAR_STATS[L.k]+'이 조금 높은 채로 시작합니다. (SP +10)'),'star')}}return c}})();
 (()=>{const _g=carGrade;carGrade=function(calm){const g=_g(calm),c=car();
   if(c.wins){g.score+=c.wins*4;g.rank=CAR_RANK.filter(r=>g.score>=r[0]).pop()[1]}

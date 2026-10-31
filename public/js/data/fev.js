@@ -24,6 +24,10 @@ const FCAP={
  gar:{p:100,g:95,w:50,c:40,k:{p:1.3,g:1.3}}
 };
 const capOf=k=>{const c=S&&S.sp&&FCAP[S.sp.id];return c?c[k]:100};
+/* v0.15: each stat wears a letter in the manner of Uma Musume, by its share of the species ceiling:
+   G → F → … → SS, then the U ranks UF → … → US at the very top */
+const STAT_RANKS=[[0,'G'],[.1,'F'],[.18,'E'],[.27,'D'],[.37,'C'],[.47,'B'],[.57,'A'],[.66,'S'],[.74,'SS'],[.8,'UF'],[.85,'UE'],[.89,'UD'],[.93,'UC'],[.96,'UB'],[.985,'UA'],[1,'US']];
+const statRank=k=>{const v=S&&S.f&&S.f.st?S.f.st[k]/Math.max(1,capOf(k)):0;let r='G';for(const [t,n] of STAT_RANKS)if(v>=t-1e-9)r=n;return r};
 const growOf=k=>{const c=S&&S.sp&&FCAP[S.sp.id];return c&&c.k&&c.k[k]||1};
 /* stats never pass the species cap; gains are scaled by how fast this species trains that stat */
 (()=>{const _fst=fst;
@@ -157,7 +161,7 @@ const valOf=(v,...a)=>typeof v==='function'?v(...a):v;
 function fevChance(chk){
   chk=valOf(chk);if(!chk)return 1;
   const [k,need]=chk;if(need>capOf(k))return -1;
-  const s=fst()[k],m=((MODES[S.mode]||{}).chk||1)*(S.preOwner?FEV_CHK.pre:S.wild?FEV_CHK.wild:FEV_CHK.home);
+  const s=typeof fChk==='function'?fChk(k):fst()[k],m=((MODES[S.mode]||{}).chk||1)*(S.preOwner?FEV_CHK.pre:S.wild?FEV_CHK.wild:FEV_CHK.home);
   return clamp(Math.pow(s/need,2)*m,.05,.95);
 }
 /* apply an outcome: text, numbers, flags, memory, owner learning, an ending */

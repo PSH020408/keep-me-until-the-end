@@ -262,6 +262,53 @@ The report showed that growth rarely beat the house's unfairness. These changes 
 
 - About 140 catalogue events whose endings were almost never reached in 8,000 simulated lives are three times as likely.
 
+## v0.15 changes: Uma Musume style stat ranks
+
+**Stats no longer start full**
+
+- Before an owner, the four stats were 18–30 points on a 0–100 scale. A species with a low ceiling (a neon tetra's 힘 is 15) started at its ceiling.
+- Each stat now starts at 10–40% of the species ceiling (usually F to C).
+- The old values are kept as the fish's instinct. Before an owner, hidden checks use whichever is higher; at home they use the higher of the stat and 75% of the instinct. Survival before an owner is unchanged (~20% die before one).
+- At the owner's, stats drop to 90% (was 60%), at least 10% of the ceiling. A stat never drops below 1.
+
+**Letters**
+
+- Each stat shows a letter by its share of the species ceiling, on the card, the meters and the ending:
+
+| Letter | Share from |
+|---|---|
+| G | 0 |
+| F | 10% |
+| E | 18% |
+| D | 27% |
+| C | 37% |
+| B | 47% |
+| A | 57% |
+| S | 66% |
+| SS | 74% |
+| UF | 80% |
+| UE | 85% |
+| UD | 89% |
+| UC | 93% |
+| UB | 96% |
+| UA | 98.5% |
+| US | 100% |
+
+- A low stat grows faster: training gains ×(1 + 1.6 × (0.5 − share)) below half the ceiling. The first letters come quickly; the U letters slowly.
+
+**Grades**
+
+- The career grade continues past SS: UF 275, UE 295, UD 315, UC 335, UB 355, UA 375, US 400.
+- In 1,500 lives (sensible choices), UF and above is about 3% on 어려움 and 6% on 쉬움.
+
+**Goals**
+
+The first three goals are a little lower, because the career now starts lower:
+
+- 첫 달: 0.3
+- 첫 계절: 0.42
+- 다 자란 몸: 0.55
+
 ## Balance (800 lives each, 어려움, v0.13)
 
 Two choice policies:
