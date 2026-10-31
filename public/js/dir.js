@@ -126,11 +126,8 @@ function stDirect(text,li){
 function stClearDir(){stApply(null)}
 function stApply(d){
   const prev=STG.dir;STG.dir=d||null;const el=STG.el;if(!el)return;
-  /* background for this line, or back to where the fish is */
-  const P=stPlace();
-  const bg=d&&d.bg||P.bg;stSetBg(bg);
-  if(d&&d.bg){el.dataset.mode='inside';STG.tank.hidden=true;if(STG.fish&&STG.fish.el.parentNode!==STG.world){STG.world.appendChild(STG.fish.el)}}
-  else if((prev&&prev.bg)||!d){STG.key='';drawStage(true)}
+  /* background for this line, or back to where the fish is; the fish keeps swimming where it was */
+  const P=stPlace();drawStage(true);
   STG.el.classList.toggle('solo',!!(d&&d.small));STG.el.classList.toggle('schoolmode',!!(d&&d.school));
   const F=STG.fish;
   if(F){
@@ -145,8 +142,9 @@ function stApply(d){
   if(d&&d.school&&d.acc)STG.mates.filter(m=>m.id===S.sp.id).forEach(m=>{if(m.inner.querySelector('.acc'))return;const a=document.createElement('img');a.alt='';a.className='acc acc-'+d.acc.split('-')[1];a.src='img/mob/'+d.acc+'.webp';m.inner.appendChild(a)});
   STG.mates.forEach(m=>{if(!(d&&d.acc)){const a=m.inner.querySelector('.acc');if(a)a.remove()}});
   /* actors */
-  STG.props.innerHTML='';
-  if(d&&d.actor){const [img,how]=d.actor;const a=document.createElement('img');a.alt='';a.className='prop in-'+how+(/^hand\//.test(img)?' hand':'');a.src='img/'+img+'.webp';STG.props.appendChild(a)}
+  const ak=d&&d.actor?d.actor.join('|'):'';
+  if(STG.props.dataset.k!==ak){STG.props.dataset.k=ak;STG.props.innerHTML='';
+    if(ak){const [img,how]=d.actor;const a=document.createElement('img');a.alt='';a.className='prop in-'+how+(/^hand\//.test(img)?' hand':'');a.src='img/'+img+'.webp';STG.props.appendChild(a)}}
   if(d&&d.vs)stVs();
   /* light and camera */
   el.dataset.tint=d&&d.tint||'';

@@ -23,16 +23,36 @@
 .act-in{position:absolute;left:0;top:0;transform-origin:50% 50%;will-change:transform}
 .rig{position:absolute;left:0;top:0}
 .rl{position:absolute;max-width:none;user-select:none;-webkit-user-drag:none}
+.actor{--ta:11deg;--pa:20deg;--pr:.7}
 .rl-tail{animation:rl-tail var(--tw) ease-in-out infinite alternate}
-.rl-pect{animation:rl-pect calc(var(--tw)*.75) ease-in-out infinite alternate}
+.rl-pect{animation:rl-pect calc(var(--tw)*var(--pr)) ease-in-out infinite alternate}
 .rl-dorsal{animation:rl-dors calc(var(--tw)*1.7) ease-in-out infinite alternate}
 .rl-pelvic{animation:rl-pelv calc(var(--tw)*1.3) ease-in-out infinite alternate}
 .rl-body{animation:rl-body var(--tw) ease-in-out infinite alternate}
-@keyframes rl-tail{from{transform:rotate(-11deg) skewY(5deg)}to{transform:rotate(11deg) skewY(-5deg)}}
-@keyframes rl-pect{from{transform:rotate(-22deg) scaleX(.86)}to{transform:rotate(14deg) scaleX(1)}}
+@keyframes rl-tail{from{transform:rotate(calc(var(--ta)*-1)) skewY(calc(var(--ta)*.4))}to{transform:rotate(var(--ta)) skewY(calc(var(--ta)*-.4))}}
+@keyframes rl-pect{from{transform:rotate(calc(var(--pa)*-1)) scaleX(.84)}to{transform:rotate(calc(var(--pa)*.6)) scaleX(1)}}
 @keyframes rl-dors{from{transform:skewX(-7deg)}to{transform:skewX(5deg)}}
 @keyframes rl-pelv{from{transform:rotate(-9deg)}to{transform:rotate(7deg)}}
 @keyframes rl-body{from{transform:scaleY(.99) skewY(-1.2deg)}to{transform:scaleY(1.012) skewY(1.2deg)}}
+/* species that move differently */
+.mv-betta .rl-tail,.mv-betta .rl-dorsal,.mv-betta .rl-pelvic{animation-timing-function:cubic-bezier(.45,0,.55,1)}
+.mv-betta .rl-pelvic,.mv-wildbetta .rl-pelvic{animation-duration:calc(var(--tw)*1.9)}
+.mv-oranda .rl-tail,.mv-ryukin .rl-tail{animation-name:rl-tail-fan}
+@keyframes rl-tail-fan{from{transform:rotate(calc(var(--ta)*-1)) scaleY(.94)}to{transform:rotate(var(--ta)) scaleY(1.04)}}
+/* puffers scull with their fins, the tail is a rudder */
+.mv-peapuffer .rl-dorsal,.mv-fig8 .rl-dorsal,.mv-peapuffer .rl-pelvic,.mv-fig8 .rl-pelvic{animation:rl-scull calc(var(--tw)*.35) linear infinite alternate}
+@keyframes rl-scull{from{transform:skewX(-12deg) scaleX(.92)}to{transform:skewX(12deg) scaleX(1.04)}}
+.mv-peapuffer .rl-body,.mv-fig8 .rl-body{animation:none}
+/* the knifefish's body stays straight; the long fin under it ripples */
+.mv-ghost .rl-body,.mv-altum .rl-body,.mv-arowana .rl-body{animation:none}
+.mv-ghost .rl-pelvic{animation:rl-ripple .35s linear infinite alternate}
+@keyframes rl-ripple{from{transform:skewX(-14deg) scaleY(.92)}to{transform:skewX(14deg) scaleY(1.06)}}
+/* a stingray's disc undulates; its tail trails */
+.mv-motoro .rl-body{animation:rl-ray 1.6s ease-in-out infinite alternate}
+@keyframes rl-ray{from{transform:scaleY(.94) skewX(-3deg)}to{transform:scaleY(1.04) skewX(3deg)}}
+.mv-motoro .rl-tail{animation-duration:2.4s}
+/* bottom fish barely move their bodies */
+.mv-pleco .rl-body,.mv-cory .rl-body,.mv-bichir .rl-body{animation-duration:calc(var(--tw)*1.8)}
 .mate-img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;animation:mate-wag var(--tw) ease-in-out infinite alternate;transform-origin:30% 50%}
 @keyframes mate-wag{from{transform:skewY(-3deg) scaleX(.97)}to{transform:skewY(3deg) scaleX(1)}}
 .actor.mate{opacity:.92;filter:saturate(.9) brightness(.96)}
@@ -159,7 +179,7 @@
 .cut-owner{position:absolute;left:-2%;bottom:0;height:86%;transform:translateX(-110%);transition:transform .45s cubic-bezier(.2,.8,.3,1);filter:drop-shadow(6px 0 14px rgba(0,0,0,.25))}
 .cut-owner.in{transform:none}
 .cut-owner img{height:100%;width:auto;display:block}
-.cut-owner .nm{position:absolute;left:10%;bottom:6%;white-space:nowrap;background:var(--u-pink,#E8628E);color:#fff;font:700 12px/1 var(--f-ui,"Jua",sans-serif);padding:6px 12px;border-radius:999px;box-shadow:0 3px 0 rgba(0,0,0,.15)}
+.cut-owner .nm{position:absolute;left:16%;bottom:5%;max-width:150%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;background:var(--u-pink,#E8628E);color:#fff;font:700 12px/1 var(--f-ui,"Jua",sans-serif);padding:6px 12px;border-radius:999px;box-shadow:0 3px 0 rgba(0,0,0,.15)}
 .cut-tag{position:absolute;left:50%;top:16%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:8px 18px 8px 10px;border-radius:999px;background:linear-gradient(180deg,#FFFDF2,#FFE9A8);border:2px solid #E8B640;box-shadow:0 4px 0 rgba(150,100,0,.25),0 8px 20px rgba(0,0,0,.2);animation:tag-in .5s cubic-bezier(.2,1.6,.4,1) both}
 .cut-tag img{width:34px;height:34px}
 .cut-tag b{font:400 18px/1 var(--f-ui,"Jua",sans-serif);color:#7A4A00;letter-spacing:.02em}

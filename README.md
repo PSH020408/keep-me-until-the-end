@@ -16,7 +16,7 @@ Formerly 키워주세요 — 끝까지 (*Keep Me — Until the End*); renamed in
 > From then on you raise it in the manner of Uma Musume and Princess Maker — train, rest, learn
 > skills, pass goals — so that it can outlast whatever the owner gets wrong.
 
-**Status:** public beta (v0.24.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.24.1, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
@@ -193,6 +193,7 @@ decisions, in short:
 | v0.23.0 | 2026-10-31 | the stage acts out each story line (23 scenes and overlays); the death scene arrives with the ending's first line |
 | v0.23.1 | 2026-10-31 | event scenes as light, colour grading and camera moves instead of flat props |
 | v0.24.0 | 2026-11-01 | rebuilt on 339 painted assets: rigged fish (tail and fins move), painted places, 35 ending paintings, owner portraits, hands, animals and props per story line, career cut-ins, a new play layout, a painted title screen, a result screen with an episode title (제N훈); 맞짱, 수선조 / 폭주어단 and sixteen family gags; the pet-sim code and art removed |
+| v0.24.1 | 2026-11-01 | each species swims its own way; the fish keeps swimming between story lines; the current line no longer scrolls away; the turn menu back beside the card |
 
 Every row is expanded in [LOG.md](LOG.md).
 

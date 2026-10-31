@@ -103,51 +103,103 @@ function rigEl(id){
     d.appendChild(i)});
   return d;
 }
+/* ---------- how each species moves ----------
+   sp speed · zone [top,bottom] of the water it keeps to · wait [min,max] s between moves · dart chance of a sudden burst
+   tw tail beat (s) · ta tail swing (deg) · pa pectoral swing · pr pectoral beat (× tail) · bob up-down (px) · glide body stays still
+   rev swims backwards at times (knifefish) · rest pose it rests in now and then · roll lies on its side to rest */
+const MOVE={
+ guppy:{sp:1.25,zone:[.18,.62],wait:[.2,1.2],dart:.35,tw:.32,ta:14,pa:22,pr:.7,bob:2},
+ platy:{sp:1.05,zone:[.25,.7],wait:[.3,1.4],dart:.25,tw:.38,ta:12,pa:20,pr:.7,bob:2},
+ neon:{sp:1.3,zone:[.3,.66],wait:[.2,.9],dart:.3,tw:.28,ta:10,pa:18,pr:.6,bob:1},
+ betta:{sp:.55,zone:[.12,.55],wait:[1.4,3.6],dart:.08,tw:.9,ta:8,pa:24,pr:.45,bob:4,flow:1},
+ wildbetta:{sp:.8,zone:[.12,.6],wait:[.8,2.4],dart:.15,tw:.6,ta:10,pa:22,pr:.5,bob:3},
+ oranda:{sp:.5,zone:[.3,.75],wait:[.6,2],dart:.05,tw:.55,ta:9,pa:26,pr:.5,bob:6,wobble:1},
+ ryukin:{sp:.6,zone:[.3,.72],wait:[.6,2],dart:.06,tw:.5,ta:10,pa:26,pr:.5,bob:5,wobble:1},
+ comet:{sp:1.05,zone:[.2,.7],wait:[.2,1],dart:.12,tw:.45,ta:13,pa:16,pr:.8,bob:2,cruise:1},
+ koi:{sp:.7,zone:[.35,.8],wait:[.2,1.2],dart:.05,tw:.7,ta:10,pa:14,pr:.9,bob:3,cruise:1},
+ cory:{sp:.9,zone:[.76,.88],wait:[.6,2.4],dart:.25,tw:.3,ta:12,pa:26,pr:.5,bob:0,gulp:.12,hop:1},
+ pleco:{sp:.3,zone:[.8,.9],wait:[2.5,6],dart:.1,tw:.6,ta:7,pa:10,pr:1,bob:0,glass:1},
+ clownloach:{sp:.9,zone:[.62,.88],wait:[.5,2],dart:.3,tw:.32,ta:13,pa:20,pr:.6,bob:1,roll:.1},
+ apisto:{sp:.8,zone:[.6,.86],wait:[.8,2.2],dart:.3,tw:.4,ta:11,pa:24,pr:.5,bob:1,hop:1,show:.12},
+ oscar:{sp:.55,zone:[.35,.78],wait:[1.2,3],dart:.12,tw:.6,ta:8,pa:20,pr:.6,bob:2,look:1},
+ arowana:{sp:.7,zone:[.12,.3],wait:[.1,.6],dart:.06,tw:.8,ta:6,pa:10,pr:1.1,bob:1,cruise:1},
+ gar:{sp:.4,zone:[.12,.28],wait:[2,5],dart:.2,tw:.9,ta:5,pa:12,pr:.8,bob:1,still:1},
+ channa:{sp:.45,zone:[.55,.85],wait:[2,5],dart:.22,tw:.6,ta:7,pa:14,pr:.7,bob:1,gulp:.15,still:1},
+ altum:{sp:.45,zone:[.2,.6],wait:[1.2,3],dart:.04,tw:.8,ta:6,pa:16,pr:.6,bob:3,glide:1},
+ peapuffer:{sp:.75,zone:[.2,.7],wait:[.3,1.2],dart:.1,tw:.5,ta:4,pa:34,pr:.22,bob:2,hover:1},
+ fig8:{sp:.6,zone:[.25,.72],wait:[.4,1.6],dart:.08,tw:.55,ta:5,pa:32,pr:.25,bob:3,hover:1},
+ bichir:{sp:.35,zone:[.8,.9],wait:[2,5],dart:.12,tw:.5,ta:9,pa:22,pr:.6,bob:0,gulp:.12,still:1},
+ ghost:{sp:.5,zone:[.4,.8],wait:[1,3],dart:.05,tw:.9,ta:3,pa:10,pr:1,bob:1,rev:1,glide:1},
+ motoro:{sp:.45,zone:[.82,.9],wait:[1.5,4],dart:.06,tw:.8,ta:6,pa:8,pr:1,bob:0,ray:1,glide:1}
+};
+const MOVE0={sp:.9,zone:[.25,.75],wait:[.4,2],dart:.15,tw:.45,ta:11,pa:20,pr:.7,bob:2};
+const rnd=(a,b)=>a+Math.random()*(b-a);
 class Swimmer{
   constructor(id,opt){
-    this.id=id;this.o=opt||{};this.el=document.createElement('div');this.el.className='actor'+(this.o.mate?' mate':'');
+    this.id=id;this.o=opt||{};this.m=MOVE[id]||MOVE0;this.el=document.createElement('div');this.el.className='actor mv-'+id+(this.o.mate?' mate':'');
+    this.el.style.setProperty('--ta',this.m.ta+'deg');this.el.style.setProperty('--pa',this.m.pa+'deg');this.el.style.setProperty('--pr',this.m.pr);
     this.inner=document.createElement('div');this.inner.className='act-in';this.el.appendChild(this.inner);
     if(this.o.mate||!RIG[id]){const i=document.createElement('img');i.alt='';i.className='mate-img';i.src=fishImg(RIG[id]?id:'neon');this.inner.appendChild(i);this.nat=RIG[id]?[RIG[id].w,RIG[id].h]:[560,203]}
     else{this.rig=rigEl(id);this.inner.appendChild(this.rig);this.nat=[RIG[id].w,RIG[id].h]}
-    this.pose=null;this.x=.5;this.y=.5;this.vx=0;this.vy=0;this.face=1;this.faceT=1;this.tx=.5;this.ty=.5;this.wait=0;this.len=.3;this.t=Math.random()*9;
+    const z=this.m.zone;this.pose=null;this.x=rnd(.25,.75);this.y=rnd(z[0],z[1]);this.vx=0;this.vy=0;this.face=1;this.faceT=1;this.tx=this.x;this.ty=this.y;this.wait=rnd(0,1);this.burst=0;this.t=Math.random()*9;
   }
-  setLen(px){this.px=px;const s=px/this.nat[0];this.s=s;this.inner.style.width=this.nat[0]+'px';this.inner.style.height=this.nat[1]+'px'}
+  setLen(px){if(px===this.px)return;this.px=px;const s=px/this.nat[0];this.s=s;this.inner.style.width=this.nat[0]+'px';this.inner.style.height=this.nat[1]+'px'}
   setPose(p,cls){
     if(p===this.pose&&cls===this.poseCls)return;this.pose=p;this.poseCls=cls;
     let pi=this.inner.querySelector('.pose');
-    if(!p||p==='swim'){if(pi)pi.remove();if(this.rig)this.rig.style.display='';this.el.dataset.pose='';return}
+    if(!p||p==='swim'){if(pi)pi.remove();if(this.rig)this.rig.style.display='';const m=this.inner.querySelector('.mate-img');if(m)m.style.display='';this.el.dataset.pose='';return}
     if(!pi){pi=document.createElement('img');pi.alt='';pi.className='pose';this.inner.appendChild(pi)}
     pi.src=fishImg(this.id,p);if(this.rig)this.rig.style.display='none';
     const m=this.inner.querySelector('.mate-img');if(m)m.style.display='none';
     this.el.dataset.pose=cls||p;
   }
-  /* bounds: area (0..1) this fish may use */
+  /* the next thing this fish decides to do, in its own way */
+  plan(B){
+    const m=this.m,z=this.o.zone||m.zone;
+    const y0=Math.max(B[1],z[0]),y1=Math.min(B[3],Math.max(z[1],y0+.02));
+    this.wait=rnd(m.wait[0],m.wait[1])*(this.o.mate?.8:1)*(this.o.sick?1.8:1);
+    this.burst=Math.random()<m.dart?rnd(.35,.7):0;
+    /* air from the surface (corydoras, snakehead, bichir), then back down */
+    if(m.gulp&&Math.random()<m.gulp&&!this.o.zone){this.tx=Math.min(B[2],Math.max(B[0],this.x+rnd(-.08,.08)));this.ty=B[1];this.gulping=1;this.burst=.8;return}
+    this.gulping=0;
+    const reach=m.cruise?rnd(.35,.8):m.hover||m.still?rnd(.05,.18):m.hop?rnd(.06,.22):rnd(.12,.5);
+    let tx=this.x+(Math.random()<.5?-1:1)*reach;if(tx<B[0]||tx>B[2])tx=this.x-(tx-this.x);
+    this.tx=Math.min(B[2],Math.max(B[0],tx));
+    this.ty=Math.min(y1,Math.max(y0,m.cruise||m.glide?this.y+rnd(-.08,.08):rnd(y0,y1)));
+    /* a resting loach lies on its side for a moment */
+    this.roll=m.roll&&Math.random()<m.roll?rnd(1.5,3):0;
+  }
   step(dt,W,H,B){
-    if(this.hold){this.render(W,H);return}
-    this.t+=dt;
-    const sp=(this.o.speed||1)*(this.o.sick?.45:1);
-    if(this.wait>0)this.wait-=dt;
+    if(this.hold){this.render(W,H,dt);return}
+    this.t+=dt;const m=this.m;
+    const sp=(this.o.speed||1)*m.sp*(this.o.sick?.45:1)*(this.burst>0?2.6:1);
+    if(this.burst>0)this.burst-=dt;
+    if(this.roll>0)this.roll-=dt;
+    if(this.wait>0){this.wait-=dt;this.vx*=Math.pow(.15,dt);this.vy*=Math.pow(.15,dt)}
     else{
       const dx=this.tx-this.x,dy=this.ty-this.y,d=Math.hypot(dx*W,dy*H);
-      if(d<14){this.wait=.4+Math.random()*(this.o.mate?1.5:2.6);this.tx=B[0]+Math.random()*(B[2]-B[0]);this.ty=B[1]+Math.random()*(B[3]-B[1]);
-        /* mostly sideways: fish turn along the long axis */
-        this.ty=this.y+(this.ty-this.y)*.45}
-      else{const v=(30+this.px*.35)*sp;this.vx+=(dx*W/d*v-this.vx)*Math.min(1,dt*1.6);this.vy+=(dy*H/d*v*.6-this.vy)*Math.min(1,dt*1.6)}
+      if(d<10){if(this.gulping){this.gulping=0;this.ty=Math.min(B[3],m.zone[1]);this.wait=0;this.burst=.5}else this.plan(B)}
+      else{const v=(26+this.px*.3)*sp,k=Math.min(1,dt*(m.cruise||m.glide?1:2.2));this.vx+=(dx*W/d*v-this.vx)*k;this.vy+=(dy*H/d*v*.7-this.vy)*k}
     }
-    if(this.wait>0){this.vx*=Math.pow(.2,dt);this.vy*=Math.pow(.2,dt)}
     this.x=Math.min(B[2],Math.max(B[0],this.x+this.vx*dt/W));this.y=Math.min(B[3],Math.max(B[1],this.y+this.vy*dt/H));
-    /* facing: the art looks left; turn only when clearly swimming the other way */
-    if(this.vx<-6)this.faceT=1;else if(this.vx>6)this.faceT=-1;
-    this.face+=(this.faceT-this.face)*Math.min(1,dt*7);
-    this.render(W,H);
+    /* facing: the art looks left; a knifefish may back up without turning */
+    const back=m.rev&&Math.abs(this.vx)<22&&this.wait<=0&&Math.random()<.002;
+    if(!back){if(this.vx<-6)this.faceT=1;else if(this.vx>6)this.faceT=-1}
+    this.face+=(this.faceT-this.face)*Math.min(1,dt*(m.cruise?4:7));
+    this.render(W,H,dt);
   }
   render(W,H){
-    const sp=Math.hypot(this.vx,this.vy),tilt=Math.max(-14,Math.min(14,(this.vy/(Math.abs(this.vx)+20))*16))*(this.faceT);
-    const bob=Math.sin(this.t*1.7)*3;
+    const m=this.m,sp=Math.hypot(this.vx,this.vy);
+    let tilt=Math.max(-14,Math.min(14,(this.vy/(Math.abs(this.vx)+20))*16))*this.faceT;
+    if(m.wobble)tilt+=Math.sin(this.t*3.2)*4;
+    if(this.gulping)tilt=-28*this.faceT;
+    if(this.roll>0)tilt+=70*this.faceT;
+    const bob=Math.sin(this.t*(m.hover?2.6:1.7))*(m.bob??2);
     const sx=this.s*(Math.abs(this.face)<.12?.12*Math.sign(this.face||1):this.face);
     this.el.style.transform=`translate(${(this.x*W).toFixed(1)}px,${(this.y*H+bob).toFixed(1)}px)`;
-    this.inner.style.transform=`translate(-50%,-50%) rotate(${(this.o.tilt||0)+tilt}deg) scale(${sx.toFixed(3)},${this.s.toFixed(3)})`;
-    const tw=Math.max(.22,Math.min(.95,1.05-sp/90)).toFixed(2);if(tw!==this.tw){this.tw=tw;this.el.style.setProperty('--tw',tw+'s')}
+    this.inner.style.transform=`translate(-50%,-50%) rotate(${((this.o.tilt||0)+tilt).toFixed(1)}deg) scale(${sx.toFixed(3)},${this.s.toFixed(3)})`;
+    /* the tail beats faster when the fish swims faster, from the species' own resting beat */
+    const tw=Math.max(.16,m.tw*(1-Math.min(.6,sp/160))).toFixed(2);if(tw!==this.tw){this.tw=tw;this.el.style.setProperty('--tw',tw+'s')}
   }
 }
 
@@ -157,36 +209,38 @@ function drawStage(force){
   if(typeof skipping!=='undefined'&&skipping&&!force)return;
   if(!S||!S.f||typeof requestAnimationFrame!=='function'||!stBuild())return;
   const P=stPlace(),f=S.f,x=fx_();
-  const key=[P.bg,P.mode,P.tank,S.sp.id,P.pose,P.lie,S.done].join('|');
-  stSetBg(P.bg);
-  STG.el.dataset.mode=P.mode;STG.el.classList.toggle('cold',!!P.cold);STG.el.classList.toggle('ending',!!(S.done||S.ending&&S.fx));
-  const room=P.mode==='room';STG.tank.hidden=!room;
-  if(room){const tb=STG.tank.querySelector('.tk-bg');const s='img/'+(P.tank||'career/goal-month1')+'.webp';if(tb.getAttribute('src')!==s)tb.src=s}
+  const dirBg=STG.dir&&STG.dir.bg;
+  stSetBg(dirBg||P.bg);
+  const room=P.mode==='room'&&!dirBg;
+  STG.el.dataset.mode=room?'room':'inside';STG.el.classList.toggle('cold',!!P.cold);STG.el.classList.toggle('ending',!!(S.done||S.ending&&S.fx));
+  STG.tank.hidden=!room;
+  if(room){const tb=STG.tank.querySelector('.tk-bg');const s='img/'+(P.tank||'career/goal-month1')+'.webp';if(tb.dataset.k!==s){tb.dataset.k=s;tb.src=s}}
   const host=room?STG.tworld:STG.world;
-  if(key!==STG.key||force||!STG.fish||STG.fish.el.parentNode!==host){
-    STG.key=key;
-    STG.world.innerHTML='';STG.tworld.innerHTML='';STG.mates=[];
-    STG.fish=new Swimmer(S.sp.id,{});host.appendChild(STG.fish.el);
-    /* the others in the water: tankmates at home, siblings before an owner */
-    const ids=[];
-    if(P.school)for(let i=0;i<P.school;i++)ids.push([S.sp.id,.55]);
-    else if(!S.done)f.mates.filter(m=>m.n>0&&RIG[m.id]).forEach(m=>{for(let j=0;j<Math.min(m.n,3);j++)ids.push([m.id,Math.max(.35,Math.min(.8,m.cm/Math.max(1,f.len||1)))])});
-    ids.slice(0,5).forEach(([id,r],i)=>{const m=new Swimmer(id,{mate:1,speed:.8+i*.07});if(id===S.sp.id)m.el.classList.add('same');m.r=r;m.x=.1+Math.random()*.8;m.y=.2+Math.random()*.6;m.tx=m.x;m.ty=m.y;host.insertBefore(m.el,STG.fish.el);STG.mates.push(m)});
-
-  }
+  /* the fish is made once per life (and per ending); moving between scenes keeps it where it was */
+  const key=[S.sp.id,S.done,!!(S.ending&&S.fx)].join('|');
+  if(key!==STG.key||!STG.fish){STG.key=key;STG.world.innerHTML='';STG.tworld.innerHTML='';STG.mates=[];STG.mkey='';STG.fish=new Swimmer(S.sp.id,{})}
+  if(STG.fish.el.parentNode!==host)host.appendChild(STG.fish.el);
+  /* the others in the water: tankmates at home, siblings before an owner */
+  const ids=[];
+  if(P.school)for(let i=0;i<P.school;i++)ids.push([S.sp.id,.55]);
+  else if(!S.done)f.mates.filter(m=>m.n>0&&RIG[m.id]).forEach(m=>{for(let j=0;j<Math.min(m.n,3);j++)ids.push([m.id,Math.max(.35,Math.min(.8,m.cm/Math.max(1,f.len||1)))])});
+  const mkey=ids.slice(0,5).map(z=>z[0]).join(',')+'|'+(room?'r':'i');
+  if(mkey!==STG.mkey){STG.mkey=mkey;
+    const keep=STG.mates;STG.mates=[];
+    ids.slice(0,5).forEach(([id,r],i)=>{let m=keep.find(k=>k.id===id&&!k.used);if(m)m.used=1;else{m=new Swimmer(id,{mate:1,speed:.8+i*.07});if(id===S.sp.id)m.el.classList.add('same')}m.r=r;host.insertBefore(m.el,STG.fish.el);STG.mates.push(m)});
+    keep.filter(k=>!k.used).forEach(k=>k.el.remove());STG.mates.forEach(m=>delete m.used)}
   /* size: big on screen like a character (inside), true to the tank (room) */
   const g=Math.min(1,(f.len||1)/(x.cm||5));
   const W=host.clientWidth||300;
   const len=room?W*Math.max(.18,Math.min(.62,.2+.45*g)):W*Math.max(.26,Math.min(.52,.24+.32*g));
   const hmax=(host.clientHeight||200)*(room?.5:.46),nat=RIG[S.sp.id]||{w:560,h:200};const len2=Math.min(len,hmax*nat.w/nat.h);
-  STG.baseLen=len2;STG.fish.setLen(len2*(STG.dir&&STG.dir.small?.55:STG.dir&&STG.dir.big?1.2:1));
-  STG.mates.forEach(m=>m.setLen(Math.max(W*.07,Math.min(W*.3,len*m.r*.8))));
+  STG.baseLen=len2;STG.fish.setLen(Math.round(len2*(STG.dir&&STG.dir.small?.55:STG.dir&&STG.dir.big?1.2:1)));
+  STG.mates.forEach(m=>m.setLen(Math.round(Math.max(W*.07,Math.min(W*.3,len*m.r*.8)))));
   /* how the fish looks now */
-  const sick=!S.done&&(S.health<35||(f.ill&&f.ill.sev>.5));
-  STG.fish.o.sick=sick;
+  STG.fish.o.sick=!S.done&&(S.health<35||!!(f.ill&&f.ill.sev>.5));
   stFishState(P);
   if(!STG.raf&&typeof requestAnimationFrame==='function'){STG.last=performance.now();STG.raf=requestAnimationFrame(stLoop)}
-  const ch=$('chips');if(ch&&typeof fishChips==='function'){ch.innerHTML='';fishChips().forEach(([tx,kk])=>{const sp=document.createElement('span');sp.className='chip '+kk;sp.textContent=tx;ch.appendChild(sp)})}
+  const ch=$('chips');if(ch&&typeof fishChips==='function'){const t=fishChips().map(z=>z.join(':')).join('|');if(ch.dataset.k!==t){ch.dataset.k=t;ch.innerHTML='';fishChips().forEach(([tx,kk])=>{const sp=document.createElement('span');sp.className='chip '+kk;sp.textContent=tx;ch.appendChild(sp)})}}
 }
 function stFishState(P){
   const F=STG.fish,f=S.f;if(!F)return;
@@ -222,9 +276,10 @@ function stLoop(now){
   if(W&&H&&!document.hidden){
     const F=STG.fish;
     if(F){const sx=F.px/W/2+.02,sy=Math.min(.4,F.px*F.nat[1]/F.nat[0]/H/2+.04);
-      const B=STG.dir&&STG.dir.zone||(room?[sx,sy+.08,1-sx,1-sy]:[sx+.04,Math.max(.22,sy),1-sx-.04,Math.min(.86,1-sy)]);
+      const B=STG.dir&&STG.dir.zone||(room?[sx,sy+.08,1-sx,1-sy]:[sx+.04,Math.max(.14,sy),1-sx-.04,Math.min(.9,1-sy)]);
+      F.o.zone=STG.dir&&STG.dir.zone?[B[1],B[3]]:null;
       F.step(dt,W,H,B)}
-    STG.mates.forEach(m=>{const sx=m.px/W/2+.02;m.step(dt,W,H,[sx,.18,1-sx,.9])});
+    STG.mates.forEach(m=>{const sx=m.px/W/2+.02,sy=Math.min(.4,m.px*m.nat[1]/m.nat[0]/H/2+.03);m.step(dt,W,H,[sx,Math.max(.12,sy),1-sx,Math.min(.9,1-sy)])});
   }
   STG.raf=requestAnimationFrame(stLoop);
 }

@@ -23,7 +23,7 @@ function stDraw(){
   box.querySelector('.st-t').innerHTML=li.querySelector('p').innerHTML;
   box.querySelector('.st-n').textContent=ST.q.length?'▼ '+ST.q.length:'▼';
   /* v0.21: the three lines before this one stay below it, fading */
-  const h=box.querySelector('.st-h');if(h){h.innerHTML='';ST.hist.forEach((x,i)=>{const d=document.createElement('div');d.className='sh '+(x.className||'');d.style.opacity=String(Math.max(.5,.8-i*.1));
+  const h=box.querySelector('.st-h');if(h){h.innerHTML='';h.scrollTop=0;ST.hist.forEach((x,i)=>{const d=document.createElement('div');d.className='sh '+(x.className||'');d.style.opacity=String(Math.max(.5,.8-i*.1));
     const a=document.createElement('span');a.className='sa';a.textContent=x.querySelector('.t').textContent;const t=document.createElement('p');t.innerHTML=x.querySelector('p').innerHTML;d.append(a,t);h.appendChild(d)})}
 }
 /* v0.23: the stage acts out the line on screen */
