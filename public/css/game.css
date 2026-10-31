@@ -317,3 +317,85 @@ body.uma.ingame .loghead .lognote{display:none}
   body.uma.ingame .hubstrip .hs[data-lab="인연"]{display:none}
 }
 body.uma.ingame .infobtn{white-space:nowrap}
+
+/* ---------- v0.20: story box (one line per click), turn menu, popups, log as a popup ---------- */
+body:not(.ingame) #story,body:not(.ingame) #turnbar{display:none!important}
+body.uma.ingame #playGrid{grid-template-columns:minmax(0,1fr)!important;grid-template-rows:auto minmax(0,1fr) auto!important}
+body.uma.ingame #card{grid-column:1!important;grid-row:1!important}
+body.uma.ingame #story{grid-column:1;grid-row:2;min-height:0}
+body.uma.ingame #turnbar{grid-column:1;grid-row:3}
+@media (min-width:900px){
+  body.uma.ingame #playGrid{grid-template-columns:minmax(0,1fr) minmax(0,1.1fr)!important;grid-template-rows:minmax(0,1fr) auto!important}
+  body.uma.ingame #card{grid-column:1!important;grid-row:1/3!important}
+  body.uma.ingame #story{grid-column:2;grid-row:1}
+  body.uma.ingame #turnbar{grid-column:2;grid-row:2}
+}
+/* the log only as a popup */
+body.uma.ingame .logwrap{display:none!important}
+body.uma.ingame.logopen .logwrap{display:flex!important;position:fixed;inset:0;margin:auto;z-index:60;width:min(640px,calc(100% - 24px));height:min(80dvh,720px);max-height:none!important;
+  box-shadow:0 0 0 100vmax rgba(60,75,50,.4),0 20px 50px rgba(40,60,30,.3)!important}
+body.uma.ingame .logclose{margin-left:auto;border:1.5px solid var(--u-line2);background:#fff;border-radius:999px;width:30px;height:30px;font-size:14px;color:var(--u-sub)}
+body.uma.ingame .loghead{align-items:center}
+
+/* the story box */
+.story{position:relative;display:flex;flex-direction:column;gap:6px;background:#fff;border:1.5px solid var(--u-line);border-radius:18px;padding:12px 16px 26px;
+  box-shadow:0 3px 0 var(--u-line2),0 8px 20px rgba(80,110,60,.10);cursor:pointer;user-select:none;-webkit-user-select:none;overflow:auto;min-height:120px}
+.story .st-top{display:flex;align-items:center;gap:8px}
+.story .st-a{display:inline-block;background:var(--u-green);color:#fff;font-family:var(--display);font-size:13px;padding:1px 14px;border-radius:999px;min-height:1.5em}
+.story .st-ctl{margin-left:auto;display:flex;gap:6px}
+.story .st-ctl button{font-family:var(--display);font-size:12.5px;color:var(--u-ink);background:#fff;border:1.5px solid var(--u-line2);border-radius:999px;padding:3px 12px;box-shadow:0 2px 0 var(--u-line2)}
+.story .st-t{margin:0;font-family:var(--display);font-size:18px;line-height:1.75;color:var(--u-ink);word-break:keep-all}
+.story[data-c~=good] .st-t{color:#4C8F22}.story[data-c~=bad] .st-t{color:#C9584B}.story[data-c~=star] .st-t{color:#B07A0E}.story[data-c~=sub] .st-t{color:#6E7682}
+.story .st-t .dchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.story .st-n{position:absolute;right:16px;bottom:6px;font-family:var(--display);font-size:13px;color:var(--u-green2)}
+.story.idle .st-n{display:none}
+@media (prefers-reduced-motion:no-preference){.story.wait .st-n{animation:stBob 1s ease-in-out infinite}.story.wait .st-t{animation:stIn .25s ease-out}}
+@keyframes stBob{50%{transform:translateY(3px)}}
+@keyframes stIn{from{opacity:0;transform:translateY(4px)}}
+
+/* the turn menu */
+.turnbar{background:#fff;border:1.5px solid var(--u-line);border-radius:18px;padding:0 12px 12px;display:flex;flex-direction:column;gap:8px;box-shadow:0 3px 0 var(--u-line2),0 8px 20px rgba(80,110,60,.10)}
+.turnbar .tb-head{margin:0 -12px;padding:7px 16px 7px 26px;border-radius:17px 17px 0 0;background:var(--u-greenbg);border-bottom:1.5px solid var(--u-line);color:var(--u-green3);font-family:var(--display);font-size:15px;position:relative}
+.turnbar .tb-head::before{content:"";position:absolute;left:14px;top:9px;bottom:9px;width:4px;border-radius:2px;background:var(--u-green)}
+.turnbar .hubstrip{margin:0}
+.turnbar .tb-menu{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px}
+.turnbar .tb-btn{display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 4px 8px;background:#fff;border:1.5px solid var(--u-line2);border-radius:16px;
+  box-shadow:0 3px 0 var(--u-line2);font-family:var(--display);color:var(--u-ink);font-size:14px;transition:transform .08s,box-shadow .08s}
+.turnbar .tb-btn i{font-style:normal;font-size:24px;line-height:1.1}
+.turnbar .tb-btn:active{transform:translateY(3px);box-shadow:none}
+.turnbar .tb-btn[data-g=train]{background:linear-gradient(180deg,#9AD655,var(--u-green2));border-color:var(--u-green3);color:#fff;box-shadow:0 3px 0 var(--u-green3)}
+.turnbar .tb-btn.friend{box-shadow:0 3px 0 #D9A22C,0 0 12px rgba(232,182,58,.6)}
+.turnbar .tb-btn:disabled{opacity:.45}
+.turnbar .tb-flavor{margin:0;font-family:var(--display);font-size:13px;color:var(--u-sub);line-height:1.5}
+
+/* every choice is a popup again */
+body.uma.ingame #choice:not([hidden]){position:fixed!important;inset:0!important;margin:auto!important;z-index:45!important;width:min(640px,calc(100% - 24px))!important;
+  height:fit-content!important;max-height:calc(100dvh - 32px)!important;overflow:auto!important;grid-column:auto!important;grid-row:auto!important;
+  box-shadow:0 0 0 100vmax rgba(60,75,50,.38),0 4px 0 var(--u-line2),0 20px 50px rgba(40,60,30,.25)!important}
+body.uma.ingame #choice.crisis:not([hidden]){box-shadow:0 0 0 100vmax rgba(80,40,40,.42),0 4px 0 #F3C9C2,0 20px 50px rgba(60,20,20,.3)!important}
+body.uma.ingame #choice.hub.pop{width:min(700px,calc(100% - 24px))!important}
+body.uma.ingame #choice.pop .opts{padding-top:4px}
+body.uma.ingame #choice .tb-back{display:block;margin:12px auto 0;font-family:var(--display);font-size:14px;color:var(--u-sub);background:#fff;border:1.5px solid var(--u-line2);border-radius:999px;padding:7px 22px;box-shadow:0 2px 0 var(--u-line2)}
+body.uma.ingame #playGrid:has(#choice[hidden]) .logwrap{grid-row:auto!important}
+
+@media (max-width:620px){
+  .story{padding:10px 12px 22px;min-height:96px}
+  .story .st-t{font-size:16px;line-height:1.65}
+  .turnbar .tb-menu{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .turnbar .tb-btn{padding:8px 2px 6px;font-size:13px}
+  .turnbar .tb-btn i{font-size:20px}
+  .turnbar .hubstrip .hs[data-lab="다음 고비"] .hv{font-size:12.5px}
+  body.uma.ingame #choice:not([hidden]){inset:auto 8px calc(8px + env(safe-area-inset-bottom,0px)) 8px!important;margin:0!important;width:auto!important;max-height:80dvh!important;padding:0 12px 14px!important}
+  body.uma.ingame #choice.hub.pop{width:auto!important}
+}
+@media (max-width:620px) and (orientation:portrait){
+  body.uma.ingame #card{max-height:34dvh!important}
+}
+/* names on the title screen */
+#intro.title-screen .namebox{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(440px,100%);position:relative;z-index:1}
+#intro.title-screen .namebox label{display:flex;flex-direction:column;gap:4px;text-align:left}
+#intro.title-screen .namebox span{font-family:var(--display);font-size:12.5px;color:var(--u-sub);padding-left:6px}
+#intro.title-screen .namebox input{font-family:var(--display);font-size:17px;color:var(--u-ink);background:#fff;border:1.5px solid var(--u-line2);border-radius:12px;padding:9px 12px;
+  box-shadow:inset 0 2px 0 rgba(0,0,0,.04);width:100%;min-width:0}
+#intro.title-screen .namebox input:focus{outline:none;border-color:var(--u-green);box-shadow:0 0 0 3px rgba(124,194,59,.25)}
+#intro.title-screen .namebox input::placeholder{color:#B5BCB0;font-size:14px}

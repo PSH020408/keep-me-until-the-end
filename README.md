@@ -16,7 +16,7 @@ Formerly 키워주세요 — 끝까지 (*Keep Me — Until the End*); renamed in
 > From then on you raise it in the manner of Uma Musume and Princess Maker — train, rest, learn
 > skills, pass goals — so that it can outlast whatever the owner gets wrong.
 
-**Status:** public beta (v0.19.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.20.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
@@ -182,6 +182,7 @@ decisions, in short:
 | v0.18.0 | 2026-10-31 | Uma Musume style skin: pale striped background, white panels, lime accent, outlined gradient rank letters; light theme everywhere; friendlier footer |
 | v0.18.1 | 2026-10-31 | 명예의 전당 renamed 육성 기록; on-screen explanations moved to the README |
 | v0.19.0 | 2026-10-31 | turn-based: no timer or speed buttons; one Uma Musume style training screen with the options in the screen |
+| v0.20.0 | 2026-10-31 | one line per click with a log popup; turn menu with popups; owner and fish names; absurd routes — wild births, river training, 하천의 왕, 세계관 최강자, 한강의 전설, 저수지의 군주, beating the cat — and twelve Gintama-style gags |
 
 Every row is expanded in [LOG.md](LOG.md).
 

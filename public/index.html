@@ -33,7 +33,7 @@
     <div class="ts-bubbles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
     <div class="title"><span class="label">관상어 23종 · 육성 서바이벌<span class="beta">BETA</span></span><h1>살아남아라!</h1><span class="sub">끝까지!</span></div>
     <ol class="pledges" id="introPledges" hidden></ol>
-    <input id="nick" type="hidden" value=""><span id="sheetOwner" hidden></span><p class="nickmsg" id="nickMsg" hidden></p>
+    <div class="namebox"><label><span>주인 이름</span><input id="nick" maxlength="10" placeholder="비우면 무작위" autocomplete="off"></label><label><span>물고기 이름</span><input id="fname" maxlength="10" placeholder="비우면 주인이 지어 줌" autocomplete="off"></label></div><span id="sheetOwner" hidden></span><p class="nickmsg" id="nickMsg" hidden></p>
     <div class="modepick" id="modePick" role="group" aria-label="난이도"><span class="label">난이도</span><button type="button" data-mode="story" aria-pressed="true">쉬움</button><button type="button" data-mode="real" aria-pressed="false">어려움</button><span class="modedesc" id="modeDesc" hidden></span></div>
     <div class="row"><button class="btn ts-start" id="startBtn">▶ 시작하기</button></div>
   </section>
@@ -104,9 +104,11 @@
       <span class="sp"></span>
       <button id="skipBtn">마지막까지</button>
     </div>
+    <div class="story" id="story" role="button" tabindex="0" aria-label="다음 이야기"><div class="st-top"><span class="st-a"></span><span class="st-ctl"><button type="button" id="stLog">기록</button><button type="button" id="stSkip">▶▶ 스킵</button></span></div><p class="st-t"></p><span class="st-n"></span></div>
+    <div class="turnbar" id="turnbar" hidden></div>
     <div class="choice sheet" id="choice" hidden></div>
     <div class="ending sheet" id="ending" hidden></div>
-    <div class="logwrap"><div class="loghead"><span>기록</span><span class="lognote"></span></div><ul class="log" id="log"></ul></div>
+    <div class="logwrap"><div class="loghead"><span>기록</span><span class="lognote"></span><button type="button" class="logclose" id="logClose" aria-label="닫기">✕</button></div><ul class="log" id="log"></ul></div>
     </div>
   </section>
 
@@ -124,7 +126,7 @@
     <div class="row memtools"><button type="button" class="btn ghost" id="pubMore" hidden>더 보기</button></div>
   </section>
 
-  <p class="foot"><span class="ver">베타 v0.19.0 · 관상어 데이 · PARK, SEHO</span></p>
+  <p class="foot"><span class="ver">베타 v0.20.0 · 관상어 데이 · PARK, SEHO</span></p>
 </div>
 
 <!-- load order matters: later files use what earlier files declare -->
@@ -157,6 +159,7 @@
 <script src="js/data/fev_zgrow.js"></script>
 <script src="js/data/fev_zz_career.js"></script>
 <script src="js/data/fev_zz_fun.js"></script>
+<script src="js/data/fev_zz_gintama.js"></script>
 <script src="js/art/paint.js"></script>
 <script src="js/art/look.js"></script>
 <script src="js/art/raster.js"></script>
@@ -168,5 +171,6 @@
 <script src="js/art.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/share.js"></script>
+<script src="js/turnui.js"></script>
 </body>
 </html>

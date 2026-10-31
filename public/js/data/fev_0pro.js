@@ -80,7 +80,7 @@ function proOpt(o,e){
   const isEsc=JSON.stringify(o,(k,v)=>typeof v==='function'?v.toString():v).includes('escape');
   /* v0.12: a fry a few weeks old is netted with the leaves; it does not choose a way out */
   if(isEsc&&S.ageM<1.5)return {l:valOf(o.l),d:'아직 너무 어려서 할 수 없다',dis:1,c:'neutral',r:''};
-  const ch0=fevChance(o.chk),ch=ch0<0?ch0:isEsc?ch0*.2:ch0;
+  const ch0=fevChance(o.chk),ch=ch0<0?ch0:isEsc?ch0*(S.f.track==='wild'?.8:.2):ch0;   // v0.20: a wild fish slips the net more often
   if(ch<0)return {l:valOf(o.l),d:o.lockText||'{n}의 몸으로는 할 수 없다',dis:1,c:'neutral',r:''};
   const c=valOf(o.chk);
   return {l:valOf(o.l),d:o.d?valOf(o.d):'',c:'neutral',r:'',fx:()=>{const ok=c?R()<ch:true;fevOut(ok?o.ok:(o.no||o.ok),e);if(c&&ok)fStat(c[0],2)}};
