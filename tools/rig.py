@@ -108,3 +108,21 @@ def plug_head(parts,ov):
     can.alpha_composite(hi,(0,int(dy+cy-hcy)))
     bb=can.getbbox(); parts[0]=can.crop(bb)
     return parts
+
+def paint_eye(body,ov):
+    """Body painted with no eye at all (fig8): draw one, in the style of the other pufferfish."""
+    from PIL import Image,ImageDraw,ImageFilter
+    e=ov['eye']; bb=body.getbbox(); bw,bh=bb[2]-bb[0],bb[3]-bb[1]
+    cx,cy,r=bb[0]+bw*e[0],bb[1]+bh*e[1],bw*e[2]
+    S=4; L=Image.new('RGBA',(body.width*S,body.height*S),(0,0,0,0)); d=ImageDraw.Draw(L)
+    def el(k,f,dx=0,dy=0,ky=1): d.ellipse([(cx+dx-r*k)*S,(cy+dy-r*k*ky)*S,(cx+dx+r*k)*S,(cy+dy+r*k*ky)*S],fill=f)
+    el(1.18,(92,84,40,150),0,r*.06)        # socket shadow
+    el(1.08,(232,226,196,255))             # rim
+    el(.96,(176,128,52,255))               # iris
+    el(.80,(120,84,30,255),0,r*.08)
+    el(.62,(16,13,12,255))                 # pupil
+    el(.20,(255,255,255,245),-r*.3,-r*.32) # catch lights
+    el(.09,(255,255,255,200),r*.3,r*.26)
+    L=L.resize(body.size,Image.LANCZOS)
+    out=body.copy(); out.alpha_composite(L)
+    return out

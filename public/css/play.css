@@ -195,3 +195,19 @@ body.uma.ingame .stagewrap .chips{transition:opacity .3s}
   body.uma.ingame #card.showinfo .infoclose{display:block;position:sticky;top:-40px;margin:-44px 0 0 auto;z-index:3;align-self:flex-end;font-family:var(--display);font-size:14px;color:#fff;
     background:linear-gradient(180deg,#9AD655,#5AA72A);border:1.5px solid #3F8A1C;border-radius:999px;padding:7px 16px;box-shadow:0 3px 0 #3F8A1C}
 }
+
+/* ---------- the title screen: a painting behind the logo ---------- */
+#intro.title-screen{position:relative;overflow:hidden;isolation:isolate}
+#intro .ts-art{position:absolute;inset:0;z-index:-1;overflow:hidden;border-radius:inherit}
+#intro .ts-art>img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;animation:kb 30s ease-in-out infinite alternate}
+#intro .ts-art::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,.15),rgba(255,255,255,.55) 45%,rgba(255,255,255,.82) 70%,rgba(255,255,255,.9))}
+#intro .ts-parade{position:absolute;inset:0}
+#intro .ts-parade .tp{position:absolute;left:0;width:var(--w);animation:tp-swim linear infinite;opacity:.95}
+#intro .ts-parade .tp img{width:100%;display:block;animation:mate-wag .5s ease-in-out infinite alternate;filter:drop-shadow(0 4px 6px rgba(0,30,40,.25))}
+#intro .ts-parade .tp.rev{animation-name:tp-swim-r}
+#intro .ts-parade .tp.rev img{transform:scaleX(-1)}
+@keyframes tp-swim{from{transform:translateX(calc(100vw + 40px))}to{transform:translateX(-260px)}}
+@keyframes tp-swim-r{from{transform:translateX(-260px)}to{transform:translateX(calc(100vw + 40px))}}
+#intro .ts-parade .tp.rev img{animation:none}
+#intro .namebox input{background:rgba(255,255,255,.92)}
+#intro .namebox label>span,#intro .modepick>.label{background:rgba(255,255,255,.88);padding:1px 9px;border-radius:999px;color:var(--u-green3,#3F8A1C)}

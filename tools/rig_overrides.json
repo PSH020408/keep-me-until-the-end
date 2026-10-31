@@ -1,5 +1,5 @@
 {
- "_doc": "Per-species corrections for the automatic fish rig. dr/pr/vr = dorsal/pectoral/pelvic size as a share of body height; dx/px/vx = where along the body (0 head, 1 tail); dsink/vsink = how deep the fin base sits in the body; plug = body drawn without a head (the closed-eye head is opened and baked on); hs = head scale for plug.",
+ "_doc": "Per-species corrections for the automatic fish rig. dr/pr/vr = dorsal/pectoral/pelvic size as a share of body height; dx/px/vx = where along the body (0 head, 1 tail); dsink/vsink = how deep the fin base sits in the body; plug = body drawn without a head (the closed-eye head is opened and baked on); hs = head scale for plug. eye = [x, y, radius] as a share of the body box, for a body painted with no eye.",
  "betta": {
   "dr": 1.0,
   "vr": 0.95,
@@ -26,5 +26,12 @@
   "hs": 0.56,
   "hcap": 0.18,
   "headless": false
+ },
+ "fig8": {
+  "eye": [
+   0.25,
+   0.4,
+   0.085
+  ]
  }
 }
