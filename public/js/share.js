@@ -1,4 +1,4 @@
-/* ---------- 모두의 명예의 전당: lives other players chose to share ----------
+/* ---------- 모두의 육성 기록: lives other players chose to share ----------
    A kept life can also be posted to a shared table (Supabase, Postgres behind a REST API).
    The page only ever reads and inserts; rows cannot be changed or deleted from the browser
    (row-level security, see docs/SHARING.md). Nothing is sent unless the player ticks the box.
@@ -8,7 +8,7 @@ const SHARE_CFG={
   key:'sb_publishable_twic4vU9mUSIjonkj6ybQg_ijxC1qmq',   // publishable key: safe to publish, row-level security decides what it may do
 };
 const shareOn=()=>!!(SHARE_CFG.url&&SHARE_CFG.key)&&typeof fetch==='function';
-const SHARE_VER='0.18.0';
+const SHARE_VER='0.18.1';
 
 /* words that are masked in names and last words before posting and again when showing */
 const BADW=['씨발','시발','씨바','씹','좆','병신','븅신','지랄','개새','새끼','니미','느금','엠창','fuck','shit','bitch','cunt','nigg'];
@@ -52,9 +52,9 @@ async function shareLoad(){
       api('life_stats?select=*').then(r=>r.ok?r.json():[])]);
     pubRows=(Array.isArray(rows)?rows:[]).map(sanitizeRec);
     const t=Array.isArray(st)&&st[0]||{};
-    $('pubSummary').textContent=t.total?('지금까지 남겨진 생 '+t.total+' · 끝까지 산 생 '+t.lived+' ('+Math.round(t.lived/t.total*100)+'%) · 눌러서 다시 보기'):'아직 아무도 남기지 않았습니다. 첫 번째 생을 남겨 주세요.';
+    $('pubSummary').textContent=t.total?('지금까지 남겨진 생 '+t.total+' · 끝까지 산 생 '+t.lived+' ('+Math.round(t.lived/t.total*100)+'%)'):'아직 기록이 없습니다.';
     drawPub();
-  }catch(e){$('pubSummary').textContent='모두의 명예의 전당을 불러오지 못했습니다. 잠시 뒤 다시 열어 주세요.'}
+  }catch(e){$('pubSummary').textContent='불러오지 못했습니다.'}
 }
 function drawPub(){
   const ul=$('pubList');ul.innerHTML='';

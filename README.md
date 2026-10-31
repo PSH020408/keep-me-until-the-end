@@ -16,7 +16,7 @@ Formerly 키워주세요 — 끝까지 (*Keep Me — Until the End*); renamed in
 > From then on you raise it in the manner of Uma Musume and Princess Maker — train, rest, learn
 > skills, pass goals — so that it can outlast whatever the owner gets wrong.
 
-**Status:** public beta (v0.18.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.18.1, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
@@ -27,6 +27,12 @@ Formerly 키워주세요 — 끝까지 (*Keep Me — Until the End*); renamed in
 |---|---|
 | ![desktop](docs/img/beta-desktop.png) | ![phone](docs/img/beta-phone.png) |
 | ![a schedule card as a dialog](docs/img/beta-desktop-choice.png) | ![a choice as a bottom sheet](docs/img/beta-phone-choice.png) |
+
+## Data and privacy
+
+- Events and odds are estimates tuned to real figures (annual mortality in public aquariums, losses in transport and sale, survival of goldfish given as prizes). Every number shown on screen as a fact has a source in [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md).
+- Saved lives (육성 기록) stay in the player's browser (localStorage).
+- Only a life the player chooses to post goes to 모두의 육성 기록 (Supabase), anonymously: the fish, the ending and the last words.
 
 ## What happens in a life
 
@@ -174,6 +180,7 @@ decisions, in short:
 | v0.17.0 | 2026-10-31 | renamed 살아남아라! 끝까지!; the adoption pledge and nickname removed, a game title screen with only the difficulty choice; new share image |
 | v0.17.1 | 2026-10-31 | title screen trimmed to title, difficulty and start; 주마등 renamed 명예의 전당 |
 | v0.18.0 | 2026-10-31 | Uma Musume style skin: pale striped background, white panels, lime accent, outlined gradient rank letters; light theme everywhere; friendlier footer |
+| v0.18.1 | 2026-10-31 | 명예의 전당 renamed 육성 기록; on-screen explanations moved to the README |
 
 Every row is expanded in [LOG.md](LOG.md).
 
