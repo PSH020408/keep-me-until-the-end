@@ -1,0 +1,9 @@
+{
+  "_doc": "Per-species corrections for the automatic fish rig. dr/pr/vr = dorsal/pectoral/pelvic size as a share of body height; dx/px/vx = where along the body (0 head, 1 tail); dsink/vsink = how deep the fin base sits in the body; plug = body drawn without a head (the closed-eye head is opened and baked on); hs = head scale for plug.",
+  "betta": {"dr": 1.0, "vr": 0.95, "pr": 0.5, "dx": 0.3},
+  "oscar": {"dsink": 0.42},
+  "arowana": {"dx": 0.5, "dr": 0.35},
+  "gar": {"dx": 0.68},
+  "bichir": {"dx": 0.25, "dr": 0.42, "dsink": 0.35},
+  "neon": {"plug": true, "hs": 0.74, "headless": false}
+}

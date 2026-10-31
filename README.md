@@ -16,17 +16,21 @@ Formerly 키워주세요 — 끝까지 (*Keep Me — Until the End*); renamed in
 > From then on you raise it in the manner of Uma Musume and Princess Maker — train, rest, learn
 > skills, pass goals — so that it can outlast whatever the owner gets wrong.
 
-**Status:** public beta (v0.23.1, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.24.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
 > terms, what happens to the gills, skin and organs — no inner voice, no exaggeration, no gore in
 > the drawings. Intended for ages 15+.
 
-| Desktop — one screen: tank and gauges left, log right | Phone — tank on top, log below, controls at the bottom |
+| Desktop — the painted stage, the story under it, the card and turn menu beside it | Phone — stage, story, a compact status strip |
 |---|---|
-| ![desktop](docs/img/beta-desktop.png) | ![phone](docs/img/beta-phone.png) |
-| ![a schedule card as a dialog](docs/img/beta-desktop-choice.png) | ![a choice as a bottom sheet](docs/img/beta-phone-choice.png) |
+| ![a family gag: the father sings to the tank](docs/img/play-desktop.webp) | ![training on a phone](docs/img/play-phone.webp) |
+| ![맞짱: a duel with the tank bully](docs/img/play-duel.webp) | ![grandmother knits a sweater](docs/img/play-phone-gag.webp) |
+
+The end of a life: the ending's painting, the fish's last pose and its episode title (제N훈).
+
+![result screen](docs/img/result.webp)
 
 ## Data and privacy
 
@@ -188,6 +192,7 @@ decisions, in short:
 | v0.22.1 | 2026-10-31 | fish in small scenes hover instead of swimming backwards |
 | v0.23.0 | 2026-10-31 | the stage acts out each story line (23 scenes and overlays); the death scene arrives with the ending's first line |
 | v0.23.1 | 2026-10-31 | event scenes as light, colour grading and camera moves instead of flat props |
+| v0.24.0 | 2026-11-01 | rebuilt on 339 painted assets: rigged fish (tail and fins move), painted places, 35 ending paintings, owner portraits, hands, animals and props per story line, career cut-ins, a new play layout, a painted title screen, a result screen with an episode title (제N훈); 맞짱, 수선조 / 폭주어단 and sixteen family gags; the pet-sim code and art removed |
 
 Every row is expanded in [LOG.md](LOG.md).
 
@@ -212,12 +217,18 @@ public/            the site (index.html, css/, js/, img/, og.png, favicon)
   js/data/fev_*.js       the catalogue as data (origin, trade, home, health, mates, owners A/B, wild + happy endings;
                          fev_zgrow.js: training levels, ★ trainings, route climaxes, ending versions;
                          fev_zz_career.js: career mode; fev_zz_fun.js: comic home events)
-  js/art/fish.js         painted fish in a tank drawn to scale
+  js/stage.js            the stage: painted scene, rigged fish (data/rig.js), tank in a room, particles, the side card
+  js/dir.js              direction: what the stage does for each story line (pose, painting, animal, hand, prop, cut-in)
+  js/endhero.js          the result screen: ending painting, last pose, episode title (제N훈)
+  js/data/fev_zz_mob.js  맞짱 duels, 수선조 / 폭주어단 schools, sixteen family gags
+  img/                   WebP made by tools/import_assets.py (fish/<id>/ layers and poses, bg/, end/, glory/, career/,
+                         gag/, mob/, owner/, animal/, hand/, prop/, skill/, sick/, ui/)
   js/share.js            shared memorial (Supabase REST, opt-in, sanitised)
 tools/sim.mjs      headless balance simulation (prints endings, owner anchors, learning vs. not)
 tools/fevtest.mjs  forces every catalogue event on fitting species and plays the life out
 tools/check_facts.mjs  which fact each species ends with, and log lines that contradict the tank
-tools/fishsheet.html  contact sheet of tanks and deaths
+tools/import_assets.py  cuts the painted sheets (art_raw/, not in git) into the WebP in public/img and rigs the fish
+tools/rig_overrides.json  per-species fin and head corrections for the rig
 docs/              DESIGN (rationale), DATA_SOURCES, EVENTS (content authoring), DEPLOY, SHARING (shared memorial), portfolio outline
   FISH_REWORK.md     v0.10 design: principles, species ceilings, owners, endings, decisions log
   fish_events/       the event catalogue in Markdown, the writing brief, and the conversion guide
@@ -231,8 +242,11 @@ render.yaml        Render blueprint
 |---|---|
 | 키워주세요 — 끝까지 | "Please keep me — until the end" |
 | 서약서 | adoption pledge sheet |
-| 주마등 | revolving lantern; one's life flashing before one's eyes — the replay gallery |
-| 모두의 주마등 | "everyone's lantern" — the shared memorial of lives other players posted |
+| 육성 기록 | raising record — the replay gallery of saved lives |
+| 모두의 육성 기록 | the shared memorial of lives other players posted |
+| 제N훈 | "lesson N" — the episode title each life gets |
+| 맞짱 | a one-on-one fight (with a tank bully) |
+| 수선조 · 폭주어단 | the disciplined patrol and the reckless gang a school of small fish can found |
 | 육성 | raising / training (the schedule card) |
 | 고비 — 살아남기 | crisis — survive |
 | 쉬움 · 어려움 | easy · hard (difficulty) |
@@ -242,8 +256,8 @@ render.yaml        Render blueprint
 ## Author
 
 **PARK, SEHO** — design, writing, research and development. See [LOG.md](LOG.md) for the
-development history. Fish illustrations were cut from generated sheets and retouched
-(`tools/import_fish.py`).
+development history. The illustrations were generated as sheets (339 pictures, see
+[docs/ART.md](docs/ART.md)), then cut, rigged and converted by `tools/import_assets.py`.
 
 ## License
 

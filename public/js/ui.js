@@ -224,7 +224,7 @@ function stop(){if(timer){clearTimeout(timer);timer=null;if(stepDur)done=clamp(1
 /* the reel's sprites are fetched when the page opens, and the reel waits (at most .9s) until the ones it shows are decoded,
    otherwise the first spin showed empty frames */
 const SLOTIMG={};
-function slotPreload(){if(typeof Image==='undefined')return;Object.keys(FISHART).forEach(id=>{if(SLOTIMG[id])return;const i=new Image();i.decoding='async';i.src=FISH_BASE+id+'-swim.webp';SLOTIMG[id]=i})}
+function slotPreload(){if(typeof Image==='undefined')return;Object.keys(FISHART).forEach(id=>{if(SLOTIMG[id])return;const i=new Image();i.decoding='async';i.src=fishImg(id);SLOTIMG[id]=i})}
 function slotReady(seq){slotPreload();if(typeof Promise==='undefined')return{then:f=>f()};
   const ps=[...new Set(seq.map(s=>s.id))].filter(id=>SLOTIMG[id]).map(id=>{const i=SLOTIMG[id];if(i.complete&&i.naturalWidth)return Promise.resolve();return i.decode?i.decode().catch(()=>{}):new Promise(r=>{i.onload=i.onerror=r})});
   return Promise.race([Promise.all(ps),new Promise(r=>setTimeout(r,900))])}
@@ -240,7 +240,7 @@ function spin(){
   if(!box||!strip||typeof requestAnimationFrame!=='function'){start(sp.id);return}
   slotBusy=true;
   let H=132;const N=calm?1:26,seq=[];for(let i=0;i<N;i++)seq.push(pick(pool));seq.push(sp);
-  const img=s=>FISHART[s.id]?'<img alt="" src="'+FISH_BASE+s.id+'-swim.webp">':'';
+  const img=s=>FISHART[s.id]?'<img alt="" src="'+fishImg(s.id)+'">':'';
   strip.innerHTML=seq.map(s=>'<div class="it">'+img(s)+'<span></span></div>').join('');
   strip.querySelectorAll('.it span').forEach((e,i)=>e.textContent=seq[i].name);
   strip.style.transition='none';strip.style.transform='translateY(0)';strip.classList.toggle('fast',!calm);
@@ -321,7 +321,7 @@ let reelT=null;
 function replay(m){
   const box=$('lantern'),film=$('lanFilm'),sum=$('lanSum');if(!box)return;
   clearTimeout(reelT);
-  const img=k=>FISHART[m.sp]&&FISHART[m.sp][k]?FISH_BASE+m.sp+'-'+k+'.webp':'';
+  const img=k=>FISHART[m.sp]?fishImg(m.sp,k==='dead'?'deadside':k):'';
   $('lanImg').src=img('swim')||'';$('lanImg').className='';
   $('lanName').textContent=m.n;$('lanMeta').textContent=m.lived+' · '+m.cat+(m.d?' · '+m.d:'');
   film.innerHTML='';sum.hidden=true;film.hidden=false;box.hidden=false;

@@ -2,8 +2,9 @@
 // Usage: node tools/sim.mjs [lives=3000] [speciesId]
 import {readFileSync,readdirSync} from 'node:fs';
 import vm from 'node:vm';
+import {gameScripts} from './scripts.mjs';
 const N=+process.argv[2]||3000, ONLY=process.argv[3];
-const files=['core','data/species','data/facts','data/events','data/endings','data/choices','data/fish','data/fishchoice','engine','fish','data/fishgrow','data/fishplus','data/fev',...readdirSync(new URL('../public/js/data/',import.meta.url)).filter(f=>/^fev_.*\.js$/.test(f)).sort().map(f=>'data/'+f.replace(/\.js$/,'')),'art/paint','art/look','art/raster','art/mammals','art/others','art/gags','art/death','art/fish','art','ui'];
+const files=gameScripts();
 const el=()=>new Proxy({style:{},classList:{add(){},toggle(){},remove(){}},dataset:{}},{get(t,k){if(k in t)return t[k];if(['appendChild','append','prepend','setAttribute','remove','addEventListener','focus','scrollIntoView','insertBefore','insertAdjacentHTML','querySelectorAll'].includes(k))return ()=>el();if(['querySelector','firstChild','lastChild','lastElementChild'].includes(k))return k==='querySelector'?()=>el():el();return t[k]},set(t,k,v){t[k]=v;return true}});
 const ids={};
 const ctx={SIM_MODE:process.env.MODE||'real',Math,JSON,Object,Array,String,Number,Boolean,Date,console,

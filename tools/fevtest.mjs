@@ -3,12 +3,12 @@
 // Usage: node tools/fevtest.mjs [runsPerEvent=25] [file ...]   (files: data/fev_xxx, default all in index.html)
 import {readFileSync,readdirSync} from 'node:fs';
 import vm from 'node:vm';
+import {gameScripts} from './scripts.mjs';
 const RUNS=+process.argv[2]||25;
 const only=process.argv.slice(3);
-const base=['core','data/species','data/facts','data/events','data/endings','data/choices','data/fish','data/fishchoice','engine','fish','data/fishgrow','data/fishplus','data/fev','art/paint','art/look','art/raster','art/mammals','art/others','art/gags','art/death','art/fish','art','ui'];
-const all=readdirSync(new URL('../public/js/data/',import.meta.url)).filter(f=>/^fev_.*\.js$/.test(f)).sort().map(f=>'data/'+f.replace(/\.js$/,''));
+const all=gameScripts().filter(f=>/^data\/fev_/.test(f));
 const fevFiles=only.length?only:all;
-const files=base.slice(0,13).concat(fevFiles).concat(base.slice(13));
+const files=only.length?gameScripts().filter(f=>!/^data\/fev_/.test(f)||only.includes(f)):gameScripts();
 const el=()=>new Proxy({style:{},classList:{add(){},toggle(){},remove(){},contains(){return false}},dataset:{}},{get(t,k){if(k in t)return t[k];if(['appendChild','append','prepend','setAttribute','remove','addEventListener','focus','scrollIntoView','insertBefore','insertAdjacentHTML','querySelectorAll'].includes(k))return ()=>el();if(['querySelector','firstChild','lastChild','lastElementChild','firstElementChild'].includes(k))return k==='querySelector'?()=>el():el();return t[k]},set(t,k,v){t[k]=v;return true}});
 const ids={};const warns=[];
 const ctx={SIM_MODE:'real',Math,JSON,Object,Array,String,Number,Boolean,Date,console:{log(){},warn:(...a)=>warns.push(a.join(' ')),error:(...a)=>warns.push('ERR '+a.join(' '))},

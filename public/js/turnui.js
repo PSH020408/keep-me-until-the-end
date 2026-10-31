@@ -27,7 +27,7 @@ function stDraw(){
     const a=document.createElement('span');a.className='sa';a.textContent=x.querySelector('.t').textContent;const t=document.createElement('p');t.innerHTML=x.querySelector('p').innerHTML;d.append(a,t);h.appendChild(d)})}
 }
 /* v0.23: the stage acts out the line on screen */
-(()=>{const _d=stDraw;stDraw=function(){_d();try{if(typeof evSet==='function')evSet(ST.cur?ST.cur.querySelector('p').textContent:null)}catch(e){}}})();
+(()=>{const _d=stDraw;stDraw=function(){_d();try{if(typeof evSet==='function')evSet(ST.cur?ST.cur.querySelector('p').textContent:null,ST.cur)}catch(e){}}})();
 function stNext(){
   if(ST.q.length){if(ST.last){ST.hist.unshift(ST.last);ST.hist=ST.hist.slice(0,300)}ST.cur=ST.q.shift();ST.last=ST.cur;stDraw();return true}
   ST.cur=null;stDraw();return false}

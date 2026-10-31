@@ -1,4 +1,6 @@
 let S=null,timer=null,speed=1,paused=false,skipping=false,NICK='';
+/* v0.24: the pet catalogue (events, endings, choices for 42 animals) is gone; a fish lives through fishTick */
+const FLAV=[],ENDS=[],CH=[],BIRDS=[];
 const HZ=.95;
 
 function makeOwner(nick){
