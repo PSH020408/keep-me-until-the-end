@@ -16,7 +16,7 @@ Formerly 키워주세요 — 끝까지 (*Keep Me — Until the End*); renamed in
 > From then on you raise it in the manner of Uma Musume and Princess Maker — train, rest, learn
 > skills, pass goals — so that it can outlast whatever the owner gets wrong.
 
-**Status:** public beta (v0.22.1, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.23.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
@@ -186,6 +186,7 @@ decisions, in short:
 | v0.21.0 | 2026-10-31 | turn menu under the stats, three lines of story history, aquarium animation (smooth turns, light, shimmer, swaying plants), a real hand net, pond wording, same-species legacy |
 | v0.22.0 | 2026-10-31 | no species stat ceiling (aptitude instead), full story history, owned skills on the card, 생전 하이라이트 at the end |
 | v0.22.1 | 2026-10-31 | fish in small scenes hover instead of swimming backwards |
+| v0.23.0 | 2026-10-31 | the stage acts out each story line (23 scenes and overlays); the death scene arrives with the ending's first line |
 
 Every row is expanded in [LOG.md](LOG.md).
 
