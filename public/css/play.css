@@ -187,3 +187,11 @@ body:not(.ingame) #playGrid:has(> #ending:not([hidden])) > :not(#ending){display
 /* the owner's portrait takes the lower left; the state tags step aside */
 body.uma.ingame .stagewrap:has(.cut-owner.in) .chips{opacity:0}
 body.uma.ingame .stagewrap .chips{transition:opacity .3s}
+
+/* the info sheet's own close button (only while it is open as a sheet) */
+.infoclose{display:none}
+@media (max-width:899px){
+  body.uma.ingame #card.showinfo{padding-top:52px!important}
+  body.uma.ingame #card.showinfo .infoclose{display:block;position:sticky;top:-40px;margin:-44px 0 0 auto;z-index:3;align-self:flex-end;font-family:var(--display);font-size:14px;color:#fff;
+    background:linear-gradient(180deg,#9AD655,#5AA72A);border:1.5px solid #3F8A1C;border-radius:999px;padding:7px 16px;box-shadow:0 3px 0 #3F8A1C}
+}

@@ -366,3 +366,10 @@ function panelDraw(){
   ids.forEach((id,i)=>{const d=document.createElement('div');d.className='tp'+(i%2?' rev':'');
     d.style.cssText=`top:${12+i*13}%;animation-duration:${18+i*4}s;animation-delay:${-i*5.5}s;--w:${Math.round(70+((i*37)%5)*18)}px`;
     const im=document.createElement('img');im.alt='';im.src=fishImg(id);d.appendChild(im);box.appendChild(d)})})();
+
+/* the info sheet (full screen on a phone) closes from inside it, with Esc, or by tapping outside */
+(()=>{if(typeof document==='undefined'||!document.getElementById)return;const x=document.getElementById('infoClose');if(!x||!x.addEventListener)return;
+  const close=()=>{const c=$('card');if(c&&c.classList.contains('showinfo'))$('infoBtn').click()};
+  x.addEventListener('click',e=>{e.stopPropagation();close()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});
+  document.addEventListener('click',e=>{const c=$('card');if(c&&c.classList.contains('showinfo')&&!e.target.closest('#card')&&!e.target.closest('#infoBtn'))close()});})();
