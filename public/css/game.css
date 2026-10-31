@@ -476,3 +476,14 @@ body.uma.ingame .turnbar .tb-flavor{display:none}
 .hilite .hl-list p{margin:0;color:#5A4A20}
 @media (max-width:620px){.hilite .hl-list li{grid-template-columns:1fr;gap:0}}
 @media (max-width:620px){body.uma.ingame .turnbar .tb-menu{grid-template-columns:repeat(auto-fit,minmax(58px,1fr))!important}}
+/* v0.23.1: camera moves for story lines */
+#stage{overflow:hidden;border-radius:14px}
+@media (prefers-reduced-motion:no-preference){
+  #stage[data-ev="fight"]>svg{animation:evShake .32s linear infinite}
+  #stage[data-ev="danger"]>svg{animation:evShake 1.6s ease-in-out infinite}
+  #stage[data-ev="floor"]>svg,#stage[data-ev="leap"]>svg{animation:evPush 1.2s cubic-bezier(.2,.7,.2,1) both}
+  #stage[data-ev="star"]>svg,#stage[data-ev="heart"]>svg{animation:evPulse 2.4s ease-in-out infinite}
+}
+@keyframes evShake{0%,100%{transform:translate(0,0)}25%{transform:translate(-1.5px,1px)}50%{transform:translate(1.5px,-1px)}75%{transform:translate(-1px,-1px)}}
+@keyframes evPush{from{transform:scale(1)}to{transform:scale(1.06)}}
+@keyframes evPulse{50%{transform:scale(1.02);filter:saturate(1.15) brightness(1.04)}}

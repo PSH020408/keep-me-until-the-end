@@ -1,92 +1,104 @@
-/* ---------- v0.23: the stage follows the story ----------
-   Each line in the story box can call up a short scene: the fish flopping on the floor, leaping out of the water, a hand
-   net coming down, the cat's paw, food falling, a water change, a power cut, a camera flash, a heron, an otter, a hook…
-   A line is matched against EVFX (first match wins). A 'full' scene replaces the stage while the line is on screen;
-   an 'over' scene is drawn on top of the tank. When a life starts to end, the death scene appears with the first line
-   of the ending instead of after the last one. */
+/* ---------- v0.23.1: the stage follows the story — as camera and light, not as drawn props ----------
+   v0.23.0 drew props (a hand, a net, a cat's paw, a bucket, a heron) out of flat shapes; next to the painted fish they
+   looked like a broken slide deck. Until painted prop sprites exist (img/props/, same pipeline as the fish), a line is
+   shown with what code does well: light, colour grading, depth of field, particles, a predator's shadow, a flash, a shake.
+   The painted fish itself is the only figure: it leaps out of the water, flops in the foreground on the floor, glows.
+   A line is matched against EVFX (first match wins). When a life starts to end, the death scene appears with the first
+   line of the ending instead of after the last one. */
 
 const evSp=(pose,px,o)=>fishSprite(S.sp.id,pose,px,o||{});
-const evPx=()=>clamp((S.f&&S.f.len||4)*3.2,26,96);
-const evBg=(top,bot,line)=>`<rect width="260" height="200" fill="${top}"/><rect y="${line}" width="260" height="${200-line}" fill="${bot}"/>`;
-const evDrops=(x,y,n)=>Array.from({length:n},(_,i)=>`<circle cx="${x-14+i*9}" cy="${y}" r="1.6" fill="#BFE3F0"><animate attributeName="cy" values="${y};${y+18}" dur="${.7+i*.17}s" repeatCount="indefinite"/><animate attributeName="opacity" values="1;0" dur="${.7+i*.17}s" repeatCount="indefinite"/></circle>`).join('');
-const evStars=(n,col)=>Array.from({length:n},(_,i)=>{const x=30+(i*53)%200,y=24+(i*37)%120,s=4+(i%3)*2;return `<path d="M${x} ${y-s}L${x+s*.3} ${y-s*.3}L${x+s} ${y}L${x+s*.3} ${y+s*.3}L${x} ${y+s}L${x-s*.3} ${y+s*.3}L${x-s} ${y}L${x-s*.3} ${y-s*.3}Z" fill="${col}"><animate attributeName="opacity" values="0;1;0" dur="${1.2+i*.2}s" begin="${-i*.3}s" repeatCount="indefinite"/></path>`}).join('');
+const evPx=()=>clamp((S.f&&S.f.len||4)*3.2,30,100);
+let EVID=0;
+const evDefs=(id)=>`<defs>
+ <filter id="${id}g" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="1.6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <filter id="${id}s" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+ <filter id="${id}p" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation=".8"/></filter>
+ <radialGradient id="${id}v" cx=".5" cy=".5" r=".72"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity="1"/></radialGradient>
+ <linearGradient id="${id}w" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C9A57C"/><stop offset=".5" stop-color="#A9825A"/><stop offset="1" stop-color="#7E5E3E"/></linearGradient>
+ <radialGradient id="${id}h" cx=".5" cy=".4" r=".6"><stop offset="0" stop-color="#FFC2D4"/><stop offset="1" stop-color="#E8628E"/></radialGradient>
+</defs>`;
+/* building blocks */
+const evTint=(col,op)=>`<rect width="260" height="200" fill="${col}" opacity="${op}" style="mix-blend-mode:multiply"/>`;
+const evGlow=(col,op)=>`<rect width="260" height="200" fill="${col}" opacity="${op}" style="mix-blend-mode:screen"/>`;
+const evMotes=(id,n,col,dir,op)=>Array.from({length:n},(_,i)=>{const x=10+(i*61)%240,y=dir<0?200:-6,r=.7+(i%4)*.45,d=5+(i%5)*1.6;
+  return `<circle cx="${x}" cy="${y}" r="${r}" fill="${col}" opacity="${op||.8}" filter="url(#${id}p)"><animate attributeName="cy" values="${y};${dir<0?-8:206}" dur="${d}s" begin="${-i*.9}s" repeatCount="indefinite"/><animate attributeName="cx" values="${x};${x+(i%2?10:-10)};${x}" dur="${d}s" begin="${-i*.9}s" repeatCount="indefinite"/></circle>`}).join('');
+const evSpark=(id,n,col)=>Array.from({length:n},(_,i)=>{const x=34+(i*67)%192,y=26+(i*41)%120,s=3+(i%3)*1.6;
+  return `<g transform="translate(${x} ${y})" filter="url(#${id}g)"><path d="M0 ${-s*2}Q${s*.25} ${-s*.25} ${s*2} 0Q${s*.25} ${s*.25} 0 ${s*2}Q${-s*.25} ${s*.25} ${-s*2} 0Q${-s*.25} ${-s*.25} 0 ${-s*2}Z" fill="${col}"><animateTransform attributeName="transform" type="scale" values="0;1;0" dur="${1.4+i*.17}s" begin="${-i*.35}s" repeatCount="indefinite"/></path></g>`}).join('');
+const evHearts=id=>Array.from({length:7},(_,i)=>{const x=36+(i*37)%190,s=.55+(i%3)*.18,d=3+i*.35;
+  return `<g opacity="0"><animate attributeName="opacity" values="0;.95;0" dur="${d}s" begin="${-i*.6}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="translate" values="${x} 196;${x+(i%2?8:-8)} 40" dur="${d}s" begin="${-i*.6}s" repeatCount="indefinite"/><path transform="scale(${s})" d="M0 6C-10 -4 -16 -10 -9 -15C-5 -18 -1 -15 0 -12C1 -15 5 -18 9 -15C16 -10 10 -4 0 6Z" fill="url(#${id}h)" filter="url(#${id}g)"/></g>`}).join('');
+const evLines=(id,vertical)=>Array.from({length:9},(_,i)=>{const p=14+(i*29)%232,len=40+(i%3)*24;
+  return vertical?`<path d="M${p} -40v${len}" stroke="#fff" stroke-width="${.8+(i%3)*.5}" stroke-linecap="round" opacity=".55"><animateTransform attributeName="transform" type="translate" values="0 0;0 260" dur="${.5+(i%4)*.12}s" begin="${-i*.11}s" repeatCount="indefinite"/></path>`
+    :`<path d="M300 ${p}h-${len}" stroke="#fff" stroke-width="${.8+(i%3)*.5}" stroke-linecap="round" opacity=".5"><animateTransform attributeName="transform" type="translate" values="0 0;-360 0" dur="${.55+(i%4)*.12}s" begin="${-i*.13}s" repeatCount="indefinite"/></path>`}).join('');
+const evShadow=(id,dur)=>`<ellipse cx="-80" cy="40" rx="90" ry="26" fill="#0A1418" opacity=".45" filter="url(#${id}s)"><animate attributeName="cx" values="-90;360" dur="${dur||3.4}s" repeatCount="indefinite"/></ellipse>`;
+const evFlash=(col,period)=>`<rect width="260" height="200" fill="${col}" opacity="0"><animate attributeName="opacity" values="0;0;.85;0" keyTimes="0;.82;.86;1" dur="${period||2.2}s" repeatCount="indefinite"/></rect>`;
 
 const EVSCN={
- /* full scenes */
- floor:()=>({full:1,s:evBg('#E4DED2','#B89A74',140)+`<rect y="136" width="260" height="6" fill="#8E7454"/>`+Array.from({length:6},(_,i)=>`<path d="M${i*46} 142L${i*46+30} 200" stroke="#A88A64" stroke-width="1.2"/>`).join('')+
-   `<rect x="150" y="40" width="96" height="70" fill="#9FC9D6" stroke="#4A5458" stroke-width="2.4" opacity=".9"/><rect x="146" y="110" width="104" height="30" fill="#7E6A52"/>`+
-   `<g transform="translate(96 150)"><g><animateTransform attributeName="transform" type="translate" values="0 0;-6 -22;-10 0;-4 -12;0 0" dur="1.1s" repeatCount="indefinite"/><g><animateTransform attributeName="transform" type="rotate" values="0;-35;20;-15;0" dur="1.1s" repeatCount="indefinite"/>${evSp('swim',evPx())}</g></g></g>`+
-   `<ellipse cx="96" cy="166" rx="30" ry="4" fill="#7FA9B6" opacity=".45"/>`+evDrops(96,150,4)}),
- leap:()=>({full:1,s:evBg('#E4DED2','#9C8466',168)+`<rect x="40" y="70" width="180" height="96" fill="#A9D6E4" stroke="#4A5458" stroke-width="2.6"/><path d="M40 70H220" stroke="#fff" stroke-width="1.5" opacity=".6"/>`+
-   `<g><animateMotion dur="1.6s" repeatCount="indefinite" path="M90 110 Q130 -10 170 60 Q190 100 150 120 Q120 130 90 110"/><g><animateTransform attributeName="transform" type="rotate" values="-30;20;60;-30" dur="1.6s" repeatCount="indefinite"/>${evSp('swim',Math.min(60,evPx()))}</g></g>`+
-   `<g fill="none" stroke="#fff" stroke-width="1.4" opacity=".8"><ellipse cx="96" cy="70" rx="10" ry="2"><animate attributeName="rx" values="2;18;2" dur="1.6s" repeatCount="indefinite"/></ellipse></g>`+evDrops(130,40,3)}),
- box:()=>({full:1,s:evBg('#D8D2C4','#B8A88A',150)+`<g transform="translate(130 112)"><path d="M-62 -40H62V48H-62Z" fill="#C9A87A" stroke="#7E6440" stroke-width="2"/><path d="M-62 -40L-40 -62H84L62 -40Z" fill="#DBBE8E" stroke="#7E6440" stroke-width="2"/><rect x="-22" y="-14" width="44" height="18" fill="#F4F0E6"/><text y="0" text-anchor="middle" font-size="9" font-family="Jua,sans-serif" fill="#C4301F">생물 · 취급주의</text>`+
-   `<animateTransform attributeName="transform" type="rotate" values="0;-3;2;0" dur="1.4s" repeatCount="indefinite" additive="sum"/></g>`}),
- heron:()=>({full:1,s:evBg('#CFE0D8','#6E9A8A',96)+`<path d="M0 96Q80 88 160 94T260 92" stroke="#fff" stroke-width="1.5" fill="none" opacity=".6"/>`+
-   `<g transform="translate(70 64)"><path d="M10 64L12 10" stroke="#5A5A5A" stroke-width="3"/><path d="M24 64L22 12" stroke="#5A5A5A" stroke-width="3"/><ellipse cx="18" cy="0" rx="22" ry="12" fill="#B8C0C8"/><path d="M30 -6Q44 -30 40 -46" stroke="#B8C0C8" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="40" cy="-48" r="7" fill="#D8DEE4"/>`+
-   `<g><path d="M44 -48L78 -40L44 -44Z" fill="#E8C24A"><animateTransform attributeName="transform" type="rotate" values="0 44 -46;24 44 -46;0 44 -46" dur="2.2s" repeatCount="indefinite"/></path></g><circle cx="42" cy="-50" r="1.6" fill="#1A1A1A"/></g>`+
-   `<g transform="translate(160 140)">${evSp('swim',Math.min(50,evPx()))}<animateTransform attributeName="transform" type="translate" values="160 140;150 146;160 140" dur="2s" repeatCount="indefinite"/></g>`}),
- otter:()=>({full:1,s:evBg('#8EAA92','#5E8478',60)+`<path d="M0 60Q60 52 130 58T260 54" stroke="#fff" stroke-width="1.4" fill="none" opacity=".5"/><path d="M0 200L0 150Q60 120 110 150L140 200Z" fill="#6A5E4A"/>`+
-   `<g transform="translate(90 120)"><ellipse rx="34" ry="14" fill="#6A4E34"/><circle cx="-30" cy="-6" r="11" fill="#7A5A3C"/><circle cx="-34" cy="-9" r="1.8" fill="#111"/><circle cx="-40" cy="-4" r="2" fill="#222"/><path d="M30 0Q50 4 56 -4" stroke="#6A4E34" stroke-width="6" fill="none" stroke-linecap="round"/>`+
-   `<animateTransform attributeName="transform" type="translate" values="90 120;104 116;90 120" dur="1.8s" repeatCount="indefinite"/></g>`+
-   `<g transform="translate(180 128)"><g><animateTransform attributeName="transform" type="translate" values="0 0;-10 -6;8 4;0 0" dur=".9s" repeatCount="indefinite"/>${evSp('swim',Math.min(50,evPx()))}</g></g>`}),
- angler:()=>({full:1,s:evBg('#CFE0E8','#5E8A98',70)+`<rect x="0" y="40" width="260" height="10" fill="#8A7A6A"/><path d="M40 40L220 -10" stroke="#3A3A3A" stroke-width="2.4"/><path d="M220 -10L200 140" stroke="#DDD" stroke-width=".8"/>`+
-   `<g transform="translate(200 140)"><path d="M0 0q4 8 -2 10" stroke="#9AA4AA" stroke-width="1.4" fill="none"/><path d="M-2 10q-6 2 -4 -6" stroke="#C9584B" stroke-width="3" fill="none" stroke-linecap="round"/></g>`+
-   `<g transform="translate(150 150)"><g><animateTransform attributeName="transform" type="translate" values="0 0;24 -6;0 0" dur="2.6s" repeatCount="indefinite"/>${evSp('swim',Math.min(56,evPx()))}</g></g>`}),
- waterfall:()=>({full:1,s:evBg('#B8CCC0','#6E9A8A',120)+`<path d="M90 0H170V120H90Z" fill="#DDEFF2"/>`+Array.from({length:6},(_,i)=>`<path d="M${96+i*12} 0V120" stroke="#fff" stroke-width="3" opacity=".7" stroke-dasharray="12 10"><animate attributeName="stroke-dashoffset" values="0;-44" dur=".6s" repeatCount="indefinite"/></path>`).join('')+
-   `<path d="M60 120Q130 104 200 120" stroke="#fff" stroke-width="2" fill="none"/><g transform="translate(130 100)"><g><animateTransform attributeName="transform" type="translate" values="0 20;0 -40;0 20" dur="2.4s" repeatCount="indefinite"/><g transform="rotate(90)">${evSp('swim',Math.min(50,evPx()))}</g></g></g>`}),
- flood:()=>({full:1,s:evBg('#A8987A','#8A7A5A',40)+Array.from({length:5},(_,i)=>`<path d="M-40 ${60+i*30}Q30 ${50+i*30} 100 ${60+i*30}T240 ${60+i*30}T380 ${60+i*30}" stroke="#C8B898" stroke-width="2" fill="none"><animateTransform attributeName="transform" type="translate" values="0 0;-80 0" dur="${1.2+i*.2}s" repeatCount="indefinite"/></path>`).join('')+
-   `<g transform="translate(130 100)"><circle r="20" fill="#3E7A34"/><path d="M-20 0A20 20 0 0 1 20 0" fill="#C4301F" opacity=".4"/><g transform="translate(-6 -22)">${evSp('swim',38)}</g><animateTransform attributeName="transform" type="translate" values="130 100;140 96;130 100" dur="1.2s" repeatCount="indefinite"/></g>`}),
- /* overlays on the tank */
- net:()=>({s:`<g><animateTransform attributeName="transform" type="translate" values="0 -70;0 0;0 0;0 -70" keyTimes="0;.35;.7;1" dur="2.4s" repeatCount="indefinite"/><path d="M150 -20L150 70" stroke="#6A5034" stroke-width="5"/><ellipse cx="150" cy="96" rx="34" ry="10" fill="none" stroke="#2E7A4A" stroke-width="3"/><path d="M116 96Q150 150 184 96" fill="#2E7A4A" opacity=".25" stroke="#2E7A4A"/></g>`}),
- cat:()=>({s:`<g><animateTransform attributeName="transform" type="translate" values="0 0;0 18;0 0" dur="1.3s" repeatCount="indefinite"/><ellipse cx="190" cy="34" rx="34" ry="24" fill="#E8A64A"/><path d="M164 22L170 0L182 16ZM212 16L222 0L218 24Z" fill="#E8A64A"/><circle cx="180" cy="32" r="3" fill="#2A2A2A"/><circle cx="200" cy="32" r="3" fill="#2A2A2A"/><path d="M186 42q4 4 8 0" stroke="#2A2A2A" fill="none"/><path d="M150 52Q140 80 150 104" stroke="#E8A64A" stroke-width="14" stroke-linecap="round" fill="none"/></g>`}),
- feed:()=>({s:`<path d="M110 14q20 -10 40 0l-6 20h-28z" fill="#E86A4A"/>`+Array.from({length:10},(_,i)=>`<circle cx="${112+(i*7)%40}" cy="40" r="1.8" fill="#C98A3A"><animate attributeName="cy" values="40;${120+(i%4)*12}" dur="${1.6+i*.15}s" begin="${-i*.2}s" repeatCount="indefinite"/></circle>`).join('')}),
- water:()=>({s:`<g transform="translate(206 4) rotate(30)"><path d="M-18 0H18L14 34H-14Z" fill="#7FA0B8" stroke="#4A6478" stroke-width="2"/></g><path d="M196 34Q190 70 186 120" stroke="#CFEAF4" stroke-width="7" fill="none" opacity=".85" stroke-dasharray="10 6"><animate attributeName="stroke-dashoffset" values="0;-32" dur=".5s" repeatCount="indefinite"/></path>`}),
- dark:()=>({s:`<rect width="260" height="200" fill="#0E1424" opacity=".62"/><circle cx="220" cy="30" r="12" fill="#F4E8B0" opacity=".8"/>`+Array.from({length:4},(_,i)=>`<circle cx="${40+i*50}" cy="${20+(i%2)*14}" r="1.2" fill="#fff"><animate attributeName="opacity" values=".2;1;.2" dur="${1.5+i*.4}s" repeatCount="indefinite"/></circle>`).join('')}),
- hand:()=>({s:`<g><animateTransform attributeName="transform" type="translate" values="0 -30;0 10;0 -30" dur="2.2s" repeatCount="indefinite"/><path d="M168 0V50q0 10 -8 10h-6q-8 0 -8 -10V0" fill="#F2C9A4" stroke="#C99A74" stroke-width="1.5"/><path d="M146 30v22" stroke="#C99A74"/></g>`}),
- camera:()=>({s:`<g transform="translate(206 24)"><rect x="-26" y="-14" width="52" height="34" rx="6" fill="#2E3438"/><circle r="9" cy="3" fill="#5A6A7A" stroke="#9AA4AA" stroke-width="2"/></g><rect width="260" height="200" fill="#FFFFFF" opacity="0"><animate attributeName="opacity" values="0;0;.75;0" keyTimes="0;.8;.85;1" dur="1.8s" repeatCount="indefinite"/></rect>`}),
- sick:()=>({s:`<g fill="#F4F4EE" opacity=".85">`+Array.from({length:12},(_,i)=>`<circle cx="${70+(i*31)%120}" cy="${70+(i*17)%70}" r="${1.2+(i%3)*.5}"><animate attributeName="opacity" values=".3;1;.3" dur="${1.4+i*.1}s" repeatCount="indefinite"/></circle>`).join('')+`</g><text x="230" y="30" font-size="22" text-anchor="middle">🤒</text>`}),
- hot:()=>({s:`<circle cx="226" cy="28" r="18" fill="#F4C24A"><animate attributeName="r" values="16;20;16" dur="1.6s" repeatCount="indefinite"/></circle>`+Array.from({length:4},(_,i)=>`<path d="M${50+i*44} 180q6 -10 0 -20q-6 -10 0 -20" stroke="#F49A6A" stroke-width="2" fill="none" opacity=".6"><animateTransform attributeName="transform" type="translate" values="0 0;0 -14;0 0" dur="${1.4+i*.2}s" repeatCount="indefinite"/></path>`).join('')}),
- cold:()=>({s:`<rect width="260" height="200" fill="#DDEFF8" opacity=".28"/>`+Array.from({length:14},(_,i)=>`<text x="${(i*41)%250+5}" y="0" font-size="${8+(i%3)*3}" fill="#fff">❄<animate attributeName="y" values="-10;210" dur="${4+i*.4}s" begin="${-i*.5}s" repeatCount="indefinite"/></text>`).join('')}),
- fight:()=>({s:`<g font-size="18" font-family="Jua,sans-serif" fill="#C9584B"><text x="70" y="70">!</text><text x="180" y="90">!!</text></g><g stroke="#C9584B" stroke-width="2"><path d="M110 80l14 -10M118 96l16 2M108 110l12 10"><animate attributeName="opacity" values="1;0;1" dur=".5s" repeatCount="indefinite"/></path></g>`}),
- star:()=>({s:evStars(9,'#F2C84A')}),
- heart:()=>({s:Array.from({length:6},(_,i)=>`<text x="${40+i*36}" y="170" font-size="${12+(i%3)*4}" fill="#E8789A">♥<animate attributeName="y" values="180;40" dur="${2.4+i*.3}s" begin="${-i*.4}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="${2.4+i*.3}s" begin="${-i*.4}s" repeatCount="indefinite"/></text>`).join('')}),
- train:()=>({s:Array.from({length:5},(_,i)=>`<path d="M${220-i*6} ${70+i*14}h-40" stroke="#fff" stroke-width="2" opacity=".7" stroke-linecap="round"><animateTransform attributeName="transform" type="translate" values="0 0;-60 0" dur=".7s" begin="${-i*.12}s" repeatCount="indefinite"/></path>`).join('')}),
- bubble:()=>({s:Array.from({length:8},(_,i)=>`<circle cx="${60+i*20}" cy="180" r="${2+(i%3)}" fill="none" stroke="#fff" stroke-width="1"><animate attributeName="cy" values="180;60" dur="${2+i*.3}s" begin="${-i*.3}s" repeatCount="indefinite"/></circle>`).join('')})
+ /* the fish in the foreground: flopping on a wooden floor while the tank behind goes soft */
+ floor:id=>`<rect width="260" height="200" fill="#F2EBDD" opacity=".55"/><rect width="260" height="200" fill="url(#${id}v)" opacity=".35"/>`+
+   `<rect y="138" width="260" height="62" fill="url(#${id}w)"/>`+Array.from({length:7},(_,i)=>`<path d="M${-20+i*44} 138L${10+i*44} 200" stroke="#6E5236" stroke-width=".8" opacity=".45"/>`).join('')+
+   `<ellipse cx="128" cy="170" rx="44" ry="6" fill="#3A2A1A" opacity=".35" filter="url(#${id}s)"><animate attributeName="rx" values="44;30;40;34;44" dur="1.1s" repeatCount="indefinite"/></ellipse>`+
+   `<ellipse cx="132" cy="168" rx="26" ry="3" fill="#BFE1EC" opacity=".55"/>`+
+   `<g transform="translate(128 152)"><g><animateTransform attributeName="transform" type="translate" values="0 0;-4 -26;-8 0;-2 -14;0 0" keyTimes="0;.25;.5;.75;1" calcMode="spline" keySplines=".2 .7 .4 1;.6 0 .8 .3;.2 .7 .4 1;.6 0 .8 .3" dur="1.1s" repeatCount="indefinite"/>`+
+   `<g><animateTransform attributeName="transform" type="rotate" values="0;-28;14;-12;0" dur="1.1s" repeatCount="indefinite"/>${evSp('swim',evPx()*1.25)}</g></g></g>`+
+   Array.from({length:5},(_,i)=>`<circle cx="${110+i*9}" cy="160" r="${1+(i%2)*.6}" fill="#DDF1F7" filter="url(#${id}p)"><animate attributeName="cy" values="160;${132-(i%3)*8};168" dur="${.9+i*.15}s" begin="${-i*.2}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="${.9+i*.15}s" begin="${-i*.2}s" repeatCount="indefinite"/></circle>`).join(''),
+ /* the fish arcs up out of the water and falls back, with a splash */
+ leap:id=>`<rect width="260" height="200" fill="#000" opacity=".12"/>`+
+   `<g><animateMotion dur="1.8s" repeatCount="indefinite" keyPoints="0;1" keyTimes="0;1" calcMode="spline" keySplines=".25 .6 .5 1" path="M100 112 Q132 -6 168 78 Q176 98 170 116"/><g><animateTransform attributeName="transform" type="rotate" values="-40;10;70" dur="1.8s" repeatCount="indefinite"/><g filter="url(#${id}g)">${evSp('swim',Math.min(64,evPx()))}</g></g></g>`+
+   [0,1,2].map(i=>`<ellipse cx="${i?168:100}" cy="${i?118:114}" rx="4" ry="1.2" fill="none" stroke="#fff" stroke-width="1.2" opacity=".9"><animate attributeName="rx" values="2;${20+i*6}" dur="${.9+i*.2}s" begin="${-i*.3}s" repeatCount="indefinite"/><animate attributeName="opacity" values=".9;0" dur="${.9+i*.2}s" begin="${-i*.3}s" repeatCount="indefinite"/></ellipse>`).join('')+
+   Array.from({length:6},(_,i)=>`<circle cx="${96+i*3}" cy="112" r="1.3" fill="#E6F6FB"><animate attributeName="cy" values="112;${86-i*3};116" dur="${.8+i*.1}s" repeatCount="indefinite"/><animate attributeName="cx" values="${96+i*3};${84+i*6}" dur="${.8+i*.1}s" repeatCount="indefinite"/></circle>`).join(''),
+ /* a predator from above: a shadow sweeps over, the water darkens at the edges */
+ danger:id=>evTint('#203038',.25)+evShadow(id,2.8)+`<rect width="260" height="200" fill="#5A0E0E" opacity=".0"><animate attributeName="opacity" values="0;.18;0" dur="1.4s" repeatCount="indefinite"/></rect>`+`<rect width="260" height="200" fill="url(#${id}v)" opacity=".5"/>`,
+ net:id=>evTint('#2A3A40',.18)+evShadow(id,2.2)+`<rect width="260" height="200" fill="url(#${id}v)" opacity=".35"/>`,
+ hook:id=>evTint('#203840',.15)+`<path d="M170 -4V120" stroke="#E8F2F6" stroke-width=".7" opacity=".8"/><circle cx="170" cy="120" r="2.2" fill="#fff" filter="url(#${id}g)"><animate attributeName="opacity" values=".3;1;.3" dur="1.2s" repeatCount="indefinite"/></circle>`,
+ current:id=>evTint('#4A3A20',.28)+evLines(id,false)+evMotes(id,14,'#D8C8A0',1,.6),
+ fall:id=>evGlow('#DDEFFF',.12)+evLines(id,true)+evMotes(id,10,'#fff',-1,.7),
+ dark:id=>evTint('#0E1A30',.62)+`<circle cx="214" cy="30" r="9" fill="#F6EEC8" filter="url(#${id}g)" opacity=".85"/>`+evMotes(id,6,'#BFD8FF',-1,.5),
+ box:id=>evTint('#3A2A14',.55)+`<rect width="260" height="200" fill="url(#${id}v)" opacity=".7"/>`,
+ flash:id=>evGlow('#FFF8E8',.06)+evFlash('#FFFFFF',2),
+ feed:id=>Array.from({length:12},(_,i)=>{const x=96+(i*13)%70;return `<rect x="${x}" y="-6" width="${2+(i%3)}" height="${1.6+(i%2)}" rx=".6" fill="${['#C98A3A','#B8642E','#D9A050'][i%3]}"><animate attributeName="y" values="-6;${110+(i%4)*14}" dur="${2.4+i*.2}s" begin="${-i*.3}s" repeatCount="indefinite"/><animateTransform attributeName="transform" type="rotate" values="0 ${x} 60;180 ${x} 60" dur="${2.4+i*.2}s" begin="${-i*.3}s" repeatCount="indefinite"/></rect>`}).join(''),
+ water:id=>evGlow('#E8F8FF',.14)+Array.from({length:4},(_,i)=>`<ellipse cx="${80+i*34}" cy="${60+(i%2)*20}" rx="4" ry="1.4" fill="none" stroke="#fff" stroke-width="1"><animate attributeName="rx" values="2;26" dur="${1.4+i*.2}s" begin="${-i*.4}s" repeatCount="indefinite"/><animate attributeName="opacity" values=".8;0" dur="${1.4+i*.2}s" begin="${-i*.4}s" repeatCount="indefinite"/></ellipse>`).join('')+evMotes(id,12,'#fff',-1,.8),
+ sick:id=>evTint('#6A7A50',.28)+`<rect width="260" height="200" fill="url(#${id}v)" opacity=".4"/>`,
+ hot:id=>evTint('#F2A050',.22)+evGlow('#FFD9A0',.12)+evMotes(id,8,'#FFE8C0',-1,.5),
+ cold:id=>evTint('#7FA8D8',.25)+evGlow('#E8F4FF',.18)+evMotes(id,22,'#FFFFFF',1,.9),
+ fight:id=>`<rect width="260" height="200" fill="#C0302A" opacity="0"><animate attributeName="opacity" values="0;.28;0" dur=".7s" repeatCount="indefinite"/></rect>`+`<rect width="260" height="200" fill="url(#${id}v)" opacity=".45"/>`,
+ star:id=>evGlow('#FFF3C0',.12)+evSpark(id,8,'#FFE07A'),
+ heart:id=>evGlow('#FFE0EA',.1)+evHearts(id),
+ train:id=>evLines(id,false),
+ bubble:id=>Array.from({length:9},(_,i)=>`<circle cx="${70+i*14}" cy="190" r="${1.6+(i%3)*.8}" fill="#fff" fill-opacity=".15" stroke="#fff" stroke-width=".8"><animate attributeName="cy" values="190;50" dur="${2.2+i*.3}s" begin="${-i*.35}s" repeatCount="indefinite"/><animate attributeName="cx" values="${70+i*14};${74+i*14};${70+i*14}" dur="1.2s" repeatCount="indefinite"/></circle>`).join('')
 };
-/* what to show for a line (first match wins; scenes that only make sense in a tank are skipped elsewhere) */
+/* what to show for a line (first match wins) */
 const EVFX=[
  [/마룻바닥|바닥에서 몸을 (튕|퍼덕)|수조 밖 바닥|바닥으로 떨어졌|수건 위로 떨어|바닥에서 퍼덕|욕조 바닥에서/,'floor'],
  [/수면 위로 (몸을 날|뛰어)|뛰어올랐|뛰어오릅|점프|뚜껑을 (머리로 )?밀어/,'leap'],
- [/왜가리/,'heron'],[/수달/,'otter'],[/낚싯|낚시꾼|바늘|미끼|루어/,'angler'],[/폭포/,'waterfall'],[/장마|홍수|불어난|떠내려/,'flood'],
- [/택배|상자|스티로폼/,'box'],
- [/뜰채|그물/,'net'],[/고양이|「대장」/,'cat'],
- [/정전|불 꺼진|불이 꺼|한밤중|새벽/,'dark'],
+ [/왜가리|수달|가마우지|새가|부리|고양이|「대장」|배스|블랙|메기|포식/,'danger'],
+ [/낚싯|낚시꾼|바늘|미끼|루어/,'hook'],
+ [/뜰채|그물/,'net'],
+ [/폭포/,'fall'],[/장마|홍수|불어난|떠내려|물살/,'current'],
+ [/택배|상자|스티로폼|봉지/,'box'],
+ [/정전|불 꺼진|불이 꺼|한밤중|새벽|밤새/,'dark'],
  [/물갈이|물을 (갈|반|채|조금씩)|양동이|수돗물/,'water'],
  [/먹이|사료|과식|간식/,'feed'],
- [/손가락|손바닥|손으로|손을 넣/,'hand'],
- [/사진|카메라|영상|촬영|방송|휴대폰/,'camera'],
- [/병이|하얀 점|곰팡이|기생충|백점|지느러미가 녹|아가미가 (붉|부)/,'sick'],
+ [/사진|카메라|영상|촬영|방송|휴대폰/,'flash'],
+ [/병이|하얀 점|곰팡이|기생충|백점|지느러미가 녹|아가미가 (붉|부)|아팠/,'sick'],
  [/여름|더위|뜨거|과열|폭염/,'hot'],[/겨울|얼음|추위|차가운|살얼음/,'cold'],
  [/물렸|쪼아|싸움|공격|들이받|결투|박치기/,'fight'],
- [/♥|인연|웃었|좋아/,'heart'],
+ [/♥|인연/,'heart'],
  [/★|고비 통과|우승|🏆|스킬 발동|수련의 성과|이겼/,'star'],
  [/훈련|헤엄쳤|왕복|거슬러/,'train'],
  [/숨|산소|기포|뻐끔/,'bubble']
 ];
-let EV_CUR=null;
-/* overlays that need a home tank: not in a river, a net, a box or a shop line */
-const EV_HOME=['water','hand','camera','cat','feed','sick','dark'];
+const EV_HOME=['water','flash','feed','dark'];
 const evHome=()=>S&&S.f&&!S.wild&&['tank','pond'].includes(S.env);
+let EV_CUR=null;
 function evSet(text){
   const m=text?EVFX.find(([r,k])=>r.test(text)&&(!EV_HOME.includes(k)||evHome())):null,k=m?m[1]:null;
+  const st=typeof $==='function'&&$('stage');if(st&&st.dataset){if(k)st.dataset.ev=k;else delete st.dataset.ev}
   if(k===EV_CUR)return;EV_CUR=k;
   if(S&&S.f&&!skipping&&typeof drawStage==='function'){stageKey='';drawStage(true)}
 }
 (()=>{const _f=fishStageSvg;fishStageSvg=function(){
   /* the death scene comes with the first line of the ending */
   let s;if(S&&!S.done&&S.ending&&S.fx){S.done=true;try{s=_f()}finally{S.done=false}}else s=_f();
-  if(EV_CUR&&EVSCN[EV_CUR]&&!S.done){const o=EVSCN[EV_CUR]();
-    const scene=o.full?`<g class="evscene">${o.s}</g>`:`<g class="evover">${o.s}</g>`;s=s.replace(/<\/svg>\s*$/,scene+'</svg>')}
+  if(EV_CUR&&EVSCN[EV_CUR]&&!S.done){const id='ev'+(EVID++);s=s.replace(/<\/svg>\s*$/,`<g class="evfx" pointer-events="none">${evDefs(id)}${EVSCN[EV_CUR](id)}</g></svg>`)}
   return s}})();
 (()=>{const _e=endLife;endLife=function(lines,cat,fact,pl,calm,fx,pred){if(S&&!skipping){S.fx=fx||(calm?'ghost':'sickdead');S.pred=pred||null;S.calm=!!calm}return _e.apply(this,arguments)}})();
