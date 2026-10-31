@@ -37,6 +37,7 @@
     <ol class="pledges" id="introPledges" hidden></ol>
     <div class="namebox"><label><span>주인 이름</span><input id="nick" maxlength="10" placeholder="비우면 무작위" autocomplete="off"></label><label><span>물고기 이름</span><input id="fname" maxlength="10" placeholder="비우면 주인이 지어 줌" autocomplete="off"></label></div><span id="sheetOwner" hidden></span><p class="nickmsg" id="nickMsg" hidden></p>
     <div class="modepick" id="modePick" role="group" aria-label="난이도"><span class="label">난이도</span><button type="button" data-mode="story" aria-pressed="true">쉬움</button><button type="button" data-mode="real" aria-pressed="false">어려움</button><span class="modedesc" id="modeDesc" hidden></span></div>
+    <div class="inhpick" id="inhPick"></div>
     <div class="row"><button class="btn ts-start" id="startBtn">▶ 시작하기</button></div>
   </section>
 
@@ -123,6 +124,7 @@
   <section class="memorial">
     <h3>육성 기록</h3>
     <p class="summary" id="memSummary"></p>
+    <div class="dex" id="dex"></div>
     <ul class="mem" id="memList"></ul>
     <div class="row memtools" id="memTools" hidden><button type="button" class="btn ghost" id="memMore">모두 보기</button><button type="button" class="btn ghost" id="memClear">모두 지우기</button></div>
   </section>
@@ -134,7 +136,7 @@
     <div class="row memtools"><button type="button" class="btn ghost" id="pubMore" hidden>더 보기</button></div>
   </section>
 
-  <p class="foot"><span class="ver">베타 v0.24.4 · 관상어 데이 · PARK, SEHO</span></p>
+  <p class="foot"><span class="ver">베타 v0.25.0 · 관상어 데이 · PARK, SEHO</span></p>
 </div>
 
 <!-- load order matters: later files use what earlier files declare -->
@@ -166,12 +168,15 @@
 <script src="js/data/fev_zz_fun.js"></script>
 <script src="js/data/fev_zz_gintama.js"></script>
 <script src="js/data/fev_zz_mob.js"></script>
+<script src="js/data/fev_zz_chaos.js"></script>
+<script src="js/data/fev_zz_factor.js"></script>
 <script src="js/data/rig.js"></script>
 <script src="js/stage.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/share.js"></script>
 <script src="js/dir.js"></script>
 <script src="js/endhero.js"></script>
+<script src="js/factorui.js"></script>
 <script src="js/turnui.js"></script>
 </body>
 </html>

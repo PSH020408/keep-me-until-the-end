@@ -12,7 +12,7 @@ import sys,os,json,glob
 from PIL import Image
 sys.path.insert(0,os.path.dirname(os.path.abspath(__file__)))
 from cells import cut_cells
-from rig import rig,compose,plug_head,paint_eye
+from rig import rig,compose,plug_head,paint_eye,gen_tail,trim_rear
 ROOT=os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 args=[a for a in sys.argv[1:] if not a.startswith('--')]
 SRC=os.path.join(ROOT,args[0] if args else 'art_raw')
@@ -47,7 +47,9 @@ if want('fish'):
         parts=cut_cells(Image.open(src('01_fish',sp,'parts.png')),3,2)
         if ov.get('plug'): parts=plug_head(parts,ov)
         if ov.get('eye'): parts[0]=paint_eye(parts[0],ov)
+        if ov.get('tailgen'): parts[0]=trim_rear(parts[0],ov['tailgen'].get('trim',0)); parts[1]=gen_tail(parts[0],ov)
         P=rig(parts,ov)
+        for i in [('body','tail','dorsal','pect','pelvic','head').index(n) for n in ov.get('hide',[])]: parts[i]=Image.new('RGBA',parts[i].size,(0,0,0,0))
         names=('body','tail','dorsal','pect','pelvic','head')
         comp,(ox,oy)=compose(parts,P)
         k=min(1,560/comp.width)                    # export scale: whole fish at most 560px long

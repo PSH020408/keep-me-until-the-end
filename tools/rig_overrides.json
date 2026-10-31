@@ -1,5 +1,5 @@
 {
- "_doc": "Per-species corrections for the automatic fish rig. dr/pr/vr = dorsal/pectoral/pelvic size as a share of body height; dx/px/vx = where along the body (0 head, 1 tail); dsink/vsink = how deep the fin base sits in the body; plug = body drawn without a head (the closed-eye head is opened and baked on); hs = head scale for plug. eye = [x, y, radius] as a share of the body box, for a body painted with no eye.",
+ "_doc": "Per-species corrections for the automatic fish rig. dr/pr/vr = dorsal/pectoral/pelvic size as a share of body height; dx/px/vx = where along the body (0 head, 1 tail); dsink/vsink = how deep the fin base sits in the body; plug = body drawn without a head (the closed-eye head is opened and baked on); hs = head scale for plug. eye = [x, y, radius] as a share of the body box, for a body painted with no eye. tailgen = draw the tail instead ({len: share of body length, bands: [[from, to], ...] along it}); hide = parts not drawn (the black ghost has no dorsal or pelvic fin).",
  "betta": {
   "dr": 1.0,
   "vr": 0.95,
@@ -33,5 +33,28 @@
    0.4,
    0.085
   ]
+ },
+ "ghost": {
+  "tailgen": {
+   "len": 0.27,
+   "bands": [
+    [
+     0.44,
+     0.55
+    ],
+    [
+     0.72,
+     0.82
+    ]
+   ],
+   "tip": 3,
+   "dark": 0.8,
+   "trim": 0.008
+  },
+  "hide": [
+   "dorsal",
+   "pelvic"
+  ],
+  "tov": 0.3
  }
 }

@@ -368,7 +368,7 @@ function panelDraw(){
     const im=document.createElement('img');im.alt='';im.src=fishImg(id);d.appendChild(im);box.appendChild(d)})})();
 
 /* the info sheet (full screen on a phone) closes from inside it, with Esc, or by tapping outside */
-(()=>{if(typeof document==='undefined'||!document.getElementById)return;const x=document.getElementById('infoClose');if(!x||!x.addEventListener)return;
+(()=>{if(typeof document==='undefined'||!document.getElementById)return;const x=document.getElementById('infoClose');if(!x||!x.addEventListener||typeof document.addEventListener!=='function')return;
   const close=()=>{const c=$('card');if(c&&c.classList.contains('showinfo'))$('infoBtn').click()};
   x.addEventListener('click',e=>{e.stopPropagation();close()});
   document.addEventListener('keydown',e=>{if(e.key==='Escape')close()});

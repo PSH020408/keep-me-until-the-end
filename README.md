@@ -16,7 +16,7 @@ Formerly 키워주세요 — 끝까지 (*Keep Me — Until the End*); renamed in
 > From then on you raise it in the manner of Uma Musume and Princess Maker — train, rest, learn
 > skills, pass goals — so that it can outlast whatever the owner gets wrong.
 
-**Status:** public beta (v0.24.4, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.25.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
@@ -55,7 +55,9 @@ The end of a life: the ending's painting, the fish's last pose and its episode t
    skills. Companions (the owner, a tankmate, a snail, the fish's own reflection) build bonds and give 우정 훈련;
    six goals arrive on schedule with a visible requirement; skills and 벼랑 끝 last stands let a fish that has
    grown live through the house's unfairness; the shop recommends the skill for the threat at hand. Bond stories,
-   출전 contests and 계승 (a good career gives the next one a head start) round it out. Each stat wears a letter (G → SS → UF … US). The life ends
+   출전 contests round it out. A raised fish leaves 인자 (factors: its best stats, some skills, its title, one to
+   three stars each); up to two of them are picked as 선배 for the next life, and their factors may light up when its career
+   starts and again halfway. A 물고기 도감 keeps the best grade per species. Each stat wears a letter (G → SS → UF … US). The life ends
    with a grade (G → US) and a title. See
    [docs/CAREER.md](docs/CAREER.md).
 5. **Raising the fish.** Five stats of its own — health (HP), strength, guts, wits and charm — and
@@ -109,6 +111,7 @@ browser (static site on Render)                 Supabase (Postgres, Seoul)
 Two difficulties (v0.10.0): **어려움** (hard) is tuned to the anchors below; **쉬움** (easy, the default)
 makes owners kinder, the fish's checks a little likelier and black comedy commoner. With random
 choices, 14% of lives are lived out in 어려움 and 20% in 쉬움; happy endings are 9% and 14% of lives.
+`node tools/career.mjs 400 - good` plays careers the way a diligent player would (train, rest when tired, buy skills, take the best odds) and prints stat ranks, grades and factors; `random` plays at random.
 `node tools/sim.mjs 6000` plays thousands of lives with random choices (`MODE=story` for 쉬움), and
 `node tools/fevtest.mjs` forces every catalogue event on every species it fits and plays the life out.
 
@@ -194,9 +197,10 @@ decisions, in short:
 | v0.23.1 | 2026-10-31 | event scenes as light, colour grading and camera moves instead of flat props |
 | v0.24.0 | 2026-11-01 | rebuilt on 339 painted assets: rigged fish (tail and fins move), painted places, 35 ending paintings, owner portraits, hands, animals and props per story line, career cut-ins, a new play layout, a painted title screen, a result screen with an episode title (제N훈); 맞짱, 수선조 / 폭주어단 and sixteen family gags; the pet-sim code and art removed |
 | v0.24.1 | 2026-11-01 | each species swims its own way; the fish keeps swimming between story lines; the current line no longer scrolls away; the turn menu back beside the card |
-| v0.24.4 | 2026-11-01 | title screen restored (its painting had lost its layout in v0.24.2); figure-8 puffer has an eye again |
-| v0.24.3 | 2026-11-01 | phone: the info sheet can be closed again (close button inside it, Esc, tap outside) |
 | v0.24.2 | 2026-11-01 | result screen rebuilt (stamp, grade card, episode titles as gags, the narrator's next-life preview; no lecture, no fact box); gags about three times as often, nine new ones before an owner and in the wild; tankmates of the same species as big as the player's fish; neon tetra head redone |
+| v0.24.3 | 2026-11-01 | phone: the info sheet can be closed again (close button inside it, Esc, tap outside) |
+| v0.24.4 | 2026-11-01 | title screen restored (its painting had lost its layout in v0.24.2); figure-8 puffer has an eye again |
+| v0.25.0 | 2026-11-01 | 인자 (inheritance factors): a raised fish leaves stat, skill and title factors; up to two 선배 are picked and their factors may light up twice in the next career; 물고기 도감 (best grade per species, a start bonus); training gains slow near the ceiling (no more maxed stats by mid-life), 고비 requirements follow; a grade that adds up a whole life; 22 new chaos events in short arcs; black ghost drawn with its real rat-tail and no dorsal fin |
 
 Every row is expanded in [LOG.md](LOG.md).
 
@@ -229,6 +233,7 @@ public/            the site (index.html, css/, js/, img/, og.png, favicon)
                          gag/, mob/, owner/, animal/, hand/, prop/, skill/, sick/, ui/)
   js/share.js            shared memorial (Supabase REST, opt-in, sanitised)
 tools/sim.mjs      headless balance simulation (prints endings, owner anchors, learning vs. not)
+tools/career.mjs   career balance with a diligent or random player (stat ranks, grades, factors, gag events per life)
 tools/fevtest.mjs  forces every catalogue event on fitting species and plays the life out
 tools/check_facts.mjs  which fact each species ends with, and log lines that contradict the tank
 tools/import_assets.py  cuts the painted sheets (art_raw/, not in git) into the WebP in public/img and rigs the fish

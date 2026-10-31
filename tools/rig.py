@@ -126,3 +126,43 @@ def paint_eye(body,ov):
     L=L.resize(body.size,Image.LANCZOS)
     out=body.copy(); out.alpha_composite(L)
     return out
+
+def gen_tail(body,ov):
+    """A body painted with the wrong tail (black ghost: a fan): draw the real one, a thin tapering
+    rat-tail with white bands, starting at the body's rear socket height."""
+    import numpy as np
+    from PIL import Image,ImageDraw,ImageFilter
+    g=ov['tailgen']; B=np.array(body); A=B[:,:,3]
+    xs=[x for x in range(A.shape[1]) if A[:,x].max()>60]; xl,xr=xs[0],xs[-1]
+    cols=[np.where(A[:,x]>60)[0] for x in range(xr-4,xr+1)]; cols=[c for c in cols if len(c)]
+    h0=float(np.mean([c.max()-c.min() for c in cols])); 
+    near=B[:, max(0,xr-30):xr-6]; m=near[:,:,3]>200; col=tuple(int(v*g.get('dark',.8)) for v in near[m][:,:3].mean(0)) if m.any() else (30,30,34)
+    L=(xr-xl)*g.get('len',.3); S=4; W,H=int(L)+8,int(h0)+12; cy=H/2
+    im=Image.new('RGBA',(W*S,H*S),(0,0,0,0)); d=ImageDraw.Draw(im)
+    tip=g.get('tip',3.0)
+    def half(t): return (h0/2)*(1-t)**1.25+tip/2*t
+    top=[(t*L*S,(cy-half(t))*S) for t in np.linspace(0,1,60)]
+    bot=[(t*L*S,(cy+half(t))*S) for t in np.linspace(1,0,60)]
+    d.polygon(top+bot,fill=col+(255,))
+    # bands: between two fractions of the length, a light ring
+    band=Image.new('RGBA',im.size,(0,0,0,0)); db=ImageDraw.Draw(band)
+    for a,b in g.get('bands',[[.5,.6],[.76,.84]]):
+        db.rectangle([a*L*S,0,b*L*S,H*S],fill=(232,226,210,255))
+    band=band.filter(ImageFilter.GaussianBlur(S*.8))
+    mask=im.split()[3]; band.putalpha(Image.fromarray(np.minimum(np.array(band.split()[3]),np.array(mask))))
+    im=Image.alpha_composite(im,band)
+    # a soft light along the top edge, as on the body
+    hl=Image.new('RGBA',im.size,(0,0,0,0)); dh=ImageDraw.Draw(hl)
+    dh.line([(t*L*S,(cy-half(t)*.55)*S) for t in np.linspace(0,.95,40)],fill=(255,255,255,40),width=int(S*max(1,h0*.12)))
+    hl=hl.filter(ImageFilter.GaussianBlur(S*1.2)); hl.putalpha(Image.fromarray(np.minimum(np.array(hl.split()[3]),np.array(im.split()[3]))))
+    im=Image.alpha_composite(im,hl)
+    return im.resize((W,H),Image.LANCZOS)
+
+def trim_rear(body,frac):
+    """Cut the painted stump off the back of a body (its rim shows where a drawn tail meets it)."""
+    import numpy as np
+    from PIL import Image
+    B=np.array(body).copy(); A=B[:,:,3]; xs=[x for x in range(A.shape[1]) if A[:,x].max()>60]; xl,xr=xs[0],xs[-1]
+    c=xr-int((xr-xl)*frac); B[:,c:,3]=0
+    for i in range(6): B[:,c-6+i,3]=(B[:,c-6+i,3]*(1-(i+1)/7)).astype(np.uint8)
+    return Image.fromarray(B)

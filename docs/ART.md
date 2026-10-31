@@ -41,7 +41,9 @@ long bodies cross grid lines). `tools/rig.py` assembles a fish: the tail's stub 
 body's rear socket in height and position; dorsal, pectoral and pelvic fins are scaled to a share of
 the body's height and placed along it. Corrections per species are in
 `tools/rig_overrides.json` (`dr`/`pr`/`vr` fin size, `dx`/`px`/`vx` position along the body,
-`dsink`/`vsink` depth, `plug` for a body drawn without a head). In the browser each layer turns
+`dsink`/`vsink` depth, `plug` for a body drawn without a head, `eye` to paint an eye on a body drawn
+without one (figure-8 puffer), `tailgen` to draw the tail instead of using the sheet's (black ghost: a thin
+banded rat-tail), `hide` for parts the species does not have). In the browser each layer turns
 around its own joint (`css/stage.css`); swimming speed sets the beat.
 
 ## Rules for new pictures

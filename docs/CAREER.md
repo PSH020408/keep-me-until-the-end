@@ -324,3 +324,38 @@ Two choice policies:
 | SS / S | 1% / 6% | 20% / 10% |
 
 The choices matter. 어려움 stays hard. 쉬움 (random play) lives out 26% of all lives.
+
+## v0.25 changes: factors, the 도감, slower growth, a grade for a whole life
+
+**Growth.** Every stat gain (training, events, bond stories) is multiplied by `statSoft(stat / ceiling)` in
+`fStat`: ×1.4 at 0, ×1 at 30 %, ×0.6 at 50 %, ×0.34 at 65 %, ×0.19 at 75 %, ×0.08 at 85 %, ×0.035 at 93 %,
+×0.02 at the ceiling. Training's base gain is `gain × multipliers × ceiling / 115` (was `/ 60`, with a
+separate catch-up for low stats that the curve now replaces). 지능 훈련 costs 6 energy (it gave 4 back, which
+made it free to repeat). With `tools/career.mjs`, a diligent player ends a full life with a mean stat of about
+60 % of the ceiling and a best stat around SS–UE; no stat maxes from training alone.
+
+**고비 requirements** follow the curve: 20, 27, 35, 44, 50 and 56 % of the ceiling (were 30–90 %).
+
+**Grade.** `carScore` adds: stats (mean share of the ceiling × 110), the share of the life lived (× 90, +20
+when lived out), 고비 passed of those met (× 40) plus 4 per pass, skills (2.5 each, up to 10), the owner's
+bond (÷ 5), friendship trainings (1.5 each, up to 15) and trophies (4 each, up to 16). Thresholds:
+F 40 · E 60 · D 80 · C 100 · B 125 · A 150 · S 175 · SS 200 · UF 220 · UE 240 · UD 260 · UC 280 · UB 298 ·
+UA 316 · US 335.
+
+**인자 (factors)** replace the same-species 계승. At the end of a career the fish leaves:
+
+| Factor | When | Stars |
+|---|---|---|
+| 스탯 (blue) | its best stat if ≥ 20 % of the ceiling; the second best (≥ 45 %) half the time | ★★★ ≥ 90 %, ★★ ≥ 65 %, else ★ |
+| 스킬 (green) | each learned skill with 15 % + 2 % per grade step, at most three | rolled, brighter with the grade |
+| 고유 (pink) | grade S or better; named after the title | ★★★ from UC, ★★ from UF |
+
+Up to 24 fish are kept (the picked 선배 are never dropped). The player picks up to two 선배 on the title or
+result screen (the two most valuable by default). When the next career starts and again at about 45 % of
+its turns, every factor of each 선배 lights up with ★ 20 % · ★★ 35 % · ★★★ 55 % (× 1.2 for the same species):
+a stat factor adds (1.5 + 2 × stars) % of the ceiling directly; a skill factor gives a hint (★ 25 %, ★★ 50 %
+off the skill) or, at ★★★, the skill; a skill already known gives 5 SP per star; a 고유 인자 gives 8 SP and
+5 bond per star and a better mood.
+
+**물고기 도감.** Every finished life registers its species with the best grade reached, lives, lives lived
+out and titles. A career starts with 1 SP per registered species plus 2 per species with S or better.

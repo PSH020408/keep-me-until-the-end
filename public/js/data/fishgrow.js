@@ -54,7 +54,11 @@ function fst(){const f=S.f;if(!f.st){const t=S.temper,g=k=>FGROUP[k]&&FGROUP[k](
   /* the old absolute values stay as the fish's instinct: before an owner, checks use whichever is higher */
   f.stI={};for(const k in f.st)f.stI[k]=Math.round(clamp(f.st[k],0,typeof capOf==='function'?capOf(k):100));
   for(const k in f.st){const cap=typeof statCap==='function'?statCap(k):100;f.st[k]=Math.max(1,Math.round(cap*clamp((f.st[k]-8)/100,.08,.4)))}}return f.st}
-const fStat=(k,v)=>{const s=fst();s[k]=clamp(s[k]+(v>0&&typeof growOf==='function'?v*growOf(k)*(typeof aptOf==='function'?aptOf(k):1):v),1,typeof statCap==='function'?statCap(k):100)};
+/* v0.25: growth slows as a stat nears its ceiling (the first ranks come quickly, the U ranks are earned) */
+const STAT_SOFT=[[0,1.4],[.3,1],[.5,.6],[.65,.34],[.75,.19],[.85,.08],[.93,.035],[1,.02]];
+const statSoft=r=>{for(let i=1;i<STAT_SOFT.length;i++){const [a,x]=STAT_SOFT[i-1],[b,y]=STAT_SOFT[i];if(r<=b)return x+(y-x)*clamp((r-a)/(b-a),0,1)}return .04};
+const statGainK=k=>(typeof growOf==='function'?growOf(k):1)*(typeof aptOf==='function'?aptOf(k):1)*statSoft(fst()[k]/(typeof statCap==='function'?statCap(k):100));
+const fStat=(k,v)=>{const s=fst();s[k]=clamp(s[k]+(v>0?v*statGainK(k):v),1,typeof statCap==='function'?statCap(k):100)};
 /* multipliers used by the hazards and the owner */
 const fChk=k=>{const v=fst()[k],f=S.f;return f.stI?Math.max(v,(f.stI[k]||0)*(S.preOwner?1:.75)):v};
 const fGutsK=()=>S.f?.7+fChk('g')/100*.6+fChk('p')/100*.3:1;   // crisis: weight of the surviving outcomes (guts, then strength)
