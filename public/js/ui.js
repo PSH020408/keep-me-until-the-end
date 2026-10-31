@@ -59,7 +59,7 @@ function showDelta(a,b){
 }
 function meter(el,v){v=Math.round(clamp(v,0,100));el.querySelector('.v').textContent=v;el.querySelector('.fill').style.width=v+'%';el.classList.toggle('low',v<30)}
 function fields(){
-  const rows=[['이름',S.name||(S.noPledge?'없음':'지어지지 않음')],['온 곳',S.origin],['기질',S.temper?TEMPER.find(t=>t.k===S.temper).l:'—'],['서약인',ownerText()],['현재',S.status+(S.owners>1&&!S.wild?' · '+S.owners+'번째 주인':'')]];
+  const rows=[['이름',S.name||(S.noPledge?'없음':'지어지지 않음')],['온 곳',S.origin],['기질',S.temper?TEMPER.find(t=>t.k===S.temper).l:'—'],['주인',ownerText()],['현재',S.status+(S.owners>1&&!S.wild?' · '+S.owners+'번째 주인':'')]];
   if(S.tank&&!S.wild) rows.push(['어항',tankText()]);
   if(S.f){rows[3][1]=fishOwnerText();if(S.f.path.length)rows[1][1]=S.f.path.join(' → ');if(!S.preOwner&&!S.wild)rows.push(['수조',fishTankText()]);rows.push(['몸길이',S.f.len.toFixed(S.f.len<10?1:0)+'cm · 다 크면 '+fx_().cm+'cm'])}
   const dl=$('fields');dl.innerHTML='';
@@ -115,7 +115,7 @@ function showEnd(cat,fact,calm){
   const al=ageLabel(lived);
   h.textContent=calm?T('{n}은 '+josa(al,'을')+' 살았습니다.'):T('{n}은 '+al+' 만에 생을 마쳤습니다.');
   E.appendChild(h);
-  if(!S.noPledge){const sc=document.createElement('div');sc.className='score'+(kept===S.pl.length||S.flags.fac?' calm':'');sc.textContent=S.f&&S.f.free?'서약서도 주인도 필요 없는 생이었습니다':S.preOwner?'서약서를 쓸 주인을 만나기도 전이었습니다':S.flags.fac?'서약서 대신 보호시설이 끝까지 돌봤습니다':(S.f&&S.f.place?josa(S.o.name,'이'):S.o.name+' 님이')+' 지킨 서약 '+kept+' / '+S.pl.length;E.appendChild(sc);
+  if(false){const sc=document.createElement('div');sc.className='score'+(kept===S.pl.length||S.flags.fac?' calm':'');sc.textContent=S.f&&S.f.free?'서약서도 주인도 필요 없는 생이었습니다':S.preOwner?'서약서를 쓸 주인을 만나기도 전이었습니다':S.flags.fac?'서약서 대신 보호시설이 끝까지 돌봤습니다':(S.f&&S.f.place?josa(S.o.name,'이'):S.o.name+' 님이')+' 지킨 서약 '+kept+' / '+S.pl.length;E.appendChild(sc);
     if(!S.preOwner&&!S.flags.fac){const ol=document.createElement('ol');ol.className='pledges endpl';drawPledges(ol,true);E.appendChild(ol)}}
   const c=document.createElement('div');c.className='compare';
   c.innerHTML='<div class="cbar"><span>살아낸 시간</span><div class="track"><div class="fill"></div></div><span class="mono a"></span></div><div class="cbar"><span>살 수 있던 시간</span><div class="track"><div class="fill pot" style="width:100%"></div></div><span class="mono b"></span></div>';
@@ -166,11 +166,11 @@ function showEnd(cat,fact,calm){
   row.append(b1,b2);E.appendChild(row);
   /* keep this life? only a kept life goes into 주마등 */
   const keep=document.createElement('div');keep.className='keep';
-  keep.innerHTML='<p>이 생을 <b>주마등</b>에 남기시겠습니까?</p><span class="sub">남긴 생은 아래 주마등에서 눌러 다시 볼 수 있습니다. 어떻게 살다 어떻게 끝났는지, 주인이 무엇을 지키지 못했는지.</span>'+(typeof shareOn==='function'&&shareOn()?'<label class="pubchk"><input type="checkbox" checked> 모두의 주마등에도 올리기 <small>서약인 이름, 물고기, 결말, 마지막 한마디가 다른 사람에게 보입니다.</small></label>':'')+'<div class="row"><button class="btn">남기기</button><button class="btn ghost">남기지 않기</button></div>';
+  keep.innerHTML='<p>이 생을 <b>주마등</b>에 남기시겠습니까?</p><span class="sub">남긴 생은 아래 주마등에서 눌러 다시 볼 수 있습니다. 어떻게 살다 어떻게 끝났는지.</span>'+(typeof shareOn==='function'&&shareOn()?'<label class="pubchk"><input type="checkbox" checked> 모두의 주마등에도 올리기 <small>물고기, 결말, 마지막 한마디가 다른 사람에게 보입니다.</small></label>':'')+'<div class="row"><button class="btn">남기기</button><button class="btn ghost">남기지 않기</button></div>';
   const kb=keep.querySelector('.btn:not(.ghost)'),nb=keep.querySelector('.btn.ghost');
   kb.onclick=()=>{S.memId='m'+Date.now();const rec=lifeRecord(cat,calm,fact,kept,al,pct);saveMem(rec);const ck=keep.querySelector('.pubchk input'),pub=!!(ck&&ck.checked);
     keep.innerHTML='<p class="done">주마등에 남겼습니다.</p>'+(pub?'<span class="sub pubst">모두의 주마등에 올리는 중…</span>':'');
-    if(pub)sharePost(rec).then(ok=>{const st=keep.querySelector('.pubst');if(st)st.textContent=ok?'모두의 주마등에도 올렸습니다. 다른 서약인들이 이 생을 다시 볼 수 있습니다.':'모두의 주마등에 올리지 못했습니다. 내 주마등에는 남아 있습니다.'})};
+    if(pub)sharePost(rec).then(ok=>{const st=keep.querySelector('.pubst');if(st)st.textContent=ok?'모두의 주마등에도 올렸습니다. 다른 사람들도 이 생을 다시 볼 수 있습니다.':'모두의 주마등에 올리지 못했습니다. 내 주마등에는 남아 있습니다.'})};
   nb.onclick=()=>{keep.innerHTML='<p class="done muted">남기지 않았습니다.</p>'};
   E.insertBefore(keep,row);
   if(!skipping&&E.scrollIntoView) setTimeout(()=>E.scrollIntoView({behavior:'smooth',block:'start'}),400);
@@ -185,7 +185,7 @@ function start(force){
   const old=document.querySelector('.stamp');if(old)old.remove();
   const sp=S.sp;
   $('spName').textContent=sp.name;$('spSci').textContent=sp.sci+(sp.cites?' · CITES 규제종':'');
-  $('cardNo').textContent=(S.noPledge?'먹이 거래 기록':(S.o&&S.o.name?S.o.name+' 님의 ':'')+(S.f?'관상어 입양 서약서':'입양 서약서'))+' No. 2026-'+S.no;
+  $('cardNo').textContent='살아남아라! · 개체 No. 2026-'+S.no;
   $('cardSex').textContent=S.sex;
   $('ageMax').textContent='기대수명 '+ageLabel(sp.life);
   drawPledges($('gamePledges'),true);render();
@@ -196,7 +196,7 @@ function start(force){
     if(S.smuggled) smugglePrologue();
     else if(sp.cafe){S.flags.cafeLife=1;S.status='야생동물 카페';S.env='cafe';q(T('{n}은 야생동물 카페에서 태어났습니다. 손님들이 돈을 내고 {n}을 안아 봅니다.'),'neutral')}
     else if(S.noPledge) q(sp.g==='feeder'?'당신은 '+S.origin+'에 담겨 팔렸습니다.':'당신은 '+S.origin+'에서 태어났습니다.','neutral');
-    else q(T('{n}이 새 집에 왔습니다. 온 곳은 '+S.origin+'. 서약서에 서명이 끝났습니다.'),'neutral');
+    else q(T('{n}이 새 집에 왔습니다. 온 곳은 '+S.origin+'.'),'neutral');
     if(S.tank) q(T('{n}의 집은 '+S.tank.vessel+'입니다. '+(S.tank.filter==='없음'?'여과기는 없고':'여과기는 '+S.tank.filter+'이고')+', 함께 사는 물고기는 '+(S.tank.crowd-1)+'마리.'+(S.tank.crowd>5?' 비좁습니다.':'')),'sub');
     if(S.flags.yard&&!S.smuggled) q(T('{n}의 자리는 마당 한쪽, 1미터 목줄 끝입니다.'),'sub');
   });
@@ -234,7 +234,6 @@ let slotBusy=false;
 function spin(){
   if(slotBusy)return;
   /* the pledge is signed by the player: no name, no fish */
-  const nk=$('nick');if(nk&&!nk.value.trim()&&!(S&&S.o&&S.o.name)){nk.classList.add('need');$('nickMsg').hidden=false;nk.focus();return}
   const pool=SP.filter(s=>ACTIVE_GROUPS.includes(s.g)), sp=wpick(pool.map(s=>[s,s.w]));
   const box=$('slot'),strip=$('slotStrip'),nm=$('slotName');
   const calm=typeof matchMedia==='function'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -270,9 +269,9 @@ $('stopBtn').onclick=()=>{paused=true;setPlay();stop();stepText()};
 /* phones: one button cycles the six speeds; the bar with it stays at the bottom of the screen */
 $('speedCycle').onclick=()=>{const L=[1,2,4,8,16,32],nx=L[(L.indexOf(speed)+1)%L.length],b=document.querySelector('[data-speed="'+nx+'"]');if(b)b.click()};
 document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{speed=+b.dataset.speed;$('speedCycle').textContent=speed+'×';document.querySelectorAll('[data-speed]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));if(S&&!S.done&&paused){paused=false;setPlay()}run()});
-try{$('nick').value=localStorage.getItem('kiwojuseyo-nick')||''}catch(e){}
+/* v0.17: no signer any more — the owner is always someone else */
 /* the sheet carries the signer's name as it is typed */
-function nickShow(){const v=$('nick').value.trim();$('sheetOwner').textContent=v?v+' 님의 ':'';if(v){$('nick').classList.remove('need');$('nickMsg').hidden=true}}
+function nickShow(){const v=($('nick').value||'').trim();$('sheetOwner').textContent=v?v+' 님의 ':'';if(v){$('nick').classList.remove('need');$('nickMsg').hidden=true}}
 $('nick').addEventListener('input',nickShow);nickShow();
 $('nick').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();spin()}});
 $('skipBtn').onclick=()=>{if(!S||S.done)return;skipping=true;stop();if(S.pending)S.pending.resolve(pick(S.pending.opts));let n=0;while(!S.done&&n++<8000){if(S.pending)S.pending.resolve(pick(S.pending.opts));tick()}skipping=false;stageKey='';render();if($('ending').scrollIntoView)$('ending').scrollIntoView({behavior:'smooth',block:'start'})};
@@ -303,7 +302,7 @@ function drawMem(){
   if(tools){tools.hidden=false;$('memMore').hidden=mem.length<=8;$('memMore').textContent=memAll?'접기':'모두 보기 ('+mem.length+')'}
   (memAll?mem:mem.slice(0,8)).forEach(m=>{const li=document.createElement('li');
     li.innerHTML='<button type="button" class="mrow"><span></span><span class="c"></span></button><button type="button" class="mdel" aria-label="지우기">×</button>';
-    const r=li.firstChild;r.firstChild.textContent=m.n+' · '+m.lived+(m.kept!=null?' · 서약 '+m.kept+'/'+(m.of||5):'')+(m.lw?' — "'+m.lw+'"':'');
+    const r=li.firstChild;r.firstChild.textContent=m.n+' · '+m.lived+''+(m.lw?' — "'+m.lw+'"':'');
     const c=r.lastChild;c.textContent=m.cat;if(m.calm)c.classList.add('calm');r.onclick=()=>replay(m);
     const del=li.lastChild;
     if(memSel===m.id){li.classList.add('asking');del.textContent='지우기';del.setAttribute('aria-label','정말 지우기');del.onclick=()=>{mem=mem.filter(x=>x!==m);memSel=null;storeMem()}}
@@ -350,8 +349,8 @@ function replay(m){
     add('어떻게 살았나',[P('온 길: '+m.path),P(m.own?'주인: '+m.own:'주인을 만나기 전이었습니다.'),P('살아낸 시간 '+m.lived+' / 살 수 있던 시간 '+m.pot+' ('+m.pct+'%)')]);
     const endL=(m.story||[]).filter(l=>l.c==='end'||l.c==='bad').slice(-2).map(l=>P(l.t));
     add('어떻게 끝났나',[P(m.cat,'cat '+(m.calm?'calm':''))].concat(endL));
-    if(m.pls&&m.pls.length) add('주인이 지키지 못한 서약',m.pls.map(x=>{const d=document.createElement('div');d.className='pl';d.appendChild(P(x.p,'tx'));d.appendChild(P(x.a+' — '+x.n.join(' · '),'note'));return d}),'faults');
-    else if(m.own) add('주인이 지키지 못한 서약',[P('없습니다. 끝까지 지켰습니다.','cat calm')]);
+    if(false) add('주인이 지키지 못한 서약',m.pls.map(x=>{const d=document.createElement('div');d.className='pl';d.appendChild(P(x.p,'tx'));d.appendChild(P(x.a+' — '+x.n.join(' · '),'note'));return d}),'faults');
+    else if(false) add('주인이 지키지 못한 서약',[P('없습니다. 끝까지 지켰습니다.','cat calm')]);
     (m.prev||[]).forEach((pv,k)=>add('그 전 주인'+((m.prev.length>1)?' '+(k+1):'')+' · '+pv.o,pv.pls.map(x=>{const d=document.createElement('div');d.className='pl';d.appendChild(P(x.p,'tx'));d.appendChild(P(x.a+' — '+x.n.join(' · '),'note'));return d}),'faults'));
     if(m.lw) add('마지막 한마디',[P('"'+m.lw+'"','lw')]);
     if(m.fact) add('실제로는',[P(m.fact)]);

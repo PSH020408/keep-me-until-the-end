@@ -193,7 +193,7 @@ function fishBuy(){
     const t=tankOf(f.tank);
     if(f.nameLater){S.name=f.nameLater;S.disp=S.name}
     /* the pledge is signed first; what was already wrong that day is struck on the sheet once the fish is in the water */
-    q(T('서약인 '+S.o.name+' 님이 서약서에 서명했습니다. 오늘부터 {n}의 주인입니다.'),'neutral');
+    q(T(S.o.name+' 님이 {n}을 데려갔습니다. 오늘부터 {n}의 주인입니다.'),'neutral');
     q(T(S.name?S.o.name+' 님은 {n}에게 이름을 붙여 주었습니다. "'+S.name+'".':S.o.name+' 님은 {n}에게 이름을 붙이지 않았습니다.'),S.name?'good':'sub',()=>{S.env=f.tank==='pond'?'pond':'tank';S.status='집';if(S.name)remember('이름이 생겼다. "'+S.name+'".',1.1);render()});
     q(T('{n}의 집은 '+fTankLine()),'sub');
     const acc=S.f.own==='expert'||S.f.own==='breeder'?'주인은 봉지를 수면에 30분 띄워 온도를 맞추고, 물을 조금씩 섞은 뒤에 {n}을 옮겼습니다.':R()<.5?'주인은 봉지를 그대로 수조에 쏟았습니다. '+(S.f.shop==='friend'?'지인 집 물':S.f.shop==='breeder'?'브리더의 물':S.f.shop==='online'?'택배 상자 속 물':S.f.shop==='fair'?'축제장 물':'가게 물')+'과 집 물의 온도가 달랐습니다.':'주인은 봉지를 잠깐 띄웠다가 {n}을 뜰채로 옮겼습니다.';
@@ -525,7 +525,7 @@ function fishTick(){
    and a promise whose every fault was put right counts as kept. */
 function mendP(i,re,label){const p=S.pl[i];if(!p||S.preOwner||S.wild)return;let did=0;
   [p].concat(p.more||[]).forEach(r=>{if(!r.mended&&re.test(r.note)){r.mended={age:S.ageM,label};did=1}});
-  if(did){drawPledges($('gamePledges'),true);if(!skipping)addLog(T('서약서 '+(i+1)+'번 줄 옆에 고친 흔적이 생겼습니다. '+label+'.'),'good')}}
+  if(did){drawPledges($('gamePledges'),true);if(!skipping)addLog(T('주인이 하나를 바로잡았습니다. '+label+'.'),'good')}}
 const plKept=p=>!p||[p].concat(p.more||[]).every(r=>r.mended);
 function fMendCheck(){const f=S.f,x=fx_();if(S.preOwner||S.wild||!f.own)return;
   if(tankL()>=x.minL*.5&&f.len<x.cm*.9&&!(f.stunt>.25)) mendP(2,/수조에 넣음|몸보다 작은 수조|처음부터 과밀|키울 수 없는 종/,'큰 수조로 바꿔 줌');

@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>키워주세요 — 끝까지</title>
-<meta name="description" content="관상어 23종 중 한 마리가 강이나 양식장에서 태어나 누군가의 수조에 닿고, 서약서를 쓴 주인 곁에서 한 생을 사는 잔혹동화풍 웹 시뮬레이션 (베타).">
-<meta property="og:title" content="키워주세요 — 끝까지">
-<meta property="og:description" content="살아남아, 물고기야. 서약서 여섯 줄과 빨간 펜으로 보는 반려생물의 한 생 — 관상어 데이 베타">
+<title>살아남아라! 끝까지!</title>
+<meta name="description" content="관상어 23종 중 한 마리가 되어, 훈련하고 스킬을 익혀 사람이 만든 억까를 끝까지 이겨 내는 물고기 육성 서바이벌 웹게임 (베타).">
+<meta property="og:title" content="살아남아라! 끝까지!">
+<meta property="og:description" content="물고기 한 마리, 억까 투성이 수조. 훈련하고 버텨라 — 관상어 육성 서바이벌 베타">
 <meta property="og:type" content="website">
 <meta property="og:locale" content="ko_KR">
 <meta property="og:url" content="https://keep-me-until-the-end.onrender.com/">
@@ -29,15 +29,15 @@
 </head>
 <body>
 <div class="wrap">
-  <section id="intro" class="sheet">
-    <div class="title"><span class="label"><span id="sheetOwner"></span>반려생물 입양 서약서<span class="beta">BETA</span></span><h1>키워주세요</h1><span class="sub">— 끝까지</span></div>
-    <p class="lede">오늘은 관상어 데이입니다. 물고기 23종 중 한 마리가 강이나 양식장에서 태어나 누군가의 수조에 닿기까지, 그리고 그 뒤의 생을 따라갑니다. 어떤 물고기가 어떤 집으로 갈지는 무작위로 정해집니다. 서약인은 아래 여섯 가지를 약속하고 생물을 데려갑니다. 당신은 그 생물의 기질을 정하고, 때때로 그 생물이 되어 선택합니다.</p>
-    <ol class="pledges" id="introPledges"></ol>
-    <div class="sign"><span class="who"><label for="nick">서약인</label><input id="nick" maxlength="12" placeholder="닉네임을 적어 주세요" autocomplete="off" enterkeyhint="go"></span><span>입양 동물<b>무작위 · 관상어 23종</b></span></div>
-    <p class="nickmsg" id="nickMsg" hidden>서약인 이름을 적어야 물고기를 데려갈 수 있습니다. 이 이름으로 입양하고, 기록에도 이 이름이 남습니다.</p>
+  <section id="intro" class="sheet title-screen">
+    <div class="ts-bubbles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+    <div class="title"><span class="label">관상어 23종 · 육성 서바이벌<span class="beta">BETA</span></span><h1>살아남아라!</h1><span class="sub">끝까지!</span></div>
+    <p class="lede">강이나 양식장에서 태어난 물고기 한 마리가 누군가의 수조에 닿습니다. 어떤 물고기가 어떤 주인에게 갈지는 무작위. 당신은 그 물고기가 되어 훈련하고, 스킬을 익히고, 억까를 이겨 내야 합니다.</p>
+    <ol class="pledges" id="introPledges" hidden></ol>
+    <input id="nick" type="hidden" value=""><span id="sheetOwner" hidden></span><p class="nickmsg" id="nickMsg" hidden></p>
     <div class="modepick" id="modePick" role="group" aria-label="난이도"><span class="label">난이도</span><button type="button" data-mode="story" aria-pressed="true">쉬움</button><button type="button" data-mode="real" aria-pressed="false">어려움</button><span class="modedesc" id="modeDesc"></span></div>
+    <div class="row"><button class="btn ts-start" id="startBtn">▶ 시작하기</button></div>
     <p class="warn">유기, 방치, 학대, 밀렵·밀수, 번식장, 식용, 잡아먹히는 장면이 잔혹동화처럼 그려지고, 일부 그림에는 피와 뜯긴 몸이 나옵니다. 15세 이상 권장.</p>
-    <div class="row"><button class="btn" id="startBtn">서약서 받고 보내기</button></div>
   </section>
 
   <div id="tut" class="tut" hidden role="dialog" aria-modal="true" aria-labelledby="tutH">
@@ -126,7 +126,7 @@
     <div class="row memtools"><button type="button" class="btn ghost" id="pubMore" hidden>더 보기</button></div>
   </section>
 
-  <p class="foot">물고기 이야기 속 사건과 확률은 실제 통계(공공 수족관의 연간 폐사율, 운송·판매 중 폐사 조사, 선물로 받은 금붕어의 생존 등)에 맞춰 조정한 추정치이고, 화면에 사실로 나오는 수치는 모두 출처가 있습니다. 출처 목록은 저장소의 docs/DATA_SOURCES.md에 있습니다. 남긴 생과 닉네임은 이 브라우저(localStorage)에 저장됩니다. '모두의 주마등에도 올리기'를 고른 생만 서약인 이름, 물고기, 결말, 마지막 한마디와 함께 공개됩니다.<span class="ver">베타 v0.16.0 · 관상어 데이 · PARK, SEHO</span></p>
+  <p class="foot">물고기 이야기 속 사건과 확률은 실제 통계(공공 수족관의 연간 폐사율, 운송·판매 중 폐사 조사, 선물로 받은 금붕어의 생존 등)에 맞춰 조정한 추정치이고, 화면에 사실로 나오는 수치는 모두 출처가 있습니다. 출처 목록은 저장소의 docs/DATA_SOURCES.md에 있습니다. 남긴 생은 이 브라우저(localStorage)에 저장됩니다. '모두의 주마등에도 올리기'를 고른 생만 물고기, 결말, 마지막 한마디와 함께 익명으로 공개됩니다.<span class="ver">베타 v0.17.0 · 관상어 데이 · PARK, SEHO</span></p>
 </div>
 
 <!-- load order matters: later files use what earlier files declare -->

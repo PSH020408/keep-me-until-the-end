@@ -34,7 +34,7 @@ function mat_oldWhy(){const f=S.f;
   if(fl('small_tank')||fl('cramped'))return '{n}의 몸은 수조 크기에 눌린 채 자라, 등뼈가 한쪽으로 굽어 있습니다.';
   if(fBully())return '노쇠해 느려진 {n}의 지느러미를 다른 물고기들이 쫓아와 뜯습니다. 뜯긴 끝이 하얗게 짓물러 있습니다.';
   if(S.health<45)return '{n}의 몸에는 오래된 상처와 병이 지나간 자국이 겹쳐 있습니다. 근육이 얇아 비늘 아래로 등뼈 모양이 비칩니다.';
-  return '서약서에는 빨간 줄이 여러 개 그어져 있습니다. {n}은 그 수조에서 오래 버텼습니다.'}
+  return '그 집에서 지켜진 약속은 많지 않았습니다. {n}은 그 수조에서 오래 버텼습니다.'}
 const mat_last=(map,def)=>map[kindOf()]||def;
 const mat_FAST=['comet','koi'],mat_SLOW=['oranda','ryukin'];
 

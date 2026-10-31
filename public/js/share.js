@@ -8,7 +8,7 @@ const SHARE_CFG={
   key:'sb_publishable_twic4vU9mUSIjonkj6ybQg_ijxC1qmq',   // publishable key: safe to publish, row-level security decides what it may do
 };
 const shareOn=()=>!!(SHARE_CFG.url&&SHARE_CFG.key)&&typeof fetch==='function';
-const SHARE_VER='0.16.0';
+const SHARE_VER='0.17.0';
 
 /* words that are masked in names and last words before posting and again when showing */
 const BADW=['씨발','시발','씨바','씹','좆','병신','븅신','지랄','개새','새끼','니미','느금','엠창','fuck','shit','bitch','cunt','nigg'];
@@ -35,7 +35,7 @@ const api=(path,opt)=>fetch(SHARE_CFG.url.replace(/\/$/,'')+'/rest/v1/'+path,Obj
 
 async function sharePost(rec){
   if(!shareOn())return false;
-  const body={nick:clean((typeof NICK==='string'&&NICK)||S.o&&S.o.name||'익명',12)||'익명'   /* v0.12: the signer, not whoever owns the fish at the end */,species:rec.sp||'',cause:clean(rec.cat,20),calm:!!rec.calm,kept:rec.kept,ver:SHARE_VER,
+  const body={nick:clean((typeof NICK==='string'&&NICK)||'익명',12)||'익명'   /* v0.12: the signer, not whoever owns the fish at the end */,species:rec.sp||'',cause:clean(rec.cat,20),calm:!!rec.calm,kept:rec.kept,ver:SHARE_VER,
     rec:Object.assign({},rec,{id:undefined,n:clean(rec.n,40),own:rec.own?clean(rec.own,40):null,lw:clean(rec.lw,80),story:(rec.story||[]).slice(0,40)})};
   try{const r=await api('lives',{method:'POST',headers:shareHeaders({Prefer:'return=minimal'}),body:JSON.stringify(body)});
     if(r.ok)setTimeout(shareLoad,600);return r.ok}catch(e){return false}
@@ -60,7 +60,7 @@ function drawPub(){
   const ul=$('pubList');ul.innerHTML='';
   (pubAll?pubRows:pubRows.slice(0,10)).forEach(m=>{const li=document.createElement('li');
     li.innerHTML='<button type="button" class="mrow"><span></span><span class="c"></span></button>';
-    const r=li.firstChild;r.firstChild.textContent=(m.nick||'익명')+' 님의 '+m.n+' · '+m.lived+(m.kept!=null?' · 서약 '+m.kept+'/'+m.of:'')+(m.lw?' — "'+m.lw+'"':'');
+    const r=li.firstChild;r.firstChild.textContent=(m.nick||'익명')+' 님의 '+m.n+' · '+m.lived+''+(m.lw?' — "'+m.lw+'"':'');
     const c=r.lastChild;c.textContent=m.cat;if(m.calm)c.classList.add('calm');r.onclick=()=>replay(m);ul.appendChild(li)});
   const more=$('pubMore');if(more){more.hidden=pubRows.length<=10;more.textContent=pubAll?'접기':'더 보기 ('+pubRows.length+')'}
 }

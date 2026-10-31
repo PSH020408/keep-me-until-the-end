@@ -224,3 +224,42 @@ body.ingame #ownRow .meter .fill{background:#7FA8C2}
 body.ingame #ownRow #mSkill .fill{background:#8C7BD8!important}
 body.ingame .cardtop{flex-wrap:nowrap}
 body.ingame .cardtop .label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+
+/* ---------- v0.17: the title screen (살아남아라! 끝까지!) ---------- */
+#intro.title-screen{position:relative;overflow:hidden;text-align:center;align-items:center;color:#fff;border:3px solid #fff;border-radius:26px;
+  padding:34px 22px 22px;gap:14px;
+  background:radial-gradient(ellipse at 50% -20%,rgba(150,235,255,.55),transparent 60%),linear-gradient(180deg,#2BA3C9 0%,#13608A 55%,#0B2C4A 100%);
+  box-shadow:0 0 0 3px #2DC2E8,0 18px 50px rgba(4,24,44,.45)}
+#intro.title-screen .title{align-items:center;gap:0;position:relative;z-index:1}
+#intro.title-screen .label{color:#CFF2FF;font-family:var(--display);letter-spacing:.04em;font-size:12.5px}
+#intro.title-screen .beta{border-color:#FFE88A;color:#FFE88A}
+#intro.title-screen h1{font-family:var(--display);font-size:clamp(54px,13vw,92px);line-height:1;transform:rotate(-3deg);margin:10px 0 0;letter-spacing:.01em;
+  color:#FFE15A;-webkit-text-stroke:3px #0B2C4A;paint-order:stroke fill;
+  text-shadow:0 6px 0 #0B2C4A,0 10px 24px rgba(0,0,0,.35)}
+#intro.title-screen .sub{font-family:var(--display);font-size:clamp(30px,7vw,46px);line-height:1;transform:rotate(-3deg);margin-top:6px;
+  color:#fff;background:linear-gradient(180deg,#FF7A5C,#D6283A);padding:4px 18px 8px;border-radius:14px;border:3px solid #0B2C4A;
+  box-shadow:0 5px 0 #0B2C4A}
+#intro.title-screen .lede{color:#EAF7FF;max-width:30em;position:relative;z-index:1;font-size:15px}
+#intro.title-screen .modepick{justify-content:center;position:relative;z-index:1;margin:2px 0 0}
+#intro.title-screen .modepick .label{flex-basis:100%;text-align:center}
+#intro.title-screen .modepick button{font-size:17px;padding:8px 26px;border:0;background:#fff;color:#1D2B44;box-shadow:0 4px 0 #8DB9CF}
+#intro.title-screen .modepick button[aria-pressed=true]{background:linear-gradient(180deg,#A6EE5A,#4FAE1F);color:#fff;box-shadow:0 4px 0 #3B8A12;text-shadow:0 1px 0 rgba(0,0,0,.2)}
+#intro.title-screen .modepick button[data-mode=real][aria-pressed=true]{background:linear-gradient(180deg,#FF9A8B,#E2412B);box-shadow:0 4px 0 #A52A17}
+#intro.title-screen .modedesc{color:#CFE6F2;text-align:center}
+#intro.title-screen .row{justify-content:center;position:relative;z-index:1}
+#intro.title-screen .ts-start{font-size:22px;padding:14px 46px;border-radius:999px;color:#5A3A00;background:linear-gradient(180deg,#FFE88A,#F3A41C);
+  box-shadow:0 6px 0 #B97708,0 10px 22px rgba(0,0,0,.3);border:3px solid #fff;transition:transform .08s,box-shadow .08s}
+#intro.title-screen .ts-start:active{transform:translateY(5px);box-shadow:0 1px 0 #B97708}
+@media (prefers-reduced-motion:no-preference){#intro.title-screen .ts-start{animation:tsPulse 1.8s ease-in-out infinite}}
+@keyframes tsPulse{50%{transform:scale(1.05)}}
+#intro.title-screen .warn{color:#9FC3DA;font-size:12px;position:relative;z-index:1}
+.ts-bubbles{position:absolute;inset:0;pointer-events:none}
+.ts-bubbles i{position:absolute;bottom:-20px;width:14px;height:14px;border-radius:50%;border:2px solid rgba(255,255,255,.55);background:rgba(255,255,255,.08)}
+.ts-bubbles i:nth-child(1){left:8%;animation:tsB 7s linear infinite}
+.ts-bubbles i:nth-child(2){left:22%;width:8px;height:8px;animation:tsB 5s 1s linear infinite}
+.ts-bubbles i:nth-child(3){left:47%;width:20px;height:20px;animation:tsB 9s 2s linear infinite}
+.ts-bubbles i:nth-child(4){left:70%;animation:tsB 6s .5s linear infinite}
+.ts-bubbles i:nth-child(5){left:84%;width:10px;height:10px;animation:tsB 8s 3s linear infinite}
+.ts-bubbles i:nth-child(6){left:93%;width:18px;height:18px;animation:tsB 10s 1.5s linear infinite}
+@keyframes tsB{0%{transform:translateY(0);opacity:0}10%{opacity:1}100%{transform:translateY(-520px) translateX(12px);opacity:0}}
+@media (prefers-reduced-motion:reduce){.ts-bubbles i{animation:none;display:none}}

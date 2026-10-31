@@ -383,7 +383,7 @@ function carGrade(calm){
   const key=String(S.f.endKey||''),prim=typeof z_primary==='function'?z_primary():'g',minRel=Math.min(...['p','g','w','c'].map(rel));
   let t;
   if(calm){
-    if(c.gpass>=CAR_GOAL.length-1&&carTop(rank))t=['끝까지 해낸 물고기','모든 고비를 넘었습니다. 서약서의 첫 줄 "끝까지 함께"를, 물고기 쪽에서 먼저 지켰습니다.'];
+    if(c.gpass>=CAR_GOAL.length-1&&carTop(rank))t=['끝까지 해낸 물고기','모든 고비를 넘었습니다. 살아남았습니다. 끝까지.'];
     else if(c.bond.owner>=90)t=['가족이 된 물고기','주인의 휴대폰 배경은 끝까지 {n}이었습니다.'];
     else if(minRel>=.7)t=['만능 물고기','힘, 근성, 지능, 매력. 수조에서 필요한 건 다 가졌습니다. 수조가 좁았을 뿐입니다.'];
     else t={p:['수조의 왕','{n}이 지나가면 물살도 길을 비켰습니다.'],g:['불사조','억까가 올 때마다 {n}은 한 번 더 지느러미를 폈습니다.'],w:['수조의 현자','{n}은 주인보다 먼저 여과기 고장을 알았습니다.'],c:['거실의 아이돌','{n}의 사진첩은 주인 가족 사진보다 두꺼웠습니다.']}[prim];

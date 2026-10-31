@@ -1,20 +1,22 @@
-# 키워주세요 — 끝까지 (*Keep Me — Until the End*)
+# 살아남아라! 끝까지! (*Survive — Until the End!*)
 
-A browser life-simulation about the promises we make to the animals we keep.
+A browser raising-and-survival game: you are an ornamental fish, and the people who keep you are the hazard.
+
+Formerly 키워주세요 — 끝까지 (*Keep Me — Until the End*); renamed in v0.17, when the adoption pledge was removed.
 
 <p align="center">
   <a href="https://keep-me-until-the-end.onrender.com"><img alt="Play the beta" src="https://img.shields.io/badge/%E2%96%B6%20Play%20the%20beta-keep--me--until--the--end.onrender.com-C4301F?style=for-the-badge"></a><br>
   <sub>Free · no sign-up · phone, tablet and desktop · in Korean</sub>
 </p>
 
-[![키워주세요 — 끝까지 — click to play](public/og.png)](https://keep-me-until-the-end.onrender.com)
+[![살아남아라! 끝까지! — click to play](public/og.png)](https://keep-me-until-the-end.onrender.com)
 
 > One of 23 ornamental fish is born in a river or on a farm, survives (or doesn't) the net,
-> the sorting sieve, the shipping box and the shop tank, and goes home with an owner who has
-> signed six promises. You choose its temperament, make its choices when it matters, raise it
-> through the seasons — and watch which promises are struck out in red pen.
+> the sorting sieve, the shipping box and the shop tank, and goes home with a random owner.
+> From then on you raise it in the manner of Uma Musume and Princess Maker — train, rest, learn
+> skills, pass goals — so that it can outlast whatever the owner gets wrong.
 
-**Status:** public beta (v0.16.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.17.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
@@ -28,7 +30,7 @@ A browser life-simulation about the promises we make to the animals we keep.
 
 ## What happens in a life
 
-1. **The pledge.** Sign the adoption pledge with a nickname; a slot machine draws one of 23 fish.
+1. **The title screen.** Pick 쉬움 or 어려움 and press start; a slot machine draws one of 23 fish. (Until v0.16 the player signed an adoption pledge with a nickname; the pledge is gone.)
 2. **Before any owner.** Wild fish face the net; farmed fish face the sorting sieve. Then the
    box, the wholesaler, the shop tank — about a quarter die here, as in the trade.
 3. **The owner.** One of 22 kinds of people, from the expert and the over-eager beginner to the
@@ -169,6 +171,7 @@ decisions, in short:
 | v0.14.0 | 2026-10-31 | final pass: skills against disease and neglect, a skill shop that recommends by threat, careers twice as long, stats ×10, fewer deaths before an owner, harder last stands and top ranks, bond stories, 출전 contests, 계승 legacy |
 | v0.15.0 | 2026-10-31 | stats start low against the species ceiling; Uma Musume style letters per stat (G → SS → UF … US) and career grades past SS |
 | v0.16.0 | 2026-10-31 | game UI for the play screen: stat boxes with rank badges, training tiles, message-window log, chunky buttons, under-water HUD |
+| v0.17.0 | 2026-10-31 | renamed 살아남아라! 끝까지!; the adoption pledge and nickname removed, a game title screen with only the difficulty choice; new share image |
 
 Every row is expanded in [LOG.md](LOG.md).
 

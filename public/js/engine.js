@@ -93,7 +93,7 @@ function askReflect(rf,cb){
 function familyOutcome(){
   const g=S.sp.g;
   const o=wpick([['keep',40],['sell',25],['shelter',['dog','cat'].includes(g)?15:0],['dump',20]]);
-  if(o==='keep') return newOwner(T('유족 중 한 명이 {n}을 맡기로 했습니다. 서약서는 새로 쓰였습니다.'),'주인이 떠난 뒤, 주인의 가족이 나를 데려갔다. 주인 냄새가 조금 남아 있었다.',{p:'주인이 다시는 돌아오지 않는다는 걸 알게 된 날.',ph:'예) 오늘도 현관을 본다'});
+  if(o==='keep') return newOwner(T('유족 중 한 명이 {n}을 맡기로 했습니다.'),'주인이 떠난 뒤, 주인의 가족이 나를 데려갔다. 주인 냄새가 조금 남아 있었다.',{p:'주인이 다시는 돌아오지 않는다는 걸 알게 된 날.',ph:'예) 오늘도 현관을 본다'});
   if(o==='sell') return newOwner(T('유족은 {n}을 어떻게 해야 할지 몰라 중고거래 앱에 올렸습니다. 사흘 만에 낯선 사람이 데려갔습니다.'));
   if(o==='shelter'){q(T('유족은 {n}을 보호소에 데려다주었습니다.'),'sub');return toShelter('abandon')}
   q(T(g==='parrot'||g==='bird'?'유족은 "새니까 날아가서 살겠지"라며 창문을 열고 {n}을 내보냈습니다.':g==='turtle'||g==='fish'?'유족은 {n}을 근처 하천에 쏟아 버렸습니다.':'유족은 {n}을 근처 공원 풀숲에 놓고 갔습니다.'),'sub');
@@ -142,7 +142,7 @@ function runBranch(kind){
     if(o==='hoarder'){q(T('{n}을 데려간 사람의 집에는 이미 개와 고양이가 마흔 마리 넘게 있었습니다.'),'sub');return endLife(['좁은 방에 배설물이 쌓여 갔고, 먹이는 늘 모자랐습니다.',T('몇 달 뒤 구조대가 문을 열었을 때 {n}은 이미 움직이지 않았습니다.')],'방치',F.hoarder,null,false,'starve')}
     if(o==='country') return newOwner(T('{n}은 시골 친척 집으로 보내졌습니다.'),null,null,{yard:1});
     if(o==='back') return newOwner(T('{n}은 펫숍 진열장으로 돌아갔습니다. 몇 주 뒤 다른 사람이 {n}을 사 갔습니다.'));
-    return newOwner(T('새 주인이 {n}을 데려갔습니다. 서약서는 새로 쓰였습니다.'),null,{p:'낯선 집, 낯선 냄새. 두 번째 집에 온 첫날.',ph:'예) 이번엔 끝까지일까?'});
+    return newOwner(T('새 주인이 {n}을 데려갔습니다.'),null,{p:'낯선 집, 낯선 냄새. 두 번째 집에 온 첫날.',ph:'예) 이번엔 끝까지일까?'});
   }
   if(kind==='heir'){
     q('주인이 세상을 떠났습니다. 장례식장에서 아무도 '+josa(S.disp,'을')+' 기억하지 못했습니다.','bad');
@@ -225,7 +225,7 @@ function shelterRoll(kind,s){
   const ad=s.adopt*(tm('friendly')?1.5:tm('shy')?.7:1), eu=s.euth*(tm('feisty')?1.3:1);
   const o=wpick([['return',back*100],['adopt',25*ad],['natural',27.5],['euth',18.5*eu],['other',g==='cat'?12:6]]);
   if(o==='return'){q(T(S.flags.registered?'등록칩 덕분에 주인에게 연락이 갔습니다. {n}은 집으로 돌아왔습니다.':'주인이 보호센터 공고를 보고 {n}을 찾으러 왔습니다.'),'good',()=>{S.status='집';S.env='home';remember('철창 앞에 익숙한 냄새가 나타났다. 주인이었다.',2);render()});return}
-  if(o==='adopt'){S.flags.registered=1;S.flags.neutered=1;return newOwner(T('공고 기간이 끝나 갈 무렵, 한 가족이 {n}을 입양했습니다. 새 서약서에 서명했습니다.'),'철창 밖으로 나를 안아 든 손. 새 가족이 생겼다.',{p:'보호소 철창을 나와 새 집으로 가는 날.',ph:'예) 이번엔 끝까지일까?'})}
+  if(o==='adopt'){S.flags.registered=1;S.flags.neutered=1;return newOwner(T('공고 기간이 끝나 갈 무렵, 한 가족이 {n}을 입양했습니다.'),'철창 밖으로 나를 안아 든 손. 새 가족이 생겼다.',{p:'보호소 철창을 나와 새 집으로 가는 날.',ph:'예) 이번엔 끝까지일까?'})}
   if(o==='natural') return endLife([T('좁은 견사에 전염병이 돌았습니다. {n}은 입양 공고 사진이 올라간 채로 보호소 바닥에서 숨졌습니다.')],'유기',F.abandon,null,false,'sickdead');
   if(o==='euth') return endLife(['공고 기간이 지났고, 보호센터는 이미 정원을 넘었습니다.',T('{n}은 인도적 처리, 곧 안락사되었습니다. 마지막으로 주사를 놓은 직원이 {n}의 머리를 쓰다듬었습니다.')],'유기',F.abandon,null,false,'cage');
   if(g==='cat'){q(T('{n}은 중성화 수술 후 발견된 동네에 다시 방사되었습니다.'),'sub');q(null,null,()=>goWild('street'));return}
