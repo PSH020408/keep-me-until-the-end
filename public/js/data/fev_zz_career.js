@@ -408,7 +408,7 @@ function carGrade(calm){
 function carHookEnd(){if(typeof showEnd!=='function'||showEnd.__car)return;const _s=showEnd;showEnd=function(cat,fact,calm){const r=_s(cat,fact,calm);
   try{const c=car();if(c&&c.result){const E=$('ending'),h=E&&E.querySelector('h2');const d=document.createElement('div');d.className='grade';
     d.innerHTML='<span class="rk"></span><div><b class="tt"></b><p class="ds"></p><p class="mt"></p></div>';
-    d.querySelector('.rk').textContent=c.result.rank;d.querySelector('.tt').textContent='「'+c.result.title+'」';d.querySelector('.ds').textContent=c.result.desc;
+    d.querySelector('.rk').textContent=c.result.rank;d.dataset.rg=rankGroup(c.result.rank);d.querySelector('.tt').textContent='「'+c.result.title+'」';d.querySelector('.ds').textContent=c.result.desc;
     const st=fst();d.querySelector('.mt').textContent='힘 '+statRank('p')+' '+carD(st.p)+' · 근성 '+statRank('g')+' '+carD(st.g)+' · 지능 '+statRank('w')+' '+carD(st.w)+' · 매력 '+statRank('c')+' '+carD(st.c)+' · 고비 '+c.gpass+'/'+(c.gpass+c.gfail)+' · 스킬 '+Object.keys(c.sk).map(k=>carSkill(k).n).join(', ')+(Object.keys(c.sk).length?'':'없음')+' · 우정 훈련 '+c.fr+'회';
     if(h&&h.nextSibling)E.insertBefore(d,h.nextSibling);else if(E)E.appendChild(d)}}catch(e){}
   return r};showEnd.__car=1}

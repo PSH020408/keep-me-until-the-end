@@ -448,11 +448,27 @@ function askChoice(c,cb){
   const who=document.createElement('span');who.className='who';who.textContent=c.who||((S.noPledge?'당신':S.disp)+'의 선택');
   const p=document.createElement('p');p.className='prompt';const pf=typeof pondify==='function'?pondify:x=>x;p.textContent=pf(T(c.p));
   const list=document.createElement('div');list.className='opts';
-  opts.forEach(o=>{const b=document.createElement('button');b.textContent=pf(T(o.l));if(o.d){const sm=document.createElement('small');sm.textContent=pf(T(o.d));b.appendChild(sm)}if(o.dis){b.disabled=true;b.className='dis'}else b.onclick=()=>resolve(o);list.appendChild(b)});
+  const hub=!!c.strip;if(box.classList)box.classList.toggle('hub',hub);
+  opts.forEach(o=>{const b=document.createElement('button');const L=pf(T(o.l));
+    /* v0.16: on the 육성 card each option is a game tile — a head (what) and a tail (how), coloured by kind */
+    const m=hub&&!/^스킬/.test(L)&&L.match(/^(.+?) — (.+)$/);
+    if(m){const h=document.createElement('span');h.className='bt';h.textContent=m[1];const t=document.createElement('span');t.className='bn';t.textContent=m[2];b.append(h,t);
+      const kind=/^힘 훈련/.test(m[1])?'p':/^근성 훈련/.test(m[1])?'g':/^지능 훈련/.test(m[1])?'w':/^매력 훈련/.test(m[1])?'c':/특별 훈련/.test(m[1])?'sp':/휴식/.test(m[1])?'rest':/놀기/.test(m[1])?'play':/출전/.test(m[1])?'cup':/인연|♥/.test(m[1])?'bond':/아픈/.test(m[1])?'sick':'etc';
+      b.dataset.k=kind;b.classList.add('tile');if(/★우정/.test(L))b.classList.add('friend')}
+    else if(hub&&/^스킬/.test(L)){b.textContent=L;b.dataset.k='skill';b.classList.add('tile')}
+    else b.textContent=L;
+    if(o.d){const sm=document.createElement('small');sm.textContent=pf(T(o.d));const fm=hub&&o.d.match(/실패율 (\d+)%/);if(fm&&+fm[1]>=20)b.classList.add('risky');b.appendChild(sm)}
+    if(o.dis){b.disabled=true;b.classList.add('dis')}else b.onclick=()=>resolve(o);list.appendChild(b)});
   /* v0.13: the 육성 card carries a status strip (turn, energy, mood, SP, next goal, bonds) */
   let strip=null;
   if(c.strip){strip=document.createElement('div');strip.className='hubstrip';
-    c.strip.forEach(([lab,val,pct])=>{const cell=document.createElement('div');cell.className='hs';const l=document.createElement('span');l.className='hl';l.textContent=lab;const v=document.createElement('span');v.className='hv';v.textContent=val;cell.append(l,v);
+    c.strip.forEach(([lab,val,pct])=>{const cell=document.createElement('div');cell.className='hs';cell.dataset.lab=lab;
+      /* v0.16: the stats as four Uma Musume style boxes */
+      if(lab==='스탯'&&typeof fst==='function'&&typeof statRank==='function'){cell.classList.add('wide','stbox');
+        [['p','힘'],['g','근성'],['w','지능'],['c','매력']].forEach(([k,n])=>{const r=statRank(k),v=fst()[k],cap=capOf(k);const x=document.createElement('div');x.className='sb';x.dataset.k=k;x.dataset.rg=rankGroup(r);
+          x.innerHTML='<span class="sn"></span><b class="rk"></b><span class="sv"></span><i class="hb"><b></b></i>';x.querySelector('.sn').textContent=n;x.querySelector('.rk').textContent=r;x.querySelector('.sv').textContent=Math.round(v*10)+' / '+Math.round(cap*10);x.querySelector('.hb b').style.width=Math.min(100,v/cap*100)+'%';cell.appendChild(x)});
+        strip.appendChild(cell);return}
+      if(lab==='컨디션')cell.dataset.mood=val;const l=document.createElement('span');l.className='hl';l.textContent=lab;const v=document.createElement('span');v.className='hv';v.textContent=val;cell.append(l,v);
       if(typeof pct==='number'){const tr=document.createElement('i');tr.className='hb';const fi=document.createElement('b');fi.style.width=Math.max(0,Math.min(100,pct))+'%';if(pct<35)fi.className='low';tr.appendChild(fi);cell.appendChild(tr)}
       if(/스탯|다음 고비|인연/.test(lab))cell.classList.add('wide');strip.appendChild(cell)})}
   if(strip)box.append(who,strip,p,list);else box.append(who,p,list);

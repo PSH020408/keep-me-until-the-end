@@ -14,7 +14,7 @@ A browser life-simulation about the promises we make to the animals we keep.
 > signed six promises. You choose its temperament, make its choices when it matters, raise it
 > through the seasons — and watch which promises are struck out in red pen.
 
-**Status:** public beta (v0.15.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.16.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
@@ -168,6 +168,7 @@ decisions, in short:
 | v0.13.0 | 2026-10-30 | career mode (육성): turn card with energy, mood, facility levels, companions and 우정 훈련, 17 skills against 억까, 벼랑 끝 last stands, six goals, grade G–SS and titles; 24 comic events |
 | v0.14.0 | 2026-10-31 | final pass: skills against disease and neglect, a skill shop that recommends by threat, careers twice as long, stats ×10, fewer deaths before an owner, harder last stands and top ranks, bond stories, 출전 contests, 계승 legacy |
 | v0.15.0 | 2026-10-31 | stats start low against the species ceiling; Uma Musume style letters per stat (G → SS → UF … US) and career grades past SS |
+| v0.16.0 | 2026-10-31 | game UI for the play screen: stat boxes with rank badges, training tiles, message-window log, chunky buttons, under-water HUD |
 
 Every row is expanded in [LOG.md](LOG.md).
 

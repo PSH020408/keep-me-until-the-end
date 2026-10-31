@@ -1,0 +1,226 @@
+/* v0.16 — game skin for the play screen.
+   The pledge sheet (intro) and the ending keep the picture-book look; while a life plays, the screen is a
+   raising-game HUD in the manner of Uma Musume / Princess Maker, set under water:
+   white status panels on a deep-sea gradient, stat boxes with rank badges, chunky buttons, a message window. */
+
+body.ingame{
+  --gx-sea1:#0B2C4A; --gx-sea2:#13608A; --gx-sea3:#2BA3C9;
+  --gx-panel:#FFFFFF; --gx-panel2:#F1F8FC; --gx-edge:#BFE0EF; --gx-ink:#1D2B44; --gx-sub:#5B6E86;
+  --gx-ribbon1:#2DC2E8; --gx-ribbon2:#2F74E6; --gx-lime:#7ED23A; --gx-lime2:#4FAE1F;
+  --gx-p:#FF6A55; --gx-g:#FFAA2B; --gx-w:#3F8EF5; --gx-c:#FF6FB0;
+  --gx-msg:#14223F; --gx-msg2:#1D3360; --gx-gold:#F5C443;
+  color:var(--gx-ink);
+  background:
+    radial-gradient(circle at 12% 88%,rgba(255,255,255,.10) 0 6px,transparent 7px),
+    radial-gradient(circle at 18% 70%,rgba(255,255,255,.08) 0 4px,transparent 5px),
+    radial-gradient(circle at 86% 30%,rgba(255,255,255,.08) 0 5px,transparent 6px),
+    radial-gradient(circle at 92% 62%,rgba(255,255,255,.06) 0 9px,transparent 10px),
+    radial-gradient(ellipse at 50% -10%,rgba(120,220,255,.35),transparent 60%),
+    linear-gradient(180deg,var(--gx-sea3) 0%,var(--gx-sea2) 38%,var(--gx-sea1) 100%) fixed;
+  color-scheme:light;
+}
+
+/* ---------- the status panel ---------- */
+body.ingame #card{background:var(--gx-panel);border:3px solid #fff;border-radius:22px;
+  box-shadow:0 0 0 2px var(--gx-edge),0 10px 30px rgba(4,24,44,.35);color:var(--gx-ink)}
+body.ingame #card .label{color:var(--gx-sub)}
+body.ingame .cardtop{background:linear-gradient(90deg,var(--gx-ribbon1),var(--gx-ribbon2));margin:-12px -14px 4px;padding:7px 14px;border-radius:19px 19px 0 0}
+body.ingame .cardtop .label{color:#fff;font-family:var(--display);font-size:12.5px;letter-spacing:.02em}
+body.ingame .infobtn{background:rgba(255,255,255,.2)!important;border:1.5px solid rgba(255,255,255,.7)!important;color:#fff!important}
+body.ingame .species{font-family:var(--display);font-size:clamp(24px,4vw,34px)!important;color:var(--gx-ink);
+  display:inline-block;background:linear-gradient(180deg,transparent 58%,rgba(126,210,58,.45) 58%);padding:0 4px;line-height:1.15}
+body.ingame .sci{color:var(--gx-sub)}
+body.ingame .stage{border:4px solid #fff;border-radius:16px;box-shadow:0 0 0 3px var(--gx-ribbon1),0 6px 18px rgba(4,24,44,.3)}
+body.ingame .chips .chip{background:var(--gx-panel2);border:1.5px solid var(--gx-edge);color:var(--gx-ink);font-family:var(--display);font-size:12px}
+body.ingame .chips .chip.bad{background:#FFECEA;border-color:var(--gx-p);color:#C2341F}
+body.ingame .chips .chip.good{background:#ECF8E2;border-color:var(--gx-lime);color:#3C7E12}
+body.ingame .fields{background:var(--gx-panel2);border-radius:12px;padding:8px 12px}
+body.ingame .fields dt{color:var(--gx-sub);font-family:var(--display)}
+
+/* the fish's row: HP bar, then four stat boxes */
+body.ingame .mrow .mhead{color:var(--gx-sub);font-family:var(--display)}
+body.ingame #fishRow .meters{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:6px!important}
+body.ingame #fishRow #mHealth{grid-column:1/-1!important}
+body.ingame #mHealth .top{font-family:var(--display);font-size:13px}
+body.ingame #mHealth .top span:first-child::before{content:"HP ";color:var(--gx-lime2)}
+body.ingame #mHealth .track{height:12px!important;border-radius:8px;background:#E3EEF3;box-shadow:inset 0 1px 2px rgba(0,0,0,.15);overflow:hidden}
+body.ingame #mHealth .fill{background:linear-gradient(180deg,#A6EE5A,var(--gx-lime2))!important;border-radius:8px}
+body.ingame #mHealth.low .fill{background:linear-gradient(180deg,#FF9A8B,#E2412B)!important}
+body.ingame #mPow,body.ingame #mGuts,body.ingame #mWits,body.ingame #mCharm{--sc:var(--gx-p);
+  background:#fff;border:2px solid var(--sc);border-radius:12px;overflow:hidden;padding:0 0 6px;min-width:0}
+body.ingame #mGuts{--sc:var(--gx-g)}body.ingame #mWits{--sc:var(--gx-w)}body.ingame #mCharm{--sc:var(--gx-c)}
+body.ingame #fishRow .meter:not(#mHealth) .top{display:grid!important;grid-template-columns:1fr;justify-items:center;gap:0;padding:0;font-size:12px!important}
+body.ingame #fishRow .meter:not(#mHealth) .top>span:first-child{display:block;width:100%;text-align:center;background:var(--sc);color:#fff;font-family:var(--display);font-size:12.5px;line-height:1.7}
+body.ingame #fishRow .meter:not(#mHealth) .v{font-family:var(--display);font-size:13px!important;color:var(--gx-ink)!important;line-height:1.1}
+body.ingame #fishRow .meter:not(#mHealth) .track{height:5px!important;margin:3px 8px 0;border-radius:3px;background:#E8EEF2}
+body.ingame #fishRow .meter:not(#mHealth) .fill{background:var(--sc)!important;border-radius:3px}
+
+/* rank badges (stat boxes, the 육성 card, the ending) */
+.rk{--r1:#B7C0CA;--r2:#8994A1;font-family:var(--display);font-weight:400;color:#fff;
+  background:linear-gradient(180deg,var(--r1),var(--r2));-webkit-text-stroke:.6px rgba(0,0,0,.25);
+  text-shadow:0 1px 0 rgba(0,0,0,.25);border-radius:8px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+[data-rg=f] .rk,.rk[data-rg=f],.grade[data-rg=f] .rk{--r1:#8FCBFF;--r2:#3E8FE0}
+[data-rg=d] .rk,.grade[data-rg=d] .rk{--r1:#8EE6A8;--r2:#2FA865}
+[data-rg=b] .rk,.grade[data-rg=b] .rk{--r1:#FFC27A;--r2:#F07A1E}
+[data-rg=s] .rk,.grade[data-rg=s] .rk{--r1:#FFE88A;--r2:#E3A514;box-shadow:0 0 8px rgba(245,196,67,.75)}
+[data-rg=u] .rk,.grade[data-rg=u] .rk{background:linear-gradient(135deg,#FF7AA8,#FFC94A 30%,#7EE07A 55%,#5EC8FF 78%,#B07CFF);box-shadow:0 0 10px rgba(255,255,255,.9),0 0 14px rgba(176,124,255,.6)}
+body.ingame #fishRow .meter .rk{font-size:22px;min-width:38px;height:30px;margin:5px 0 2px;padding:0 5px}
+@media (prefers-reduced-motion:no-preference){.rk.up{animation:rkup .7s cubic-bezier(.2,1.6,.4,1)}}
+@keyframes rkup{0%{transform:scale(.4) rotate(-12deg);filter:brightness(2)}100%{transform:none;filter:none}}
+
+/* the owner's row: compact gauges in a tray */
+body.ingame #ownRow .meters{background:var(--gx-panel2);border-radius:10px;padding:5px 8px}
+body.ingame #ownRow .meter .top{font-family:var(--display);color:var(--gx-sub)}
+body.ingame #ownRow .meter .track{border-radius:3px;background:#DCE8EE}
+
+/* age bar and step bar */
+body.ingame .life .top{font-family:var(--display);font-size:13px;color:var(--gx-ink)}
+body.ingame .life .track{height:10px;border-radius:6px;background:#E3EEF3;overflow:hidden}
+body.ingame .life .fill{background:linear-gradient(90deg,var(--gx-ribbon1),var(--gx-ribbon2));border-radius:6px}
+body.ingame .tick{color:var(--gx-sub)}
+body.ingame .tick .fill{background:var(--gx-gold)!important;opacity:1}
+
+/* ---------- buttons ---------- */
+body.ingame .controls{gap:6px}
+body.ingame .controls button{font-family:var(--display);font-size:14px;color:var(--gx-ink);background:#fff;border:0!important;border-radius:999px;
+  padding:7px 14px;box-shadow:0 3px 0 #9CC3D6,0 5px 10px rgba(4,24,44,.25);transform:translateY(0);transition:transform .08s,box-shadow .08s}
+body.ingame .controls button:active{transform:translateY(3px);box-shadow:0 0 0 #9CC3D6,0 2px 4px rgba(4,24,44,.25)}
+body.ingame .controls button[aria-pressed="true"]{background:linear-gradient(180deg,#A6EE5A,var(--gx-lime2));color:#fff;box-shadow:0 3px 0 #3B8A12,0 5px 10px rgba(4,24,44,.25);text-shadow:0 1px 0 rgba(0,0,0,.2)}
+body.ingame #stopBtn[aria-pressed="true"]{background:linear-gradient(180deg,#FF9A8B,#E2412B);box-shadow:0 3px 0 #A52A17,0 5px 10px rgba(4,24,44,.25)}
+body.ingame #skipBtn{background:linear-gradient(180deg,#FFD66B,#F3A41C);color:#5A3A00;box-shadow:0 3px 0 #B97708,0 5px 10px rgba(4,24,44,.25)}
+
+/* ---------- the message window (the log) ---------- */
+body.ingame .logwrap{background:linear-gradient(180deg,var(--gx-msg2),var(--gx-msg))!important;border:3px solid #fff!important;border-radius:18px!important;
+  box-shadow:0 0 0 2px #6FB7E0,inset 0 0 0 2px rgba(255,255,255,.12),0 10px 30px rgba(4,24,44,.45);color:#EAF2FF}
+body.ingame .loghead{border-bottom:1.5px solid rgba(255,255,255,.25)!important;color:#fff;font-family:var(--display)}
+body.ingame .loghead>span:first-child::before{content:"✉ ";color:var(--gx-gold)}
+body.ingame .loghead .lognote{color:#9FB6D8}
+body.ingame #log li{border-bottom:1px dashed rgba(255,255,255,.14);color:#EAF2FF}
+body.ingame #log .t{color:#8FB0D8}
+body.ingame #log li:first-child{background:rgba(255,255,255,.07);border-radius:10px;padding-left:8px;padding-right:8px;border-bottom-color:transparent}
+body.ingame #log li:first-child p{font-size:15.5px}
+body.ingame #log li.good p{color:#A6EE7A}
+body.ingame #log li.bad p{color:#FFB3A8}
+body.ingame #log li.sub p{color:#B9C8DD}
+body.ingame #log li.star p{color:var(--gx-gold)}
+body.ingame #log li.pick p{color:#7FD8FF}
+body.ingame #log li.mile{border-bottom:1.5px solid rgba(255,255,255,.4)}
+body.ingame #log li.mile p{color:#fff}
+body.ingame .dchip.up{color:#A6EE7A}body.ingame .dchip.down{color:#FFB3A8}
+
+/* ---------- the choice as a game dialog ---------- */
+body.ingame #choice{background:var(--gx-panel);border:3px solid #fff!important;border-radius:22px;color:var(--gx-ink);
+  box-shadow:0 0 0 100vmax rgba(5,20,38,.55),0 0 0 3px var(--gx-ribbon1),0 24px 60px rgba(0,0,0,.4)!important;padding-top:0}
+body.ingame #choice .who{display:block;margin:0 -22px 4px;padding:9px 18px;border-radius:19px 19px 0 0;background:linear-gradient(90deg,var(--gx-ribbon1),var(--gx-ribbon2));
+  color:#fff!important;font-family:var(--display)!important;font-size:16px!important;letter-spacing:.02em}
+body.ingame #choice.train .who{background:linear-gradient(90deg,#8BDB43,#33A24C)}
+body.ingame #choice.crisis .who{background:linear-gradient(90deg,#FF7A5C,#D6283A)}
+body.ingame #choice.crisis{box-shadow:0 0 0 100vmax rgba(40,5,10,.6),0 0 0 3px #FF6A55,0 24px 60px rgba(0,0,0,.4)!important}
+body.ingame #choice .prompt{background:var(--gx-panel2);border:2px solid var(--gx-edge);border-radius:14px;padding:10px 14px;font-family:var(--display);font-size:16.5px;line-height:1.6;position:relative}
+body.ingame #choice .opts button{background:#fff;border:2px solid var(--gx-edge)!important;border-radius:14px;color:var(--gx-ink);font-family:var(--display);font-size:15px;
+  box-shadow:0 3px 0 var(--gx-edge);transition:transform .08s,box-shadow .08s,border-color .12s}
+body.ingame #choice .opts button:hover:not(:disabled){border-color:var(--gx-ribbon1)!important;background:#F4FBFE}
+body.ingame #choice .opts button:active:not(:disabled){transform:translateY(3px);box-shadow:0 0 0 var(--gx-edge)}
+body.ingame #choice .opts button small{font-family:var(--body);color:var(--gx-sub)}
+body.ingame #choice .opts button:disabled{opacity:.5;filter:grayscale(.6)}
+
+/* the 육성 card: status strip on top, training tiles in a grid */
+body.ingame #choice.hub{width:min(760px,calc(100% - 24px))}
+body.ingame #choice.hub .who{background:linear-gradient(90deg,#8BDB43,#2FA0C9)}
+body.ingame .hubstrip{background:var(--gx-panel2);border:2px solid var(--gx-edge);border-radius:14px;grid-template-columns:2fr 1fr 1fr;gap:6px 12px}
+body.ingame .hubstrip .hl{font-family:var(--display);font-size:11.5px;color:var(--gx-sub);letter-spacing:0}
+body.ingame .hubstrip .hv{font-family:var(--display);font-size:14px;color:var(--gx-ink)}
+body.ingame .hubstrip .hs[data-lab="기력"] .hb{height:12px;border-radius:7px;background:#DDE7EC;box-shadow:inset 0 1px 2px rgba(0,0,0,.15)}
+body.ingame .hubstrip .hs[data-lab="기력"] .hb b{background:linear-gradient(90deg,#FFD45A,#7ED23A 60%,#33C6A0);border-radius:7px}
+body.ingame .hubstrip .hs[data-lab="기력"] .hb b.low{background:linear-gradient(90deg,#FF6A55,#FFAA2B)}
+body.ingame .hubstrip .hs[data-lab="컨디션"] .hv::before{margin-right:4px}
+body.ingame .hubstrip .hs[data-mood="최악"] .hv::before{content:"😵"}
+body.ingame .hubstrip .hs[data-mood="나쁨"] .hv::before{content:"😣"}
+body.ingame .hubstrip .hs[data-mood="보통"] .hv::before{content:"🙂"}
+body.ingame .hubstrip .hs[data-mood="좋음"] .hv::before{content:"😄"}
+body.ingame .hubstrip .hs[data-mood="최고"] .hv::before{content:"🤩"}
+body.ingame .hubstrip .hs[data-mood="최고"] .hv{color:#E0457B}
+body.ingame .hubstrip .hs[data-lab="SP"] .hv::before{content:"SP";display:inline-block;margin-right:5px;padding:0 5px;border-radius:999px;background:linear-gradient(180deg,#FFE88A,#E3A514);color:#5A3A00;font-size:11px;line-height:1.6;vertical-align:1px}
+body.ingame .hubstrip .hs[data-lab="SP"] .hl{visibility:hidden}
+body.ingame .hubstrip .stbox{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+body.ingame .hubstrip .sb{--sc:var(--gx-p);background:#fff;border:2px solid var(--sc);border-radius:11px;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding-bottom:5px;min-width:0}
+body.ingame .hubstrip .sb[data-k=g]{--sc:var(--gx-g)}body.ingame .hubstrip .sb[data-k=w]{--sc:var(--gx-w)}body.ingame .hubstrip .sb[data-k=c]{--sc:var(--gx-c)}
+body.ingame .hubstrip .sb .sn{width:100%;text-align:center;background:var(--sc);color:#fff;font-family:var(--display);font-size:12px;line-height:1.7}
+body.ingame .hubstrip .sb .rk{font-size:22px;min-width:38px;height:30px;margin:4px 0 1px;padding:0 5px}
+body.ingame .hubstrip .sb .sv{font-family:var(--display);font-size:12px;color:var(--gx-ink);white-space:nowrap}
+body.ingame .hubstrip .sb .hb{display:block;width:calc(100% - 14px);height:5px;margin-top:3px;border-radius:3px;background:#E8EEF2;overflow:hidden}
+body.ingame .hubstrip .sb .hb b{display:block;height:100%;background:var(--sc)}
+body.ingame .hubstrip .hs[data-lab="다음 고비"]{background:#FFF6DA;border:1.5px solid #F3D27A;border-radius:10px;padding:4px 8px}
+body.ingame .hubstrip .hs[data-lab="다음 고비"] .hl::before{content:"⚑ ";color:#E08A00}
+body.ingame .hubstrip .hs[data-lab="인연"] .hv{color:#D0457E}
+
+body.ingame #choice.hub .prompt{font-size:14.5px;padding:8px 12px}
+body.ingame #choice.hub .opts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+body.ingame #choice.hub .opts button{grid-column:span 2;padding:0 0 8px;overflow:hidden;display:flex;flex-direction:column;text-align:left}
+body.ingame #choice.hub .opts button.tile[data-k=p],body.ingame #choice.hub .opts button.tile[data-k=g],
+body.ingame #choice.hub .opts button.tile[data-k=w],body.ingame #choice.hub .opts button.tile[data-k=c]{grid-column:span 1;text-align:center}
+body.ingame #choice.hub .opts button .bt{display:block;padding:6px 10px;color:#fff;font-size:15px;background:var(--tc,#7A8CA5);text-shadow:0 1px 0 rgba(0,0,0,.2)}
+body.ingame #choice.hub .opts button .bn{display:block;padding:6px 10px 0;font-size:13.5px;line-height:1.35;color:var(--gx-ink)}
+body.ingame #choice.hub .opts button small{padding:2px 10px 0;font-size:11.5px;line-height:1.4}
+body.ingame #choice.hub .opts button.tile{border-color:var(--tc,var(--gx-edge))!important;box-shadow:0 3px 0 color-mix(in srgb,var(--tc,#7A8CA5) 55%,#fff)}
+body.ingame #choice.hub .opts button.tile:hover:not(:disabled){filter:brightness(1.04);background:#fff}
+body.ingame #choice.hub .opts button[data-k=p]{--tc:var(--gx-p)}
+body.ingame #choice.hub .opts button[data-k=g]{--tc:var(--gx-g)}
+body.ingame #choice.hub .opts button[data-k=w]{--tc:var(--gx-w)}
+body.ingame #choice.hub .opts button[data-k=c]{--tc:var(--gx-c)}
+body.ingame #choice.hub .opts button[data-k=sp]{--tc:#9B5CF6}
+body.ingame #choice.hub .opts button[data-k=rest]{--tc:#2DB7A3}
+body.ingame #choice.hub .opts button[data-k=play]{--tc:#F08BD0}
+body.ingame #choice.hub .opts button[data-k=cup]{--tc:#E8A10F}
+body.ingame #choice.hub .opts button[data-k=bond]{--tc:#E0457B}
+body.ingame #choice.hub .opts button[data-k=sick]{--tc:#C2341F}
+body.ingame #choice.hub .opts button[data-k=skill]{--tc:#1F2E4D;grid-column:1/-1;flex-direction:row;align-items:center;justify-content:center;padding:9px 12px;color:#fff;
+  background:linear-gradient(180deg,#34507E,#1F2E4D);font-size:15px}
+body.ingame #choice.hub .opts button[data-k=skill]::before{content:"✦ ";color:var(--gx-gold);margin-right:4px}
+body.ingame #choice.hub .opts button[data-k=cup] .bt::before{content:"🏆 "}
+body.ingame #choice.hub .opts button[data-k=sp] .bt::before{content:"★ "}
+body.ingame #choice.hub .opts button[data-k=rest] .bt::before{content:"💤 "}
+body.ingame #choice.hub .opts button[data-k=play] .bt::before{content:"🫧 "}
+body.ingame #choice.hub .opts button.friend{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--gx-gold),0 3px 12px rgba(245,196,67,.7)}
+body.ingame #choice.hub .opts button.friend .bt::after{content:" ★우정";color:#FFF3B0}
+body.ingame #choice.hub .opts button.risky small{color:#C2341F}
+body.ingame #choice.hub .opts button:not(.tile){grid-column:1/-1;padding:10px 12px}
+
+@media (max-width:620px){
+  body.ingame #choice .who{margin:0 -14px 4px}
+  body.ingame .hubstrip{grid-template-columns:1fr 1fr 1fr!important}
+  body.ingame .hubstrip .hs.wide{grid-column:1/-1}
+  body.ingame .hubstrip .hs[data-lab="기력"]{grid-column:1/-1}
+  body.ingame .hubstrip .sb .rk,body.ingame #fishRow .meter .rk{font-size:17px;min-width:30px;height:24px}
+  body.ingame .hubstrip .sb .sv{font-size:10.5px}
+  body.ingame #choice.hub .opts{grid-template-columns:repeat(2,minmax(0,1fr))}
+  body.ingame #choice.hub .opts button{grid-column:1/-1}
+  body.ingame #choice.hub .opts button.tile[data-k=p],body.ingame #choice.hub .opts button.tile[data-k=g],
+  body.ingame #choice.hub .opts button.tile[data-k=w],body.ingame #choice.hub .opts button.tile[data-k=c]{grid-column:span 1}
+  body.ingame #choice.hub .opts button .bn{font-size:12.5px}
+  body.ingame .cardtop{margin:-8px -10px 2px;padding:5px 10px}
+  body.ingame #fishRow .meters{grid-template-columns:repeat(4,minmax(0,1fr))!important}
+  body.ingame #fishRow .meter:not(#mHealth) .top>span:first-child{font-size:11px}
+}
+@media (max-width:620px) and (orientation:portrait){
+  body.ingame #fishRow .meters{grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:4px!important}
+  body.ingame #fishRow .meter .rk{font-size:14px;min-width:24px;height:19px;margin:3px 0 1px}
+  body.ingame #fishRow .meter:not(#mHealth) .v{font-size:10.5px!important}
+}
+
+/* ---------- the ending's grade card ---------- */
+.grade{background:linear-gradient(180deg,#FFFFFF,#F1F8FC);border:3px solid #fff!important;border-radius:18px!important;
+  box-shadow:0 0 0 3px #2DC2E8,0 10px 24px rgba(4,24,44,.18);color:#1D2B44}
+.grade .rk{font-size:44px!important;min-width:84px;height:72px;padding:0 10px;border-radius:16px;color:#fff!important;
+  -webkit-text-stroke:1px rgba(0,0,0,.25)}
+.grade .tt{color:#1D2B44}
+.grade .mt{color:#5B6E86!important}
+@media (prefers-reduced-motion:no-preference){.grade .rk{animation:rkup 1s cubic-bezier(.2,1.6,.4,1)}}
+
+/* small fixes */
+body.ingame #fishRow .mhead{display:none}
+body.ingame #fishRow{grid-template-columns:1fr}
+body.ingame #ownRow .meter .fill{background:#7FA8C2}
+body.ingame #ownRow #mSkill .fill{background:#8C7BD8!important}
+body.ingame .cardtop{flex-wrap:nowrap}
+body.ingame .cardtop .label{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}

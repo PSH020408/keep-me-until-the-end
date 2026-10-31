@@ -27,6 +27,7 @@ const capOf=k=>{const c=S&&S.sp&&FCAP[S.sp.id];return c?c[k]:100};
 /* v0.15: each stat wears a letter in the manner of Uma Musume, by its share of the species ceiling:
    G → F → … → SS, then the U ranks UF → … → US at the very top */
 const STAT_RANKS=[[0,'G'],[.1,'F'],[.18,'E'],[.27,'D'],[.37,'C'],[.47,'B'],[.57,'A'],[.66,'S'],[.74,'SS'],[.8,'UF'],[.85,'UE'],[.89,'UD'],[.93,'UC'],[.96,'UB'],[.985,'UA'],[1,'US']];
+const rankGroup=r=>r==='G'?'g':/^U/.test(r)?'u':({F:'f',E:'f',D:'d',C:'d',B:'b',A:'b',S:'s',SS:'s'}[r]||'g');
 const statRank=k=>{const v=S&&S.f&&S.f.st?S.f.st[k]/Math.max(1,capOf(k)):0;let r='G';for(const [t,n] of STAT_RANKS)if(v>=t-1e-9)r=n;return r};
 const growOf=k=>{const c=S&&S.sp&&FCAP[S.sp.id];return c&&c.k&&c.k[k]||1};
 /* stats never pass the species cap; gains are scaled by how fast this species trains that stat */
