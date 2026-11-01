@@ -55,8 +55,9 @@ dir(/뜰채|그물/,{actor:['hand/hand-net','top'],pose:'charge',cam:'shake',own
 dir(/낚싯|바늘|미끼|루어/,{actor:['prop/hook-worm','dangle']});
 dir(/마룻바닥|바닥에서 몸을 (튕|퍼덕)|수조 밖 바닥|바닥으로 떨어졌|수건 위로 떨어|바닥에서 퍼덕|욕조 바닥에서/,{bg:'bg/floor',pose:'flop',move:'flop',zone:[.4,.7,.6,.78],cam:'shake'});
 dir(/수면 위로 (몸을 날|뛰어)|뛰어올랐|뛰어오릅|점프|뚜껑을 (머리로 )?밀어/,{pose:'jump',move:'leap',fx:'splash'});
-dir(/택배|상자/,{bg:'bg/box-cargo',actor:['prop/parcel','bottom'],tint:'dim',zone:[.06,.74,.26,.86],small:1,move:'still'});
-dir(/스티로폼/,{bg:'bg/box-cargo',actor:['prop/styro-box','bottom'],tint:'dim',zone:[.06,.74,.26,.86],small:1,move:'still'});
+const SHIPPED=t=>!!(S&&(S.preOwner||/담겨|담긴|배송|운송|택배로|포장|도착|발송|싣|실려/.test(t)));
+dir(/택배|상자/,(m,t)=>SHIPPED(t)?{bg:'bg/box-cargo',actor:['prop/parcel','bottom'],tint:'dim',zone:[.06,.74,.26,.86],small:1,move:'still'}:null);
+dir(/스티로폼/,(m,t)=>SHIPPED(t)?{bg:'bg/box-cargo',actor:['prop/styro-box','bottom'],tint:'dim',zone:[.06,.74,.26,.86],small:1,move:'still'}:null);
 dir(/봉지/,{bg:'bg/bag-crowd'});
 dir(/정전|불 꺼진|불이 꺼|한밤중|새벽|밤새/,{tint:'night',fx:'bubble'});
 dir(/물갈이|물을 (갈|반|채|조금씩)|양동이|수돗물/,{actor:['hand/hand-bucket','top'],fx:'bubble'});
@@ -115,9 +116,23 @@ function dirFor(text,li){
   for(const [re,r] of DIR){const m=text.match(re);if(m)return typeof r==='function'?r(m,text):Object.assign({},r)}
   return null;
 }
+/* an event painting: a full scene. In a gag painting the fish stays in the painted tank (or, for an
+   underwater painting, in the water at the lower right) — never out on the living-room floor.
+   Zones are in the painting's own coordinates [x0,y0,x1,y1]; [zone, tiny] for a very small tank. */
+const GAG_ZONE={'gag-delivery':[[.21,.3,.37,.4],1],'gag-ghost':[[.19,.27,.34,.38],1],'gag-homeshopping':[[.62,.15,.94,.3],1],
+ 'gag-homework':[[.6,.3,.95,.62]],'gag-kimchi':[[.46,.5,.94,.74]],'gag-lotto':[[.62,.19,.94,.37],1],'gag-robovac':[[.2,.07,.6,.23],1],
+ 'gag-sashimi':[[.04,.36,.2,.6],1],'gag-shake':[[.05,.46,.34,.74]],'gag-sweater':[[.37,.25,.63,.41],1],'gag-trot':[[.65,.16,.96,.44]],
+ 'gag-ufo':[[.06,.32,.43,.6]]};
+/* painting coordinates → stage-world coordinates (the painting covers the stage, the world is inset 3%) */
+function gagZoneW(z){
+  const el=STG.el,W=el&&el.clientWidth||16,H=el&&el.clientHeight||9,ia=1280/853;
+  const s=Math.max(W/ia,H),iw=ia*s,ih=s,ox=(W-iw)/2,oy=(H-ih)/2;
+  const f=(v,o,len,D)=>Math.min(.97,Math.max(.03,((o+v*len)-.03*D)/(.94*D)));
+  return [f(z[0],ox,iw,W),f(z[1],oy,ih,H),f(z[2],ox,iw,W),f(z[3],oy,ih,H)];
+}
 /* an event painting: a full scene; gag paintings leave the lower right for the fish */
 function dirImg(img){
-  if(/^gag\//.test(img))return {bg:img,zone:[.68,.66,.86,.82],small:1};
+  if(/^gag\//.test(img)){const z=GAG_ZONE[img.split('/').pop()];return {bg:img,zone:gagZoneW(z?z[0]:[.68,.66,.86,.82]),small:1,tiny:z&&z[1]?1:0}}
   if(/^mob\/suseon-/.test(img))return {bg:img,school:1,acc:'suseon-headband',tag:'수선조',pose:/march/.test(img)?'charge':'proud'};
   if(/^mob\/yankee-/.test(img))return {bg:img,school:1,acc:'yankee-shades',tag:'폭주어단',pose:/ride/.test(img)?'charge':'proud'};
   return {bg:img};
@@ -141,11 +156,12 @@ function stApply(d){
   if(F){
     if(d&&d.pose)F.setPose(d.pose,d.move||d.pose);else stFishState(P);
     F.script=d&&d.train?{k:d.train,t:0}:null;if(F.script)F.setPose(null);
-    if(STG.baseLen)F.setLen(STG.baseLen*(d&&d.small?.55:d&&d.big?1.2:1));
+    if(STG.baseLen)F.setLen(STG.baseLen*(d&&d.tiny?.34:d&&d.small?.55:d&&d.big?1.2:1));
     F.o.speed=d&&d.move==='still'?.15:d&&d.move==='slow'?.4:1;
     /* worn things */
     let acc=F.inner.querySelector('.acc');if(d&&d.acc){if(!acc){acc=document.createElement('img');acc.alt='';F.inner.appendChild(acc)}acc.className='acc acc-'+d.acc.split('-')[1];acc.src='img/mob/'+d.acc+'.webp'}else if(acc)acc.remove();
-    if(d&&d.zone){F.tx=(d.zone[0]+d.zone[2])/2;F.ty=(d.zone[1]+d.zone[3])/2}
+    if(d&&d.zone){F.tx=F.x=(d.zone[0]+d.zone[2])/2;F.ty=F.y=(d.zone[1]+d.zone[3])/2;F.vx=F.vy=0}
+    else if(prev&&prev.zone){F.wait=0;F.tx=F.x;F.ty=F.y}
   }
   if(d&&d.school&&STG.mates.filter(m=>m.id===S.sp.id).length<4){const host=STG.world;for(let i=0;i<5;i++){const m=new Swimmer(S.sp.id,{mate:1,speed:.9});m.el.classList.add('same');m.r=.86+Math.random()*.14;m.x=.2+i*.14;m.y=.6+(i%2)*.1;m.tx=m.x;m.ty=m.y;m.setLen(Math.round((STG.baseLen||120)*m.r));host.insertBefore(m.el,STG.fish?STG.fish.el:null);STG.mates.push(m)}}
   if(d&&d.school&&d.acc)STG.mates.filter(m=>m.id===S.sp.id).forEach(m=>{if(m.inner.querySelector('.acc'))return;const a=document.createElement('img');a.alt='';a.className='acc acc-'+d.acc.split('-')[1];a.src='img/mob/'+d.acc+'.webp';m.inner.appendChild(a)});

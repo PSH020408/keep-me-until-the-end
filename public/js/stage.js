@@ -267,7 +267,7 @@ function drawStage(force){
   const real=Math.max(.72,Math.min(1.15,.8+.1*Math.log2(Math.max(1,x.cm||7)/7)));
   const len=room?W*Math.max(.13,Math.min(.36,.12+.24*g))*real:W*Math.max(.18,Math.min(.4,.17+.25*g))*real*(STG.water?.7:1);
   const hmax=(host.clientHeight||200)*(room?.5:.46),nat=RIG[S.sp.id]||{w:560,h:200};const len2=Math.min(len,hmax*nat.w/nat.h);
-  STG.baseLen=len2;STG.fish.setLen(Math.round(len2*(STG.dir&&STG.dir.small?.55:STG.dir&&STG.dir.big?1.2:1)));
+  STG.baseLen=len2;STG.fish.setLen(Math.round(len2*(STG.dir&&STG.dir.tiny?.34:STG.dir&&STG.dir.small?.55:STG.dir&&STG.dir.big?1.2:1)));
   /* the same species is the same size as ours; other species keep their real proportion (within reason) */
   STG.mates.forEach(m=>m.setLen(Math.round(m.id===S.sp.id?len2*m.r:Math.max(W*.07,Math.min(W*.42,len2*m.r)))));
   /* how the fish looks now */
@@ -283,7 +283,9 @@ function stFishState(P){
   el.classList.toggle('thin',!!(f.refuse||f.ill&&DZ[f.ill.id]&&DZ[f.ill.id].ov==='thin'));
   /* disease shows on the body (a painted overlay), not as a word */
   let ov=f.ill&&DZ[f.ill.id]?DZ[f.ill.id].ov:'';let oi=F.inner.querySelector('.sickov');
-  if(ov&&SICK_IMG[ov]&&!S.done&&ov!=='bent'&&ov!=='thin'){if(!oi){oi=document.createElement('img');oi.alt='';oi.className='sickov';F.inner.appendChild(oi)}oi.src='img/sick/'+String(SICK_IMG[ov]).padStart(2,'0')+'.webp';oi.dataset.k=ov}
+  /* fin rot is painted into the moving fish (FishArt.rot), not laid on top */
+  if(F.fa)F.fa.rot=ov==='finrot'&&!S.done;
+  if(ov&&SICK_IMG[ov]&&!S.done&&ov!=='bent'&&ov!=='thin'&&!(ov==='finrot'&&F.fa)){if(!oi){oi=document.createElement('img');oi.alt='';oi.className='sickov';F.inner.appendChild(oi)}oi.src='img/sick/'+String(SICK_IMG[ov]).padStart(2,'0')+'.webp';oi.dataset.k=ov}
   else if(oi)oi.remove();
   if(S.done||(S.ending&&S.fx)){
     const pose=P.pose;F.hold=true;F.vx=F.vy=0;

@@ -101,6 +101,39 @@ function faComp(id){
   });
   return C;
 }
+/* fin rot, painted into the fish itself: the fin edges are eaten back unevenly and turn milky white.
+   Built once per species from the finished picture, so the rotten fins move with the fish (no second copy on top). */
+function faRot(C){
+  if(C.rcv||!C.ready)return C.rcv;
+  const W=C.W,H=C.H,cv=document.createElement('canvas');cv.width=W;cv.height=H;const g=cv.getContext('2d');g.drawImage(C.cv,0,0);
+  const im=g.getImageData(0,0,W,H),d=im.data,A=i=>d[i*4+3];
+  let seed=7;const rnd=()=>(seed=(seed*16807)%2147483647)/2147483647;
+  /* a ragged edge: a slow wave with a few V-shaped bites taken out of it */
+  const rag=n=>{const a=new Float32Array(n),p1=rnd()*6,p2=rnd()*6;
+    for(let i=0;i<n;i++)a[i]=.45+.2*Math.sin(i*.045+p1)+.12*Math.sin(i*.16+p2);
+    for(let k=0,m=Math.max(3,Math.round(n/45));k<m;k++){const c=rnd()*n,w=5+rnd()*12,dp=.25+rnd()*.3;
+      for(let i=Math.max(0,Math.floor(c-w));i<Math.min(n,Math.ceil(c+w));i++)a[i]+=dp*(1-Math.abs(i-c)/w)}
+    for(let i=0;i<n;i++)a[i]=Math.min(1,Math.max(0,a[i]));return a};
+  const J=Math.round(C.joint*W),E=Math.max(10,Math.round(Math.min(W,H)*.09));
+  const cut=i=>{d[i*4+3]=0};
+  const milk=(i,k)=>{k=Math.min(1,k);d[i*4]+=(252-d[i*4])*k;d[i*4+1]+=(249-d[i*4+1])*k;d[i*4+2]+=(244-d[i*4+2])*k;d[i*4+3]*=1-.4*k*k};
+  /* the tail: each row loses the outer part of its length; the new edge is milky */
+  const rr=rag(H);
+  for(let y=0;y<H;y++){let xr=-1;for(let x=W-1;x>J;x--)if(A(y*W+x)>40){xr=x;break}
+    if(xr<0)continue;const len=xr-J,c=Math.round(xr-len*(.1+.4*rr[y]));
+    for(let x=c+1;x<=xr;x++)cut(y*W+x);
+    for(let x=Math.max(J,c-E);x<=c;x++){const i=y*W+x;if(A(i)>0)milk(i,.95*Math.pow(1-(c-x)/E,1.3))}}
+  /* fins above and below the body, before the tail joint */
+  const rc=rag(W),rb=rag(W);
+  for(let x=0;x<J;x++){const top=Math.round(C.top[x]),bot=Math.round(C.bot[x]);
+    let y0=-1;for(let y=0;y<top;y++)if(A(y*W+x)>40){y0=y;break}
+    if(y0>=0&&top-y0>6){const c=Math.round(y0+(top-y0)*(.1+.45*rc[x]));for(let y=y0;y<c;y++)cut(y*W+x);
+      for(let y=c;y<Math.min(top,c+E);y++){const i=y*W+x;if(A(i)>0)milk(i,.9*Math.pow(1-(y-c)/E,1.3))}}
+    let y1=-1;for(let y=H-1;y>bot;y--)if(A(y*W+x)>40){y1=y;break}
+    if(y1>=0&&y1-bot>6){const c=Math.round(y1-(y1-bot)*(.1+.45*rb[x]));for(let y=c+1;y<=y1;y++)cut(y*W+x);
+      for(let y=Math.max(bot,c-E);y<=c;y++){const i=y*W+x;if(A(i)>0)milk(i,.9*Math.pow(1-(c-y)/E,1.3))}}}
+  g.putImageData(im,0,0);C.rcv=cv;return cv;
+}
 /* a fish on screen: a canvas that draws the species' picture, moving */
 class FishArt{
   constructor(id,opt){
@@ -123,6 +156,7 @@ class FishArt{
     if(this.o.lowfps&&(this.skip^=1))return;
     this.t+=dt*(this.o.lowfps?2:1);this.beat+=(beat-this.beat)*.1;this.amp+=(amp-this.amp)*.08;
     const g=this.ctx,k=this.k,S=this.st,W=C.W,H=C.H,cw=this.el.width,ch=this.el.height;
+    const SRC=this.rot&&faRot(C)||C.cv;
     /* the picture fits the rig box (RIG w,h) as the old layered fish did */
     const fit=Math.min(cw/W,ch/H)*.97,ox=(cw-W*fit)/2,oy=(ch-H*fit)/2;
     g.setTransform(1,0,0,1,0,0);g.clearRect(0,0,cw,ch);g.imageSmoothingEnabled=true;
@@ -146,11 +180,11 @@ class FishArt{
       const xi=Math.min(W-1,Math.round(x+sw/2)),top=C.top[xi],bot=C.bot[xi];
       if(tail>.5||bot-top<2){
         /* the tail: the whole column fans around the body's middle */
-        const c=C.cy,hh=H*fan;g.drawImage(C.cv,x,0,sw,H,X,oy+(c-c*fan+dy)*fit,cwid*fit+.6,hh*fit);
+        const c=C.cy,hh=H*fan;g.drawImage(SRC,x,0,sw,H,X,oy+(c-c*fan+dy)*fit,cwid*fit+.6,hh*fit);
       }else{
-        g.drawImage(C.cv,x,top,sw,bot-top,X,oy+(top+dy)*fit,cwid*fit+.6,(bot-top)*fit+.5);
-        if(top>1){const h2=top*finT;g.drawImage(C.cv,x,0,sw,top,X,oy+(top+dy-h2)*fit,cwid*fit+.6,h2*fit+.5)}
-        if(bot<H-1){const h3=(H-bot)*finB;g.drawImage(C.cv,x,bot,sw,H-bot,X,oy+(bot+dy)*fit-.5,cwid*fit+.6,h3*fit)}
+        g.drawImage(SRC,x,top,sw,bot-top,X,oy+(top+dy)*fit,cwid*fit+.6,(bot-top)*fit+.5);
+        if(top>1){const h2=top*finT;g.drawImage(SRC,x,0,sw,top,X,oy+(top+dy-h2)*fit,cwid*fit+.6,h2*fit+.5)}
+        if(bot<H-1){const h3=(H-bot)*finB;g.drawImage(SRC,x,bot,sw,H-bot,X,oy+(bot+dy)*fit-.5,cwid*fit+.6,h3*fit)}
       }
       dx+=cwid-sw;
     }

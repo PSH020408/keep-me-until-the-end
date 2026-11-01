@@ -688,7 +688,7 @@ function fOutgrow(){
   const up=TANKS.filter(t=>t.k!=='pond'&&t.len>tankLen()&&t.L>=x.minL)[0]||TANKS.filter(t=>t.k!=='pond'&&t.len>tankLen()).slice(-1)[0];
   const next=TANKS.filter(t=>t.k!=='pond'&&t.len>tankLen())[R()<.6?0:1]||up;
   const say2=t=>q(T(t),'sub');
-  q(T((f.stunt>.2||(f.fl&&(f.fl.hlt_stunt||f.fl.stunted))?'{n}의 몸은 자라다 휘었는데도 '+tankOf(f.tank).l+'에는 너무 크다.':'{n}의 몸이 '+tankOf(f.tank).l+'에 비해 너무 커졌다.')+' 돌아설 때마다 꼬리가 유리에 닿는다. 원룸에 고래가 산다.'),'bad');
+  q(T((f.stunt>.2||(f.fl&&(f.fl.hlt_stunt||f.fl.stunted))?'{n}은 몸이 휘면서도 끝내 자랐다. 이제 '+josa(tankOf(f.tank).l,'이')+' 너무 좁다.':'{n}이 너무 커졌다. 이제 '+josa(tankOf(f.tank).l,'이')+' 너무 좁다.')+' 돌아설 때마다 꼬리가 유리에 닿는다. 원룸에 고래가 산다.'),'bad');
   if(own==='expert'){
     if(x.pond&&f.tank!=='pond'){q(T('주인은 마당을 파 연못을 만들었다. {n}은 처음으로 하늘이 보이는 물에 들어갔다. 삽질이 이렇게 감동적일 줄이야.'),'good',()=>{f.tank='pond';f.filter='연못 여과기';S.env='pond';f.outgrown=0;remember('하늘이 보이는 물. 몸을 다 펴도 닿지 않았다.',1.6)});return true}
     if(up&&up.L>=x.minL&&up.k!==f.tank) return fUpgrade(up);
@@ -754,6 +754,8 @@ function fRehome(text,opt){
     const ck=clamp(1+(fst().c-35)/60,.6,1.8);
     const own=opt.own||wpick([['learner',35*ck],['casual',35/ck],['expert',12*ck],['gift',8],['content',10]]);
     setupOwner(own);
+    /* a fish given away for being too big goes to a tank it fits in (the new owner sees its size) */
+    if(!opt.tank&&f.len>tankLen()*.32){const t=TANKS.find(t=>t.k!=='pond'&&t.len*.32>=f.len)||TANKS.filter(t=>t.k!=='pond').pop();f.tank=t.k;f.filter=fPickFilter(t.k,own)}
     if(opt.tank){f.tank=opt.tank;f.filter=fPickFilter(opt.tank,own);if(opt.tank==='pond'){f.net=R()<(own==='expert'?.8:.3)?1:0;f.lid=0;f.cycled=1;f.mates=f.mates.filter(m=>FX[m.id]&&FX[m.id].temp!=='trop')}}
     f.place=opt.place||null;f.moved=1;
     S.status=opt.place?{classroom:'교실 수조',office:'사무실 수조',restaurant:'식당 수조'}[opt.place]:'집';S.env=f.tank==='pond'?'pond':'tank';f.outgrown=0;f.ill=null;
