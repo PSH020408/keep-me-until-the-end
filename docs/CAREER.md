@@ -359,3 +359,18 @@ off the skill) or, at ★★★, the skill; a skill already known gives 5 SP per
 
 **물고기 도감.** Every finished life registers its species with the best grade reached, lives, lives lived
 out and titles. A career starts with 1 SP per registered species plus 2 per species with S or better.
+
+## v0.26 changes: no lives that just stop
+
+**해피 이벤트.** While a career runs and less than 80 % of the lifespan is lived, a happy catalogue ending in
+which the fish stays where it is (`FIX_STAY` in `data/fev_zz_fix.js`) does not end the life: its first lines are
+told, the fish gets SP +15, owner bond +8, health +10 and a better mood, and the story goes on. Happy endings that
+take the fish away (another owner, a pond, the river) are not rolled until the last fifth of the life; the
+outgrown fish's donation to a public aquarium becomes a move.
+
+**벼랑 끝 승부.** A death at 45 health or more that the career's own 벼랑 끝 has no scene for (being flushed alive,
+the freezer, the trash, catalogue endings of other categories) is first put to a fight: power, guts, wits or charm,
+chance `0.12 + stat/ceiling × 0.75 × (0.6 + 0.4 × health/100)` (+0.08 with the stat's skill), 10–85 %. Win: health
+−28 and the life goes on. At most twice a life, 12 steps apart.
+
+**Training lines** come from a shuffled deck per training (11 each), none repeated before the others are used.

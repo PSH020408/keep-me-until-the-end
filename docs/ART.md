@@ -51,3 +51,12 @@ around its own joint (`css/stage.css`); swimming speed sets the beat.
 Same style as the rest (soft watercolour, left-top light, no outlines), fish and animals facing
 left, transparent background for cut-outs, no blood (the story tells it; the picture implies it),
 no names or characters from existing works.
+
+## The living fish (v0.26)
+
+`js/fishart.js` replaces the layered rig on screen. Per species the parts are put together once into one
+picture (`FA_ADJ` corrects part size and position; the body's painted cut end fades out over the tail's root),
+and every frame that picture is drawn in thin columns: the body only shifts in a travelling wave, the fin parts
+above and below the body stretch away from its edge (`FA_STYLE.fin`, faster for puffers and knifefish), the
+tail columns fan and narrow (`fan`, `squash`), and the pectoral fin rows around its base. Tankmates use the same
+drawing at half the frame rate. `swim.webp` (title parade, reel, 도감, fallback) is exported from the same picture.

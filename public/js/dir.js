@@ -83,6 +83,8 @@ dir(/겨울|얼음|추위|차가운|살얼음/,{tint:'cold',fx:'snow'});
 dir(/물렸|쪼아|싸움|공격|들이받|결투|박치기/,{pose:'charge',cam:'shake',fx:'speed'});
 dir(/★|우승|이겼|수련의 성과|살아남/,{pose:'proud',fx:'spark'});
 dir(/숨|산소|기포|뻐끔/,{pose:'mouth',fx:'bubble'});
+/* v0.26: the last stand */
+DIR.unshift([/벼랑 끝 승부 — 승리/,{pose:'proud',fx:'spark',flash:1,cam:'shake',tag:'역전!'}],[/벼랑 끝 승부 — 패배/,{pose:'dizzy',tint:'dark',tag:'…'}],[/해피 이벤트/,{fx:'hearts',flash:1,tag:'해피 이벤트'}]);
 
 /* ---------- events name their own painting ---------- */
 let CUR_EV=null;
@@ -95,8 +97,13 @@ const stVis=v=>{VIS_NEXT=v};
 /* training: the facility's painting, the fish at full effort, the gain flashing up */
 (()=>{if(typeof carTrain!=='function')return;const _t=carTrain;carTrain=function(k,ps,fr,fail){
   const c=typeof car==='function'&&car(),lv=c&&c.fac?c.fac[k]||1:1,st={p:'pow',g:'guts',w:'wits',c:'charm'}[k];
-  if(st)stVis({bg:'career/train-'+st+'-'+(lv>=3?5:1),pose:k==='w'?'three':k==='c'?'proud':'charge',fx:k==='p'?'speed':k==='c'?'hearts':'bubble',cam:'push',tag:CAR_STATS[k]+' 훈련'});
-  return _t.apply(this,arguments)}})();
+  /* v0.26: the living fish trains (a motion per training), and what it gained floats up */
+  const v=st?{bg:'career/train-'+st+'-'+(lv>=3?5:1),train:k,fx:k==='p'?'speed':k==='c'?'hearts':k==='g'?'sweat':'spark',cam:'push',tag:CAR_STATS[k]+' 훈련'+(fr&&fr.length?' · ★우정':'')}:null;
+  const before=typeof fst==='function'?Object.assign({},fst()):null;
+  if(v)stVis(v);
+  const r=_t.apply(this,arguments);
+  if(v&&before){const now=fst(),g={};['p','g','w','c'].forEach(s=>{const d=Math.round((now[s]-before[s])*10);if(d)g[s]=d});v.gains=g}
+  return r}})();
 (()=>{if(typeof carRest!=='function')return;const _r=carRest;carRest=function(){stVis({bg:'career/rest-sleep',pose:'three',move:'still',zone:[.4,.62,.6,.75]});return _r.apply(this,arguments)}})();
 (()=>{if(typeof carPlay!=='function')return;const _r=carPlay;carPlay=function(){stVis({bg:'career/rest-play',fx:'bubble'});return _r.apply(this,arguments)}})();
 
@@ -132,6 +139,7 @@ function stApply(d){
   const F=STG.fish;
   if(F){
     if(d&&d.pose)F.setPose(d.pose,d.move||d.pose);else stFishState(P);
+    F.script=d&&d.train?{k:d.train,t:0}:null;if(F.script)F.setPose(null);
     if(STG.baseLen)F.setLen(STG.baseLen*(d&&d.small?.55:d&&d.big?1.2:1));
     F.o.speed=d&&d.move==='still'?.15:d&&d.move==='slow'?.4:1;
     /* worn things */
@@ -151,8 +159,17 @@ function stApply(d){
   STG.cam.classList.remove('shake','push','pulse');void STG.cam.offsetWidth;if(d&&d.cam)STG.cam.classList.add(d.cam);
   stFx('clear');if(d&&d.fx)stFx(d.fx);
   if(d&&d.flash){STG.flash.classList.remove('go');void STG.flash.offsetWidth;STG.flash.classList.add('go')}
+  if(d&&d.gains)stGains(d.gains);
   /* cut-ins */
   stCut(d);
+}
+/* numbers that float up from the fish: 힘 +32 */
+function stGains(g){
+  const box=STG.fx;if(!box)return;box.querySelectorAll('.gain').forEach(e=>e.remove());
+  const F=STG.fish,W=box.clientWidth||300,H=box.clientHeight||200;let i=0;
+  Object.entries(g).forEach(([k,v])=>{const e=document.createElement('div');e.className='gain fx-tmp';e.dataset.k=k;
+    e.textContent=(typeof CAR_STATS!=='undefined'?CAR_STATS[k]:k)+(v>0?' +':' ')+v;
+    e.style.left=Math.round((F?F.x:.5)*100)+'%';e.style.top=Math.round((F?F.y:.5)*100-12-i*9)+'%';e.style.animationDelay=(.25+i*.18)+'s';box.appendChild(e);i++});
 }
 /* the owner's portrait, a label, a skill icon */
 function stCut(d){
@@ -180,3 +197,6 @@ function evSet(text,li){EV_CUR=text||null;try{stDirect(text,li||null)}catch(e){i
 
 /* the side card follows every render */
 (()=>{const _r=render;render=function(){const r=_r.apply(this,arguments);try{panelDraw()}catch(e){}return r}})();
+
+/* the last stand's choice looks like a crisis */
+(()=>{const _a=askChoice;askChoice=function(c,cb){const r=_a.apply(this,arguments);try{if(c&&/벼랑 끝/.test(c.who||'')){const b=$('choice');if(b&&b.classList)b.classList.add('crisis');if(typeof stApply==='function')stApply({cam:'shake',flash:1,tint:'dark',tag:'벼랑 끝 승부'})}}catch(e){}return r}})();

@@ -69,8 +69,8 @@ function facInherit(n){
     lit.push(facLabel(f)+' ('+L.name+') → '+eff)}));
   S.facLit=(S.facLit||0)+lit.length;
   const who=P.map(L=>'「'+L.title+'」 '+L.name+'('+L.rank+')').join(', ');
-  if(lit.length){addLog(T('★ 계승'+(n>1?' 2회차':'')+'! 선배 '+who+'의 인자가 빛났습니다.'),'star');lit.forEach(x=>addLog('　'+x,'good'))}
-  else addLog(T(pick(['★ 계승'+(n>1?' 2회차':'')+' — 선배 '+who+'의 인자가… 빛나지 않았습니다. 선배들은 지금 휴가 중입니다.','★ 계승'+(n>1?' 2회차':'')+' — 선배들이 꿈에 나왔지만 아무것도 가르쳐 주지 않고 사료만 먹고 갔습니다.'])),'sub');
+  if(lit.length){addLog(T('★ 계승'+(n>1?' 2회차':'')+'! 선배 '+who+'의 인자가 빛났다. 선배, 고맙습니다.'),'star');lit.forEach(x=>addLog('　'+x,'good'))}
+  else addLog(T(pick(['★ 계승'+(n>1?' 2회차':'')+' — 선배 '+who+'의 인자가… 빛나지 않았다. 선배들은 지금 휴가 중이다.','★ 계승'+(n>1?' 2회차':'')+' — 선배들이 꿈에 나왔지만 아무것도 가르쳐 주지 않고 사료만 먹고 갔다. 선배란 그런 것이다.'])),'sub');
 }
 /* the first 계승 when the career starts (in place of the old same-species legacy), the second about halfway */
 carLegacyLoad=function(){return null};
@@ -100,5 +100,5 @@ function dexRecord(){
   d[id]=e;try{localStorage.setItem(DEX_KEY,JSON.stringify(d))}catch(err){}
   S.dexNew={isNew,better:better&&!isNew?rank:better&&isNew?rank:null,prev:isNew?null:(d[id]&&e.best)};return S.dexNew}
 (()=>{const _i=carInit;carInit=function(){const had=!!(S.f&&S.f.car);const c=_i();if(!had){const b=dexBonus();if(b){c.sp+=b;
-  const n=Object.keys(dexAll()).length;addLog(T('★ 도감 보너스 — 지금까지 키워 본 물고기 '+n+'종. SP +'+b+' 받고 시작합니다.'),'good')}}return c}})();
+  const n=Object.keys(dexAll()).length;addLog(T('★ 도감 보너스 — 지금까지 키워 본 물고기 '+n+'종. SP +'+b+' 받고 시작한다. 경력직 우대.'),'good')}}return c}})();
 (()=>{const _e=endLife;endLife=function(){const r=_e.apply(this,arguments);try{dexRecord()}catch(e){}return r}})();

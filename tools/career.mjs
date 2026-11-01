@@ -37,13 +37,13 @@ globalThis.__run=(sp,strat)=>{start(sp);skipping=true;const ac=askChoice;let n=0
   while(!S.done&&n++<20000){if(S.pending)S.pending.resolve(__choose(S.pending.opts,strat));tick()}
   skipping=false;const c=S.f&&S.f.car,st=S.f&&S.f.st;
   return {id:S.sp.id,calm:S.calm,pct:S.ageM/S.sp.life,car:!!(c&&c.turn),turns:c&&c.turn,res:c&&c.result,gp:c&&c.gpass,gf:c&&c.gfail,sk:c?Object.keys(c.sk).length:0,
-    ranks:st?['p','g','w','c'].map(k=>statRank(k)):[],rel:st?['p','g','w','c'].map(k=>st[k]/statCap(k)):[],fac:S.lastFactors||null,gag:Object.keys(S.seen).filter(k=>/^ev(GAG|GIN|CH|MOB|P[GTW])-/.test(k)).length,chs:Object.keys(S.seen).filter(k=>/^evCH-/.test(k)).length,lit:S.facLit||0}};`;
+    ranks:st?['p','g','w','c'].map(k=>statRank(k)):[],rel:st?['p','g','w','c'].map(k=>st[k]/statCap(k)):[],fac:S.lastFactors||null,hm:S.f&&S.f.happyMid||0,ek:S.f&&S.f.endKey,gag:Object.keys(S.seen).filter(k=>/^ev(GAG|GIN|CH|MOB|P[GTW])-/.test(k)).length,chs:Object.keys(S.seen).filter(k=>/^evCH-/.test(k)).length,lit:S.facLit||0}};`;
 vm.runInContext(src,ctx);
 // the skipping path picks randomly: route it through the strategy
 vm.runInContext(`(()=>{const _a=askChoice;askChoice=function(c,cb){if(skipping){const s=skipping;skipping=false;try{_a(c,cb);}finally{skipping=s}const p=S.pending;if(p)p.resolve(__choose(p.opts,__STRAT));return}return _a(c,cb)}})()`,Object.assign(ctx,{__STRAT:STRAT}));
-const R={gag:0,chs:0,n:0,fac:0,facS:0,lit:0,car:0,calm:0,pct:0,turns:0,grade:{},rank:{},top:{},rel:0,gp:0,gf:0,sk:0,max:0};
+const R={early:0,hm:0,gag:0,chs:0,n:0,fac:0,facS:0,lit:0,car:0,calm:0,pct:0,turns:0,grade:{},rank:{},top:{},rel:0,gp:0,gf:0,sk:0,max:0};
 const order=['G','F','E','D','C','B','A','S','SS','UF','UE','UD','UC','UB','UA','US'];
-for(let i=0;i<N;i++){const r=ctx.__run(ONLY,STRAT);R.n++;R.gag+=r.gag;R.chs+=r.chs;if(r.calm)R.calm++;R.pct+=r.pct;
+for(let i=0;i<N;i++){const r=ctx.__run(ONLY,STRAT);R.n++;R.gag+=r.gag;if(r.calm&&r.pct<.8&&r.car){R.early++;(R.ek=R.ek||[]).push(r.ek+"@"+Math.round(r.pct*100))}R.hm+=r.hm||0;R.chs+=r.chs;if(r.calm)R.calm++;R.pct+=r.pct;
   if(!r.car)continue;R.car++;if(r.fac){R.fac+=r.fac.f.length;R.facS+=r.fac.f.reduce((a,f)=>a+f.s,0)}R.lit+=r.lit||0;R.turns+=r.turns;R.gp+=r.gp;R.gf+=r.gf;R.sk+=r.sk;
   if(r.res)R.grade[r.res.rank]=(R.grade[r.res.rank]||0)+1;
   r.ranks.forEach(x=>R.rank[x]=(R.rank[x]||0)+1);const t=r.ranks.sort((a,b)=>order.indexOf(b)-order.indexOf(a))[0];R.top[t]=(R.top[t]||0)+1;
@@ -51,6 +51,8 @@ for(let i=0;i<N;i++){const r=ctx.__run(ONLY,STRAT);R.n++;R.gag+=r.gag;R.chs+=r.c
 const pc=(o,n)=>order.filter(k=>o[k]).map(k=>k+' '+(o[k]/n*100).toFixed(0)+'%').join(' · ');
 console.log(`${STRAT} · lives ${R.n} · career ${R.car} · lived out ${(R.calm/R.n*100).toFixed(0)}% · mean life ${(R.pct/R.n*100).toFixed(0)}% · turns ${(R.turns/R.car).toFixed(0)} · goals ${(R.gp/R.car).toFixed(1)}/${((R.gp+R.gf)/R.car).toFixed(1)} · skills ${(R.sk/R.car).toFixed(1)}`);
 console.log('gag events seen per life '+(R.gag/R.n).toFixed(1)+' (new chaos '+(R.chs/R.n).toFixed(1)+')');
+console.log('careers ended "lived out" before 80 % of the lifespan: '+R.early+' · happy events mid-career per life '+(R.hm/R.n).toFixed(2));
+console.log('early ends: '+(R.ek||[]).join(' '));
 console.log('mean stat (of cap) '+(R.rel/R.car*100).toFixed(0)+'% · lives with a maxed stat '+(R.max/R.car*100).toFixed(0)+'%');
 console.log('stat ranks: '+pc(R.rank,R.car*4));
 console.log('best stat:  '+pc(R.top,R.car));

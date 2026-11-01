@@ -139,8 +139,9 @@ class Swimmer{
     this.id=id;this.o=opt||{};this.m=MOVE[id]||MOVE0;this.el=document.createElement('div');this.el.className='actor mv-'+id+(this.o.mate?' mate':'');
     this.el.style.setProperty('--ta',this.m.ta+'deg');this.el.style.setProperty('--pa',this.m.pa+'deg');this.el.style.setProperty('--pr',this.m.pr);
     this.inner=document.createElement('div');this.inner.className='act-in';this.el.appendChild(this.inner);
-    if(this.o.mate||!RIG[id]){const i=document.createElement('img');i.alt='';i.className='mate-img';i.src=fishImg(RIG[id]?id:'neon');this.inner.appendChild(i);this.nat=RIG[id]?[RIG[id].w,RIG[id].h]:[560,203]}
-    else{this.rig=rigEl(id);this.inner.appendChild(this.rig);this.nat=[RIG[id].w,RIG[id].h]}
+    /* v0.26: every fish (ours and the tankmates) is one living painting (fishart.js); a plain picture only if that is missing */
+    if(RIG[id]&&typeof FishArt==='function'){this.fa=new FishArt(id,{mate:!!this.o.mate,lowfps:!!this.o.mate,pa:this.m.pa,pr:this.m.pr});this.rig=this.fa.el;this.inner.appendChild(this.rig);this.nat=[RIG[id].w,RIG[id].h]}
+    else{const i=document.createElement('img');i.alt='';i.className='mate-img';i.src=fishImg(RIG[id]?id:'neon');this.inner.appendChild(i);this.nat=RIG[id]?[RIG[id].w,RIG[id].h]:[560,203]}
     const z=this.m.zone;this.pose=null;this.x=rnd(.25,.75);this.y=rnd(z[0],z[1]);this.vx=0;this.vy=0;this.face=1;this.faceT=1;this.tx=this.x;this.ty=this.y;this.wait=rnd(0,1);this.burst=0;this.t=Math.random()*9;
   }
   setLen(px){if(px===this.px)return;this.px=px;const s=px/this.nat[0];this.s=s;this.inner.style.width=this.nat[0]+'px';this.inner.style.height=this.nat[1]+'px'}
@@ -171,6 +172,7 @@ class Swimmer{
   }
   step(dt,W,H,B){
     if(this.hold){this.render(W,H,dt);return}
+    if(this.script){this.train(dt,W,H,B);return}
     this.t+=dt;const m=this.m;
     const sp=(this.o.speed||1)*m.sp*(this.o.sick?.45:1)*(this.burst>0?2.6:1);
     if(this.burst>0)this.burst-=dt;
@@ -188,9 +190,23 @@ class Swimmer{
     this.face+=(this.faceT-this.face)*Math.min(1,dt*(m.cruise?4:7));
     this.render(W,H,dt);
   }
-  render(W,H){
+  /* v0.26: training, acted out by the living fish
+     힘: sprinting into the current, held in place, surging · 근성: pinned to the bottom, trembling, holding on
+     지능: a slalom between the markers · 매력: turning, posing, a flourish of the fins */
+  train(dt,W,H,B){
+    const s=this.script;s.t+=dt;this.t+=dt;const t=s.t,cx=(B[0]+B[2])/2,cy=(B[1]+B[3])/2;
+    let x=this.x,y=this.y,amp=1,beat=+this.tw||.4,face=1,tilt=0;
+    if(s.k==='p'){x=cx+.06+Math.sin(t*1.3)*.03-(t%2.4<.35?.06*(1-(t%2.4)/.35):0);y=cy+Math.sin(t*2.1)*.02;amp=2;beat=.16;face=1;tilt=Math.sin(t*18)*1.2}
+    else if(s.k==='g'){x=cx;y=Math.min(B[3],cy+.18);amp=.25;beat=.5;face=1;tilt=Math.sin(t*40)*(t%3<2?.8:.2);x+=Math.sin(t*37)*.002}
+    else if(s.k==='w'){const ph=t*.9;x=cx+Math.sin(ph)*.28;y=cy+Math.sin(ph*2)*.12;amp=1.3;beat=.28;face=Math.cos(ph)>0?-1:1;tilt=Math.cos(ph*2)*10*face}
+    else{const ph=t*1.1;x=cx+Math.sin(ph*.5)*.12;y=cy-.04+Math.sin(ph)*.05;amp=.8;beat=.45;face=Math.sin(ph*.5+.6)>0?1:-1;tilt=Math.sin(ph*2)*6}
+    this.x+=(x-this.x)*Math.min(1,dt*6);this.y+=(y-this.y)*Math.min(1,dt*6);this.faceT=face;this.face+=(face-this.face)*Math.min(1,dt*8);
+    this.vx=0;this.vy=0;this.wait=0;this.trainAmp=amp;this.trainBeat=beat;this.trainTilt=tilt;
+    this.render(W,H,dt);
+  }
+  render(W,H,dt){
     const m=this.m,sp=Math.hypot(this.vx,this.vy);
-    let tilt=Math.max(-14,Math.min(14,(this.vy/(Math.abs(this.vx)+20))*16))*this.faceT;
+    let tilt=this.script?this.trainTilt||0:Math.max(-14,Math.min(14,(this.vy/(Math.abs(this.vx)+20))*16))*this.faceT;
     if(m.wobble)tilt+=Math.sin(this.t*3.2)*4;
     if(this.gulping)tilt=-28*this.faceT;
     if(this.roll>0)tilt+=70*this.faceT;
@@ -200,6 +216,9 @@ class Swimmer{
     this.inner.style.transform=`translate(-50%,-50%) rotate(${((this.o.tilt||0)+tilt).toFixed(1)}deg) scale(${sx.toFixed(3)},${this.s.toFixed(3)})`;
     /* the tail beats faster when the fish swims faster, from the species' own resting beat */
     const tw=Math.max(.16,m.tw*(1-Math.min(.6,sp/160))).toFixed(2);if(tw!==this.tw){this.tw=tw;this.el.style.setProperty('--tw',tw+'s')}
+    if(this.fa&&this.rig.style.display!=='none'){
+      const amp=(this.o.sick?.45:1)*(this.wait>0&&sp<8?.42:Math.min(1.9,.7+sp/90))*(this.burst>0?1.25:1)*(this.el.classList.contains('dead')?0:1);
+      this.fa.size(this.s||1);this.fa.draw(dt||0,this.script?this.trainBeat:+tw,this.script?this.trainAmp:amp)}
   }
 }
 
@@ -298,6 +317,7 @@ function stFx(kind,n){
   else if(kind==='speed')d.innerHTML=Array.from({length:N},(_,i)=>`<i style="top:${(i*41)%100}%;animation-delay:${-(i*.11)}s;animation-duration:${.45+(i%4)*.1}s"></i>`).join('');
   else if(kind==='spark')d.innerHTML=Array.from({length:N},(_,i)=>`<i style="left:${10+(i*53)%80}%;top:${8+(i*37)%70}%;animation-delay:${-(i*.27)}s"></i>`).join('');
   else if(kind==='splash')d.innerHTML=Array.from({length:N},(_,i)=>`<i style="left:${44+(i*7)%14}%;--dx:${(i%2?1:-1)*(10+(i*17)%40)}px;animation-delay:${-(i*.07)}s"></i>`).join('');
+  else if(kind==='sweat')d.innerHTML=Array.from({length:10},(_,i)=>`<i style="left:${38+(i*17)%26}%;top:${48+(i*11)%22}%;--dx:${(i%2?1:-1)*(8+i*2)}px;animation-delay:${-(i*.13)}s"></i>`).join('');
   else if(kind==='hearts')d.innerHTML=Array.from({length:8},(_,i)=>`<i style="left:${12+(i*31)%76}%;animation-delay:${-(i*.5)}s"></i>`).join('');
   box.appendChild(d);
 }

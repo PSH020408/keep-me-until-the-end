@@ -115,7 +115,14 @@ body.uma.ingame #choice.pop,body.uma.ingame #choice:not([hidden]){z-index:40}
 @media (max-width:899px){
   .hud #cardNo{max-width:52vw;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .hud #cardSex{white-space:nowrap}
-  body.uma.ingame #fishRow .meter:not(#mHealth) .v,body.uma.ingame #fishRow .meter:not(#mHealth) .track{display:none!important}
+  body.uma.ingame #fishRow .meter:not(#mHealth) .track{display:none!important}
+  /* v0.26: the number stays beside the letter on phones */
+  body.uma.ingame #fishRow .meter:not(#mHealth) .v{display:inline!important;font-size:12px!important;margin-left:3px;color:var(--u-ink,#4A4F5A)!important;letter-spacing:-.3px}
+  body.uma.ingame #fishRow .meter:not(#mHealth) .top{white-space:nowrap}
+  body.uma.ingame #fishRow .meters{grid-template-columns:repeat(4,minmax(0,1fr))!important;row-gap:8px!important}
+  body.uma.ingame #fishRow #mHealth{grid-column:1/-1!important}
+  body.uma.ingame #fishRow .meter:not(#mHealth) .top{gap:2px!important;padding-right:4px!important}
+  body.uma.ingame #fishRow .meter:not(#mHealth) .top>span:first-child{padding:0 5px!important}
   body.uma.ingame #card:not(.showinfo) .ownpanel,body.uma.ingame #card:not(.showinfo) .carpanel{display:none!important}
 }
 
@@ -258,5 +265,6 @@ body.uma.ingame .stagewrap .chips{transition:opacity .3s}
 .endcard{position:relative}
 .endcard .ec-new{position:absolute;top:-12px;right:14px;font-family:var(--display);font-size:14px;color:#fff;border-radius:999px;padding:3px 14px;box-shadow:0 3px 0 rgba(0,0,0,.15);animation:tag-in .7s .6s cubic-bezier(.2,1.6,.4,1) both;transform:rotate(3deg)}
 .endcard .ec-new.best{background:linear-gradient(90deg,#F2994A,#E8505B)}
-.endcard .ec-new.dex{background:linear-gradient(90deg,#5FA8E8,#7CC23B);right:auto;left:14px;transform:rotate(-3deg)}
+.endcard .ec-new.dex{background:linear-gradient(90deg,#5FA8E8,#7CC23B);right:14px;transform:rotate(-3deg)}
+.endcard .ec-new.dex~.ec-new.best{right:150px}
 .endcard .ec-new.dex+.ec-new.best,.endcard .ec-new.best~.ec-new.dex{top:-12px}

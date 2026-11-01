@@ -5,25 +5,25 @@
    N is the life's number in 육성 기록. Comedy throughout; the life itself was told straight in the story. */
 
 const SUB_FX={
- 'f-floor':['마룻바닥은 바다가 아니다','점프는 착지까지가 점프다'],
- 'f-escape':['탈출 계획은 착지 지점부터 짜라','자유는 생각보다 건조했다'],
- 'f-burst':['수조가 깨지면 인생도 금이 간다'],
- 'f-float':['배를 뒤집는 건 항복이 아니라 물갈이 요청이다','나쁜 물고기는 없다. 나쁜 수질만 있을 뿐'],
- 'f-bottom':['바닥에 누운 건 쉬는 게 아니다. 아프다는 거다, 이 바보야','아프면 아프다고 해라. 뻐끔으로'],
- 'f-thin':['배꼽시계는 주인 휴대폰 알람보다 정확하다','사료는 마음으로 주는 게 아니라 손으로 주는 거다'],
- 'f-eaten':['먹는 쪽과 먹히는 쪽은 입 크기로 정해진다','합사는 같은 반 배정이 아니다'],
- 'f-shopeaten':['판매 수조에서는 옆집 이웃이 저녁 메뉴다'],
- 'f-ice':['열대어한테 사계절은 사치다','히터는 장식품이 아니다'],
+ 'f-floor':['마룻바닥을 바다라고 우기지 마라','점프는 착지까지가 점프다'],
+ 'f-escape':['탈옥 계획은 착지 지점부터 짜라','자유는 생각보다 건조했다'],
+ 'f-burst':['수조에 금이 가면 인생에도 금이 간다'],
+ 'f-float':['배를 뒤집는 건 항복이 아니라 물갈이 요청이다','나쁜 물고기는 없다. 나쁜 수질이 있을 뿐이다'],
+ 'f-bottom':['바닥에 누운 건 쉬는 게 아니다, 이 바보야','아프면 아프다고 해라. 뻐끔으로라도'],
+ 'f-thin':['배꼽시계는 주인 알람보다 정확하다','사료는 마음이 아니라 손으로 주는 거다'],
+ 'f-eaten':['서열은 입 크기 순이다','합사는 같은 반 배정이 아니다'],
+ 'f-shopeaten':['판매 수조에서는 옆자리 이웃이 저녁 메뉴다'],
+ 'f-ice':['열대어에게 사계절은 사치다','히터는 장식품이 아니다. 전원을 꽂아라'],
  'f-freezer':['냉동실은 겨울잠 자는 방이 아니다'],
- 'f-cook':['목욕물 온도는 사람 기준으로 정하지 마라'],
+ 'f-cook':['목욕물 온도를 사람 기준으로 정하지 마라'],
  'f-poison':['약은 약사에게, 물고기는 물고기에게'],
- 'f-intake':['흡입구는 미끄럼틀이 아니다'],'f-siphon':['청소기는 물고기를 청소하는 기계가 아니다'],
+ 'f-intake':['흡입구는 미끄럼틀이 아니다. 블랙홀이다'],'f-siphon':['청소기는 물고기를 청소하는 기계가 아니다'],
  'f-toilet':['변기 물은 바다로 안 간다. 하수처리장으로 간다'],
- 'f-bag':['봉지 속 물은 무한 리필이 아니다'],'f-box':['택배 상자에는 반품 버튼이 없다'],
+ 'f-bag':['봉지 속 산소는 무한 리필이 아니다'],'f-box':['택배 상자에는 반품 버튼이 없다'],
  'f-unsold':['할인 스티커는 생명의 가격표가 아니다'],'f-shop':['할인 스티커는 생명의 가격표가 아니다'],'f-shopnip':['진열대에도 일진은 있다'],
- 'f-nipped':['합사는 사랑이 아니라 외교다'],
+ 'f-nipped':['합사는 연애가 아니라 외교다'],
  'f-net':['뜰채는 언제나 위에서 온다. 위를 봐라'],'f-bucket':['양동이는 집이 아니다. 대기실도 아니다'],
- 'f-hand':['손바닥은 수조가 아니다'],
+ 'f-hand':['손바닥은 수조가 아니다. 따뜻하면 더 아니다'],
  'f-cat':['고양이는 물을 싫어한다. 물고기는 좋아한다'],'f-angler':['공짜 지렁이에는 바늘이 들어 있다'],
  'f-sun':['웅덩이는 기다려 주지 않는다. 해도 기다려 주지 않는다'],'f-trash':['쓰레기통은 분리수거만 받는다'],
  'f-glass':['유리병은 인테리어고, 물고기는 소품이 아니다'],'f-stall':['축제 금붕어도 축제가 끝나면 그냥 금붕어다'],
@@ -32,7 +32,7 @@ const SUB_FX={
 };
 const SUB_END={'GIN-WK-H':['하천의 왕은 왕관 대신 비늘을 쓴다'],'GIN-SEA':['세계관이 좁으면 넓히면 된다'],'GIN-ESC':['고향은 수조가 아니라 한강이었다'],
  'GIN-POND':['저수지의 주인은 등기부가 아니라 붕어들이 정한다'],'GIN-CAT':['고양이도 결국 털 달린 생선 애호가일 뿐이다'],'GIN-CAT2':['고양이도 결국 털 달린 생선 애호가일 뿐이다']};
-const SUB_CALM=['오래 사는 비결? 오래 사는 것이다','끝까지 살아남은 놈이 결국 주인공이다','장수의 비결은 주인 뽑기 운이다'];
+const SUB_CALM=['오래 사는 비결? 오래 사는 것이다','끝까지 살아남은 놈이 주인공이다','장수의 비결은 주인 뽑기 운이다'];
 const SUB_PRE=['1화에서 퇴장하는 주인공도 있다','주인 얼굴도 못 보고 엔딩 크레딧'];
 const subHash=s=>{let h=0;for(const c of String(s))h=(h*31+c.charCodeAt(0))|0;return Math.abs(h)};
 const endFx=()=>{let fx=S.fx||'f-bottom';return (typeof END_ALIAS!=='undefined'&&END_ALIAS[fx])||fx};
@@ -43,9 +43,9 @@ function lifeSub(){
   if(SUB_END[ek])return pickS(SUB_END[ek]);
   if(flag('catboss'))return '고양이도 결국 털 달린 생선 애호가일 뿐이다';
   if(flag('suseon_cap'))return '규율은 사료 시간 3분 전까지만 지켜라';
-  if(flag('yankee_cap'))return '폭주에도 수온 관리는 필요하다';
+  if(flag('yankee_cap'))return '폭주족도 수온 관리는 한다';
   if(flag('suseon'))return '무리를 지으면 머리띠가 생긴다';
-  if(flag('yankee'))return '양아치에게도 밥때는 있다';
+  if(flag('yankee'))return '양아치에게도 밥때는 있다. 칼같이 있다';
   if((flag('duel_win')||0)>=2)return '서열은 지느러미가 아니라 이마로 정하는 것이다';
   const c=f.car;if(c&&(c.wins||0)>=3)return '상장은 벽이 모자랄 때까지 받는 것이다';
   if(S.calm)return S.wild?'강은 월세를 받지 않는다':pickS(SUB_CALM);
@@ -99,12 +99,12 @@ function endHero(){
   else{fi.remove();h.querySelector('.eh-cap').textContent='※ 본인은 이번 장면에 출연하지 않습니다. 사정이 있습니다.'}
   h.querySelector('.eh-ep').textContent='제'+S.ep+'훈';
   h.querySelector('.eh-s').textContent=S.sub;
-  h.querySelector('.eh-stamp').textContent=glory?'끝까지 생존!':S.preOwner?'1화 퇴장':'육성 종료';
+  h.querySelector('.eh-stamp').textContent=glory?'끝까지 살았다!':S.preOwner?'1화 만에 퇴장':'육성 완결';
   /* 2. the result card */
   const c=S.f.car,res=c&&c.result,old=E.querySelector('.grade');if(old)old.remove();
   const card=document.createElement('div');card.className='endcard';
   const rank=res?res.rank:'G',title=res?res.title:(END_TITLE[endFx()]||(S.preOwner?'1화 퇴장 전문 배우':'수조의 엑스트라'));
-  const desc=res?res.desc:(S.preOwner?'주인 얼굴은 못 봤지만, 형제들 사이에서는 꽤 유명했습니다.':'다음 생에는 훈련부터 해 봅시다.');
+  const desc=res?res.desc:(S.preOwner?'주인 얼굴은 못 봤지만, 형제들 사이에서는 꽤 유명했다.':'다음 생에는 훈련부터 해 보자.');
   card.innerHTML='<div class="ec-rank"><small>평가</small><span class="rk"></span></div><div class="ec-main"><span class="ec-lab">칭호</span><b class="ec-title"></b><p class="ec-desc"></p></div>'+
     '<div class="ec-stats"></div><div class="ec-nums"></div>';
   card.querySelector('.rk').textContent=rank;card.querySelector('.ec-rank').dataset.rg=typeof rankGroup==='function'?rankGroup(rank):'';

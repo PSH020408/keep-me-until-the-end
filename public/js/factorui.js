@@ -8,7 +8,7 @@ function facPickDraw(){if(typeof document==='undefined'||!document.querySelector
 function facPickInto(box){
   const all=facAll(),sel=facPicked().map(L=>L.id);
   box.innerHTML='';const lab=document.createElement('span');lab.className='label';lab.textContent='계승 — 선배 고르기 (최대 2)';box.appendChild(lab);
-  if(!all.length){const p=document.createElement('p');p.className='inh-none';p.textContent='육성을 끝내면 인자가 남습니다. 다음 물고기가 물려받을 수도 있습니다. 운이 좋으면.';box.appendChild(p);return}
+  if(!all.length){const p=document.createElement('p');p.className='inh-none';p.textContent='육성을 끝내면 인자가 남는다. 다음 물고기가 물려받을 수도 있다. 운이 좋으면.';box.appendChild(p);return}
   const list=document.createElement('div');list.className='inh-list';
   const shown=all.slice().sort((a,b)=>(sel.includes(b.id)-sel.includes(a.id))||facVal(b)-facVal(a)).slice(0,typeof innerWidth==='number'&&innerWidth<600?4:8);
   shown.forEach(L=>{const b=document.createElement('button');b.type='button';b.className='inh-c';b.setAttribute('aria-pressed',String(sel.includes(L.id)));
@@ -24,7 +24,7 @@ function facPickInto(box){
     list.appendChild(b)});
   box.appendChild(list);
   const n=document.createElement('p');n.className='inh-note';
-  n.textContent=sel.length?'육성이 시작될 때와 절반쯤에서, 선배의 인자가 빛나면 물려받습니다. 같은 종이면 조금 더 잘 빛납니다.':'선배를 고르지 않았습니다. 맨몸으로 시작합니다.';
+  n.textContent=sel.length?'육성이 시작될 때와 절반쯤에서, 선배의 인자가 빛나면 물려받는다. 같은 종이면 조금 더 잘 빛난다. 혈통 보정이다.':'선배를 고르지 않았다. 맨몸으로 시작한다. 근성 하나로.';
   box.appendChild(n);
 }
 try{facPickDraw()}catch(e){}
@@ -39,9 +39,9 @@ function facResult(){
   const h=box.querySelector('.fr-h'),list=box.querySelector('.fr-list'),n=box.querySelector('.fr-n');
   if(f.length){h.textContent=T('{n}이 남긴 인자 '+f.length+'개');
     ['s','k','u'].forEach(t=>f.filter(x=>x.t===t).forEach(x=>{const ch=facChip(x);ch.title=FAC_TNAME[t]+' 인자';list.appendChild(ch)}));
-    n.textContent=pick(['다음 생, 시작 화면에서 선배로 고르면 물려받을 수 있습니다. 운이 좋으면.','선배로 고르면 다음 물고기가 물려받습니다. 빛날지는 그날의 물 상태에 달렸습니다.'])}
+    n.textContent=pick(['다음 생, 시작 화면에서 선배로 고르면 물려받을 수 있다. 운이 좋으면.','선배로 고르면 다음 물고기가 물려받는다. 빛날지는 그날의 물 상태에 달렸다.'])}
   else{h.textContent='남긴 인자 없음';list.remove();
-    n.textContent=S.preOwner?'주인을 만나기 전에 끝난 생은 인자를 남기지 않습니다. 형제들이 대신 기억합니다.':c?'이번 생은 인자 대신 추억만 남겼습니다. 추억은 계승이 안 됩니다. 아쉽습니다.':'육성이 시작되기 전에 끝났습니다. 인자는 키워야 남습니다.'}
+    n.textContent=S.preOwner?'주인을 만나기 전에 끝난 생은 인자를 남기지 않는다. 형제들이 대신 기억한다.':c?'이번 생은 인자 대신 추억만 남겼다. 추억은 계승이 안 된다. 아쉽다. 진짜 아쉽다.':'육성이 시작되기 전에 끝났다. 인자는 키워야 남는다.'}
   const keep=E.querySelector('.keep'),y=E.querySelector('.yokoku');
   if(y)y.replaceWith(box);else E.insertBefore(box,keep||E.querySelector('.row'));
   /* the next life's 선배 can be picked right here, before 다른 생물 보내기 */
@@ -71,7 +71,7 @@ function dexStamp(){
   const card=E.querySelector('.endcard');if(!card)return;
   const add=(t,cls)=>{const s=document.createElement('span');s.className='ec-new '+cls;s.textContent=t;card.appendChild(s)};
   if(n.isNew)add('도감 등록!','dex');
-  if(n.better&&!n.isNew)add('NEW 최고 기록!','best');
+  if(n.better&&!n.isNew)add('NEW 최고 기록! 갱신이다!','best');
   dexDraw();
 }
 (()=>{const _e=showEnd;showEnd=function(){const r=_e.apply(this,arguments);try{dexStamp()}catch(e){}return r}})();
