@@ -89,3 +89,34 @@ const FIX_TR={
       try{return _t.apply(this,arguments)}finally{tr.ok=orig}}
     return _t.apply(this,arguments)};
 })();
+
+/* ---------- v0.26.1: less of the same ----------
+   more friendship lines and contests (both now come from a deck in fev_zz_career.js), and a special training the
+   fish has already done this life is offered again only when every other one has been */
+(()=>{if(typeof CAR_PAL==='undefined')return;
+  const more={
+   owner:['주인이 휴대폰을 내려놓고 {n}과 눈높이를 맞췄다. 둘이 동시에 고개를 갸웃했다. 싱크로율 100%.','주인이 손가락으로 8자를 그렸다. {n}이 정확히 따라 그렸다. 주인이 소리를 질렀다. 옆집도 소리를 질렀다. (시끄러워서)',
+     '주인이 "하나, 둘, 셋!" 하자 {n}이 수면으로 튀어 올랐다. 연습한 적 없다. 마음이 통한 거다.'],
+   mate:['{n}과 합사어가 수조 끝에서 끝까지 경주했다. 동시에 들어왔다. 사진 판독 결과, 무승부. 우정 승.','합사어가 지쳐서 처지자 {n}이 속도를 맞춰 줬다. 아무도 안 봤다. 그래서 더 진짜다.',
+     '{n}과 합사어가 먹이 하나를 두고 서로 양보하다가 둘 다 놓쳤다. 먹이는 달팽이가 먹었다. 우정은 남았다.'],
+   snail:['느림보가 유리 한 칸을 오르는 동안 {n}은 열 바퀴를 돌았다. 속도는 달라도 목표는 같았다. 유리 꼭대기.','{n}이 느림보 옆에 붙어 천천히 헤엄치는 연습을 했다. 느림의 미학. 30초 만에 포기했다.',
+     '느림보가 껍데기 밖으로 촉수를 내밀어 {n}을 톡 건드렸다. 응원이다. 아마도.'],
+   mirror:['유리 속의 {n}이 먼저 웃었다. 물고기가 웃는다고? {n}도 따라 웃었다. 그런 걸로 하자.','{n}과 유리 속의 {n}이 동시에 지느러미를 폈다. 완벽한 대칭. 거울이라서 당연하다. 그래도 감동이다.',
+     '{n}이 유리 속의 자기에게 등을 보였다. 유리 속의 {n}도 등을 보였다. 서로를 믿는다는 뜻이다. (해석은 자유)']};
+  Object.keys(more).forEach(k=>{if(CAR_PAL[k])CAR_PAL[k].fr=CAR_PAL[k].fr.concat(more[k])});
+  if(typeof CAR_CONTEST!=='undefined')CAR_CONTEST.push(
+   {n:'수족관 오픈 기념 수조 횡단 레이스',k:'p',r:.55,win:'출발 신호와 동시에 {n}이 튀어 나갔다. 2등과 반 몸 차이. 상품은 대형 수초 화분. 주인이 더 기뻐했다.',lose:'{n}은 출발 신호에 놀라 반대 방향으로 갔다. 역주행 1등. 그런 부문은 없다.'},
+   {n:'방송 "물고기 IQ 테스트"',k:'w',r:.55,win:'미로 수조를 {n}이 12초 만에 통과했다. 패널들이 "사람보다 빠르다"고 했다. 방송 자막: 천재 물고기.',lose:'{n}은 미로 입구에서 30분 동안 생각했다. 생각만 했다. 철학자 엔딩.'},
+   {n:'동네 하천 정화 캠페인 홍보 모델',k:'c',r:.5,win:'포스터 속 {n}이 동네 게시판마다 붙었다. 주인은 포스터 앞에서 셀카를 찍었다. 다섯 장.',lose:'포스터 모델은 옆집 금붕어가 됐다. 주인은 그 포스터 앞을 지날 때마다 고개를 돌렸다.'});
+  const _sp=carSpecialPick;carSpecialPick=function(){let x=null;for(let i=0;i<6;i++){x=_sp.apply(this,arguments);if(!x)return x;const k=x.id||valOf(x.l);if(!(S.f.tlv&&S.f.tlv[k]))return x}return x};
+})();
+
+/* ---- v0.26.1: the owner's age fits the portrait the player sees ----
+   Ages were rolled before the owner kind was known, so a 66-year-old could wear a student's face.
+   Each portrait has an apparent age range; once the kind is set, the age is moved into it. */
+const OWN_AGE={expert:[28,38],learner:[19,24],eager:[19,24],casual:[21,30],gift:[22,30],breeder:[40,55],content:[20,27],
+ mill:[40,55],cult:[30,45],neglect:[28,40],alchemist:[40,55],techbro:[25,35],relay:[22,30],release:[65,80],shared:[28,38],
+ decor:[45,60],unbox:[19,26],staff:[20,28],bait:[55,68],touch:[24,32],grandma:[70,85],breakup:[23,30]};
+function ownAgeFit(){if(!S||!S.o||!S.f||S.preOwner||S.wild)return;const k=S.f.kind||S.f.own;if(!k||S.o.ageK===k)return;S.o.ageK=k;
+  const r=OWN_AGE[k]||OWN_AGE[S.f.own];if(r&&(S.o.age<r[0]||S.o.age>r[1]))S.o.age=r[0]+Math.floor(R()*(r[1]-r[0]+1))}
+{const _rt=fRankTick;fRankTick=function(){ownAgeFit();return _rt.apply(this,arguments)}}

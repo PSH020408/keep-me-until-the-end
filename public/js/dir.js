@@ -55,8 +55,8 @@ dir(/뜰채|그물/,{actor:['hand/hand-net','top'],pose:'charge',cam:'shake',own
 dir(/낚싯|바늘|미끼|루어/,{actor:['prop/hook-worm','dangle']});
 dir(/마룻바닥|바닥에서 몸을 (튕|퍼덕)|수조 밖 바닥|바닥으로 떨어졌|수건 위로 떨어|바닥에서 퍼덕|욕조 바닥에서/,{bg:'bg/floor',pose:'flop',move:'flop',zone:[.4,.7,.6,.78],cam:'shake'});
 dir(/수면 위로 (몸을 날|뛰어)|뛰어올랐|뛰어오릅|점프|뚜껑을 (머리로 )?밀어/,{pose:'jump',move:'leap',fx:'splash'});
-dir(/택배|상자/,{bg:'bg/box-cargo',actor:['prop/parcel','bottom'],tint:'dim'});
-dir(/스티로폼/,{bg:'bg/box-cargo',actor:['prop/styro-box','bottom'],tint:'dim'});
+dir(/택배|상자/,{bg:'bg/box-cargo',actor:['prop/parcel','bottom'],tint:'dim',zone:[.06,.74,.26,.86],small:1,move:'still'});
+dir(/스티로폼/,{bg:'bg/box-cargo',actor:['prop/styro-box','bottom'],tint:'dim',zone:[.06,.74,.26,.86],small:1,move:'still'});
 dir(/봉지/,{bg:'bg/bag-crowd'});
 dir(/정전|불 꺼진|불이 꺼|한밤중|새벽|밤새/,{tint:'night',fx:'bubble'});
 dir(/물갈이|물을 (갈|반|채|조금씩)|양동이|수돗물/,{actor:['hand/hand-bucket','top'],fx:'bubble'});
@@ -77,7 +77,8 @@ dir(/스피커|음악|노래/,{actor:['prop/speaker','glass'],fx:'hearts'});
 dir(/뚜껑/,{actor:['prop/lid','top']});
 /* moods */
 dir(/병이|하얀 점|곰팡이|기생충|백점|지느러미가 녹|아가미가 (붉|부)|아팠/,{tint:'sick',pose:'three',move:'slow'});
-dir(/장마|홍수|불어난|떠내려|물살/,{bg:'bg/flood',fx:'speed',pose:'charge',cam:'shake'});
+/* v0.26.1: a flood is a river thing; a strong filter current in a tank is only speed lines */
+dir(/장마|홍수|불어난|떠내려|물살/,(m,t)=>/여과기|출수구|수조|훈련|스펀지/.test(t)||!(S.wild||S.f&&S.f.tank==='pond'||/장마|홍수|불어난|떠내려/.test(t))?{fx:'speed'}:{bg:'bg/flood',fx:'speed',pose:'charge',cam:'shake'});
 dir(/여름|더위|뜨거|과열|폭염/,{tint:'hot'});
 dir(/겨울|얼음|추위|차가운|살얼음/,{tint:'cold',fx:'snow'});
 dir(/물렸|쪼아|싸움|공격|들이받|결투|박치기/,{pose:'charge',cam:'shake',fx:'speed'});

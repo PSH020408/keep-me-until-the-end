@@ -268,3 +268,6 @@ body.uma.ingame .stagewrap .chips{transition:opacity .3s}
 .endcard .ec-new.dex{background:linear-gradient(90deg,#5FA8E8,#7CC23B);right:14px;transform:rotate(-3deg)}
 .endcard .ec-new.dex~.ec-new.best{right:150px}
 .endcard .ec-new.dex+.ec-new.best,.endcard .ec-new.best~.ec-new.dex{top:-12px}
+
+.ownpanel .op-m.sk{grid-template-columns:30px 1fr auto}
+.ownpanel .op-m em{font-style:normal;font-size:11px;font-weight:700;color:#C4664A;min-width:30px;text-align:right}

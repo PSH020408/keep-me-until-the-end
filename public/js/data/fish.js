@@ -301,7 +301,7 @@ const FCH=[
   {l:'모른 척 거품집을 짓는다',r:'{n}은 수면에 거품을 하나씩 붙여 집을 지었다. 1인 가구 신축.',c:'good',m:'수면에 거품집을 지었다. 혼자였지만.'}]},
 ];
 FCH.push(
- {id:'current',p:'물살이 세다. 지느러미가 자꾸 뒤로 접힌다. 나는…',when:()=>filtOf(S.f.filter).flow>.45&&(fx_().longfin||fx_().cm<5),o:[
+ {id:'current',p:'물살이 세다. 지느러미가 자꾸 뒤로 접힌다. 나는…',when:()=>filtOf(S.f.filter).flow>.45&&!S.f.baffle&&(fx_().longfin||fx_().cm<5),o:[
   {l:'물살을 거슬러 버틴다',r:'{n}은 물살에 맞서 몇 시간을 헤엄쳤다. 지느러미 끝이 해졌다. 근성은 인정. 방향은 틀렸다.',c:'bad',fx:()=>{S.health-=4;S.f.fin+=.05}},
   {l:'수초 뒤로 숨는다',r:'{n}은 수초 뒤 잔잔한 구석을 찾아냈다. 명당이다.',c:'good',fx:()=>{S.f.stress-=.04}},
   {l:'바닥에 붙어 쉰다',r:'{n}은 바닥에 몸을 붙이고 물살이 지나가길 기다렸다. 물살은 안 지나간다. 여과기니까.',c:'neutral'}]},
@@ -413,8 +413,8 @@ const FFL=[
  {t:'스펀지 여과기의 에어펌프가 밤새 "드르륵" 울렸다. 주인은 시끄럽다며 밤마다 펌프 전원을 뽑았다. 주인의 숙면 대 {n}의 산소. 승자는 숙면.',c:'bad',once:'pump',when:()=>filtOf(S.f.filter).air&&S.r<.6,fx:()=>{S.f.pumpOff=1;S.f.wq-=6}},
  {t:'주인이 에어펌프에 소음 방지 패드를 깔고 다시 켜 두었다. 평화 협정 체결.',c:'good',once:'pumpok',when:()=>S.f.pumpOff&&S.r>.4,fx:()=>{S.f.pumpOff=0}},
  {t:'바닥재를 한 번도 청소하지 않은 저면 여과기가 막혔다. 자갈 아래에서 썩은 물 냄새가 올라왔다. 지하에 뭔가 있다. 복선이다. 아마.',c:'bad',when:()=>filtOf(S.f.filter).ug&&S.f.tankAge>10&&S.r<.7,fx:()=>{S.f.wq-=12}},
- {t:'외부 여과기 물살이 너무 셌다. {n}의 지느러미가 물살에 계속 뒤로 접혔다. 매일이 태풍 중계다.',c:'bad',when:()=>filtOf(S.f.filter).flow>.45&&(fx_().longfin||fx_().cm<5)&&tankL()<170,fx:()=>{S.f.stress+=.05;if(fx_().longfin)S.f.fin+=.05}},
- {t:'주인이 여과기 출수구에 스펀지를 씌워 물살을 줄였다. 태풍 소멸.',c:'good',once:'baffle',when:()=>filtOf(S.f.filter).flow>.45&&(fx_().longfin||fx_().cm<5)&&S.r>.6,fx:()=>{S.f.stress-=.08}},
+ {t:'외부 여과기 물살이 너무 셌다. {n}의 지느러미가 물살에 계속 뒤로 접혔다. 매일이 태풍 중계다.',c:'bad',when:()=>filtOf(S.f.filter).flow>.45&&!S.f.baffle&&(fx_().longfin||fx_().cm<5)&&tankL()<170,fx:()=>{S.f.stress+=.05;if(fx_().longfin)S.f.fin+=.05}},
+ {t:'주인이 여과기 출수구에 스펀지를 씌워 물살을 줄였다. 태풍 소멸.',c:'good',once:'baffle',when:()=>filtOf(S.f.filter).flow>.45&&!S.f.baffle&&(fx_().longfin||fx_().cm<5)&&S.r>.6,fx:()=>{S.f.stress-=.08;S.f.baffle=1}},
  {t:'상면 여과기 위 뚜껑 틈으로 물 떨어지는 소리가 하루 종일 났다. 주인은 그 소리가 좋다고 했다. 백색소음 채널을 차릴 기세다.',c:'neutral',when:()=>S.f.filter==='상면 여과기'},
  {t:'로봇청소기가 여과기 전선을 걸고 지나가 콘센트가 뽑혔다. 사흘 뒤에야 누군가 알아챘다. 범인은 집에서 제일 부지런한 녀석이었다.',c:'bad',once:'robot',when:()=>S.f.filter!=='없음'&&S.f.tank!=='pond'&&S.r<.78,fx:()=>{S.f.wq-=22;S.health-=6}},
  {t:'로봇청소기가 여과기 전선을 걸고 지나가 콘센트가 뽑혔다. 물소리가 멎은 것을 주인이 그날 저녁 알아채고 다시 꽂았다. 귀가 밝은 주인. 합격.',c:'neutral',once:'robot',when:()=>S.f.filter!=='없음'&&S.f.tank!=='pond'&&S.r>=.78,fx:()=>{S.f.wq-=4}},

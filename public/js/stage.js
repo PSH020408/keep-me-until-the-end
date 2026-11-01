@@ -222,6 +222,11 @@ class Swimmer{
   }
 }
 
+/* paintings without water, and paintings that look at water from above (the water band, top and bottom of the stage) */
+const BG_ROOM=new Set(['bg/air-cargo','bg/bathroom','bg/breeder-rack','bg/cafe','bg/classroom','bg/floor','bg/home-day','bg/home-night','bg/mart','bg/office','bg/quarantine','bg/shop-tank','bg/wholesale']);
+const BG_WATER={'bg/farm':[.5,.93],'bg/collect-night':[.56,.93],'bg/estuary-sea':[.6,.93],'bg/flood':[.55,.93],'bg/pond-summer':[.48,.93],'bg/pond-winter':[.52,.93],
+  'bg/ricefield':[.6,.93],'bg/release-temple':[.64,.93],'bg/otter-den':[.56,.93],'bg/sewer':[.7,.93],'bg/nightmarket':[.74,.93],'bg/sort-table':[.6,.8],'bg/box-cargo':[.7,.9]};
+const stWaterB=B=>{const w=STG.water;return [B[0],Math.max(B[1],w[0]),B[2],Math.max(Math.max(B[1],w[0])+.02,Math.min(B[3],w[1]))]};
 /* ---------- stage update (called by render) ---------- */
 let stageKey='';
 function drawStage(force){
@@ -229,11 +234,16 @@ function drawStage(force){
   if(!S||!S.f||typeof requestAnimationFrame!=='function'||!stBuild())return;
   const P=stPlace(),f=S.f,x=fx_();
   const dirBg=STG.dir&&STG.dir.bg;
-  stSetBg(dirBg||P.bg);
-  const room=P.mode==='room'&&!dirBg;
+  const bgKey=dirBg||P.bg;
+  stSetBg(bgKey);
+  /* v0.26.1: a painting with no water in it (a shop floor, an office, a cargo hold) shows the fish in a tank window;
+     a painting looking at water from above (a farm pond, a rice field) keeps the fish under the surface */
+  const flop=STG.dir&&/flop/.test(STG.dir.pose||'');
+  const room=(P.mode==='room'&&!dirBg)||(BG_ROOM.has(bgKey)&&!flop&&!S.done&&!(S.ending&&S.fx));
+  STG.water=!room&&BG_WATER[bgKey]||null;STG.el.classList.toggle('surface',!!STG.water);
   STG.el.dataset.mode=room?'room':'inside';STG.el.classList.toggle('cold',!!P.cold);STG.el.classList.toggle('ending',!!(S.done||S.ending&&S.fx));
   STG.tank.hidden=!room;
-  if(room){const tb=STG.tank.querySelector('.tk-bg');const s='img/'+(P.tank||'career/goal-month1')+'.webp';if(tb.dataset.k!==s){tb.dataset.k=s;tb.src=s}}
+  if(room){const tb=STG.tank.querySelector('.tk-bg');const s='img/'+(P.mode==='room'&&P.tank||(S.preOwner?'career/rest-float':'career/goal-month1'))+'.webp';if(tb.dataset.k!==s){tb.dataset.k=s;tb.src=s}}
   const host=room?STG.tworld:STG.world;
   /* the fish is made once per life (and per ending); moving between scenes keeps it where it was */
   const key=[S.sp.id,S.done,!!(S.ending&&S.fx)].join('|');
@@ -241,7 +251,9 @@ function drawStage(force){
   if(STG.fish.el.parentNode!==host)host.appendChild(STG.fish.el);
   /* the others in the water: tankmates at home, siblings before an owner */
   const ids=[];
-  if(P.school)for(let i=0;i<P.school;i++)ids.push([S.sp.id,.86+Math.random()*.14]);
+  /* a solitary species (betta…) is never shown in a school of its own kind */
+  const school=x.social==='solo'?0:P.school;
+  if(school)for(let i=0;i<school;i++)ids.push([S.sp.id,.86+Math.random()*.14]);
   else if(!S.done)f.mates.filter(m=>m.n>0&&RIG[m.id]).forEach(m=>{for(let j=0;j<Math.min(m.n,3);j++)ids.push([m.id,m.id===S.sp.id?.86+Math.random()*.14:Math.max(.35,Math.min(1.1,m.cm/Math.max(1,f.len||1)))])});
   const mkey=ids.slice(0,5).map(z=>z[0]).join(',')+'|'+(room?'r':'i');
   if(mkey!==STG.mkey){STG.mkey=mkey;
@@ -251,7 +263,9 @@ function drawStage(force){
   /* size: big on screen like a character (inside), true to the tank (room) */
   const g=Math.min(1,(f.len||1)/(x.cm||5));
   const W=host.clientWidth||300;
-  const len=room?W*Math.max(.18,Math.min(.62,.2+.45*g)):W*Math.max(.26,Math.min(.52,.24+.32*g));
+  /* inside the water the fish is framed like a character, but a small species stays smaller than a big one */
+  const real=Math.max(.72,Math.min(1.15,.8+.1*Math.log2(Math.max(1,x.cm||7)/7)));
+  const len=room?W*Math.max(.13,Math.min(.36,.12+.24*g))*real:W*Math.max(.18,Math.min(.4,.17+.25*g))*real*(STG.water?.7:1);
   const hmax=(host.clientHeight||200)*(room?.5:.46),nat=RIG[S.sp.id]||{w:560,h:200};const len2=Math.min(len,hmax*nat.w/nat.h);
   STG.baseLen=len2;STG.fish.setLen(Math.round(len2*(STG.dir&&STG.dir.small?.55:STG.dir&&STG.dir.big?1.2:1)));
   /* the same species is the same size as ours; other species keep their real proportion (within reason) */
@@ -296,10 +310,11 @@ function stLoop(now){
   if(W&&H&&!document.hidden){
     const F=STG.fish;
     if(F){const sx=F.px/W/2+.02,sy=Math.min(.4,F.px*F.nat[1]/F.nat[0]/H/2+.04);
-      const B=STG.dir&&STG.dir.zone||(room?[sx,sy+.08,1-sx,1-sy]:[sx+.04,Math.max(.14,sy),1-sx-.04,Math.min(.9,1-sy)]);
+      let B=STG.dir&&STG.dir.zone||(room?[sx,sy+.08,1-sx,1-sy]:[sx+.04,Math.max(.14,sy),1-sx-.04,Math.min(.9,1-sy)]);
+      if(STG.water&&!room&&!(STG.dir&&STG.dir.zone))B=stWaterB(B);
       F.o.zone=STG.dir&&STG.dir.zone?[B[1],B[3]]:null;
       F.step(dt,W,H,B)}
-    STG.mates.forEach(m=>{const sx=m.px/W/2+.02,sy=Math.min(.4,m.px*m.nat[1]/m.nat[0]/H/2+.03);m.step(dt,W,H,[sx,Math.max(.12,sy),1-sx,Math.min(.9,1-sy)])});
+    STG.mates.forEach(m=>{const sx=m.px/W/2+.02,sy=Math.min(.4,m.px*m.nat[1]/m.nat[0]/H/2+.03);let B=[sx,Math.max(.12,sy),1-sx,Math.min(.9,1-sy)];if(STG.water&&!room)B=stWaterB(B);m.step(dt,W,H,B)});
   }
   STG.raf=requestAnimationFrame(stLoop);
 }
@@ -355,13 +370,15 @@ function panelDraw(){
   const own=!S.preOwner&&!S.wild&&!S.done&&S.o;
   op.hidden=!own;
   if(own){
+    if(typeof ownAgeFit==='function')ownAgeFit();
+    const rk=typeof fRank==='function'?fRank(S.r):'';
     const src=ownerImg(S.interest<.3?'panic':S.interest>.75?'smile':'normal');
     const kind=KIND[S.f.kind]||KIND[S.f.own];
-    const key=src+'|'+(S.o.name)+'|'+(kind&&kind.l)+'|'+Math.round(S.r*20)+'|'+Math.round(S.interest*20);
+    const key=src+'|'+rk+'|'+S.o.age+'|'+(S.o.name)+'|'+(kind&&kind.l)+'|'+Math.round(S.r*20)+'|'+Math.round(S.interest*20);
     if(op.dataset.k!==key){op.dataset.k=key;
       op.innerHTML='<img alt="" class="op-face"><div class="op-t"><span class="op-l">주인</span><b class="op-n"></b><span class="op-k"></span>'+
-        '<div class="op-m"><span>실력</span><i><b style="width:'+Math.round(S.r*100)+'%"></b></i></div><div class="op-m"><span>관심</span><i><b style="width:'+Math.round(S.interest*100)+'%"></b></i></div></div>';
-      op.querySelector('.op-face').src=src;op.querySelector('.op-n').textContent=S.o.name;op.querySelector('.op-k').textContent=(kind?kind.l:'')+' · '+S.o.age+'세 · '+S.o.house}
+        '<div class="op-m sk"><span>실력</span><i><b style="width:'+Math.round(S.r*100)+'%"></b></i><em>'+rk+'</em></div><div class="op-m"><span>관심</span><i><b style="width:'+Math.round(S.interest*100)+'%"></b></i></div></div>';
+      op.querySelector('.op-face').src=src;op.querySelector('.op-n').textContent=S.o.name;op.querySelector('.op-k').textContent=(kind?kind.l:'')+(rk&&kind&&!kind.l.includes(rk)&&(rk==='고수'||rk==='중수')?' → '+rk:'')+' · '+S.o.age+'세 · '+S.o.house}
   }
   const c=typeof car==='function'&&car();
   cp.hidden=!c||S.done;

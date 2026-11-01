@@ -11,6 +11,9 @@
      · at the end: a grade (G → SS) and a title, Princess Maker style
    Everything else (hazards, catalogue events, endings) keeps running between turns. */
 
+/* v0.26.1: lines from a deck — none repeats until the others have been used (per life) */
+const carDeckOf=()=>{if(!S.__deck)S.__deck={};return S.__deck};
+function fixDeck(key,arr){const D=carDeckOf();let d=D[key];if(!d||!d.length||d.n!==arr.length){d=D[key]=arr.map((_,i)=>i).sort(()=>R()-.5);d.n=arr.length}return arr[d.pop()]}
 const CAR_STATS={p:'힘',g:'근성',w:'지능',c:'매력'};
 const CAR_MOOD=['최악','나쁨','보통','좋음','최고'],CAR_MOODK=[.8,.9,1,1.1,1.2];
 const car=()=>S&&S.f&&S.f.car;
@@ -197,7 +200,7 @@ function carTrain(k,ps,fr,fail){
   const mul=CAR_FACK[c.fac[k]-1]*CAR_MOODK[c.mood]*(ps.length?1.1:1)*(fr.length?1.5:1)*(R()<.12?1.6:1);
   for(const s in tr.gain){const v=carTrGain(tr.gain[s],mul,s);fStat(s,v);f.tinv=f.tinv||{p:0,g:0,w:0,c:0};f.tinv[s]=(f.tinv[s]||0)+v}
   c.sp+=2+c.fac[k]+(fr.length?4:0);
-  if(fr.length){addLog(T('★ 우정 훈련! '+pick(CAR_PAL[fr[0]].fr)),'star');c.fr++;if(fr[0]==='owner')S.interest=clamp(S.interest+.06,0,1)}
+  if(fr.length){addLog(T('★ 우정 훈련! '+fixDeck('fr'+fr[0],CAR_PAL[fr[0]].fr)),'star');c.fr++;if(fr[0]==='owner')S.interest=clamp(S.interest+.06,0,1)}
   else addLog(T(pick(tr.ok)),'neutral');
   ps.forEach(p=>{c.bond[p]=clamp(c.bond[p]+7+R()*4,0,100);if(p==='owner')S.interest=clamp(S.interest+.03,0,1)});
   c.facN[k]++;if(c.facN[k]>=4&&c.fac[k]<5){c.facN[k]=0;c.fac[k]++;addLog(T('「'+tr.n+'」 시설 레벨'+c.fac[k]+' 달성! 리모델링 완료 —'+tr.lv[c.fac[k]-1]),'good')}
@@ -218,11 +221,22 @@ function carSpecial(x){
   addLog(T(typeof x.ok[0]==='function'?x.ok[0]():x.ok[0]),'good');if(x.ok[1])x.ok[1]();
   f.tlv=f.tlv||{};const key=x.id||valOf(x.l);f.tlv[key]=(f.tlv[key]||0)+1;f.tsum=(f.tsum||0)+1;c.sp+=5;
 }
+const CAR_REST_DEEP=['{n}은 바닥에 배를 대고 아주 깊이 쉬었다. 일어났을 때 몸이 가벼웠다. 숙면계의 전설.','{n}은 열두 시간 내리 잤다. 일어났을 때 세상이 조금 반짝였다. 기력 풀충전.',
+ '{n}의 숙면을 보던 주인까지 졸려서 같이 잤다. 공동 휴무일.','{n}은 꿈속에서 대회 우승을 했다. 깨고 나니 기분만 우승이었다. 그걸로 충분했다.'];
+const CAR_REST_BAD=['쉬려 했지만 주인이 밤새 조명을 켜 두었다. {n}은 반쯤만 쉬었다. 끄라고, 그거.','쉬려던 자리에 합사어가 먼저 누워 있었다. {n}은 구석에서 대충 쉬었다. 명당은 선착순이다.',
+ '주인이 밤새 게임을 했다. 모니터 불빛이 수조 유리에서 번쩍였다. 주인은 레벨업했다. {n}은 못 잤다.','쉬려는데 동생이 수조 앞에서 리코더를 불었다. 음이탈 세 번. {n}은 반쯤만 쉬었다.',
+ '주인이 새벽 세 시에 라면을 끓였다. 냄비 소리에 {n}이 깼다. 같이 출출해졌다.','쉬려던 순간 로봇청소기가 수조 받침을 들이받았다. 지진 경보 발령. 휴식 반토막.'];
+const CAR_REST_OK=['{n}은 수초 그늘에서 지느러미를 접고 푹 쉬었다. 완벽한 휴식. 수조 휴양지 별점 다섯 개.','{n}은 아무것도 하지 않고 하루를 보냈다. 그것도 실력이었다. 이 분야라면 국가대표다.',
+ '{n}은 유목 밑에서 오래 잤다. 코 고는 소리가 들렸다. (환청)','{n}은 수초 잎을 이불 삼아 잤다. 이불이 계속 흔들렸다. 여과기 탓이다.',
+ '{n}은 바닥 모래에 배를 대고 멍을 때렸다. 물멍 하는 물고기. 역할이 바뀌었다.','{n}은 오늘 하루 휴업했다. 셔터 내림. 내일 오픈.',
+ '{n}은 장식 동굴 안에서 낮잠을 잤다. 입구에 "방해 금지" 팻말이 걸린 것 같았다. (안 걸려 있다)','{n}은 지느러미를 접고 수면 아래 둥둥 떠서 쉬었다. 주인이 놀라서 들여다봤다. 쉬는 거다, 주인아.',
+ '{n}은 수조에서 제일 조용한 구석을 찾아 하루를 보냈다. 명당 발견. 아무에게도 안 알려 줄 거다.','휴식. 아무 일도 없었다. 이 작품에서 아무 일도 없는 날은 귀하다. {n}은 그 귀한 하루를 꽉 채워 쉬었다.',
+ '{n}은 꿈에서 바다를 봤다. 민물고기다. 꿈은 자유다.'];
 function carRest(){
   const c=car(),r=R(),nap=carHas('nap')?15:0;
-  if(r<.15){c.vit=clamp(c.vit+65+nap,0,100);c.mood=Math.min(4,c.mood+1);S.health=clamp(S.health+8,0,S.hMax||100);addLog(T('{n}은 바닥에 배를 대고 아주 깊이 쉬었다. 일어났을 때 몸이 가벼웠다. 숙면계의 전설.'),'good')}
-  else if(r<.25){c.vit=clamp(c.vit+22+nap,0,100);addLog(T(pick(['쉬려 했지만 주인이 밤새 조명을 켜 두었다. {n}은 반쯤만 쉬었다. 끄라고, 그거.','쉬려던 자리에 합사어가 먼저 누워 있었다. {n}은 구석에서 대충 쉬었다. 명당은 선착순이다.','주인이 밤새 게임을 했다. 모니터 불빛이 수조 유리에서 번쩍였다. 주인은 레벨업했다. {n}은 못 잤다.'])),'sub')}
-  else{c.vit=clamp(c.vit+45+nap,0,100);S.health=clamp(S.health+5,0,S.hMax||100);addLog(T(pick(['{n}은 수초 그늘에서 지느러미를 접고 푹 쉬었다. 완벽한 휴식. 수조 휴양지 별점 다섯 개.','{n}은 아무것도 하지 않고 하루를 보냈다. 그것도 실력이었다. 이 분야라면 국가대표다.','{n}은 유목 밑에서 오래 잤다. 코 고는 소리가 들렸다. (환청)'])),'neutral')}
+  if(r<.15){c.vit=clamp(c.vit+65+nap,0,100);c.mood=Math.min(4,c.mood+1);S.health=clamp(S.health+8,0,S.hMax||100);addLog(T(fixDeck('restD',CAR_REST_DEEP)),'good')}
+  else if(r<.25){c.vit=clamp(c.vit+22+nap,0,100);addLog(T(fixDeck('restB',CAR_REST_BAD)),'sub')}
+  else{c.vit=clamp(c.vit+45+nap,0,100);S.health=clamp(S.health+5,0,S.hMax||100);addLog(T(fixDeck('rest',CAR_REST_OK)),'neutral')}
 }
 const CAR_PLAY=[
  [3,'{n}은 수면의 거품을 하나씩 터뜨리며 오후를 보냈다. 마지막 거품은 여과기가 만든 것이었고, 끝이 없었다. 무한 뽁뽁이.',1],
@@ -238,8 +252,13 @@ const CAR_PLAY=[
 ];
 function carPlay(){const c=car(),e=wpick(CAR_PLAY.map(z=>[z,z[0]]));c.vit=clamp(c.vit+12,0,100);c.mood=clamp(c.mood+e[2],0,4);S.f.stress=clamp(S.f.stress-.06,0,1.2);
   addLog(T(e[1]+(e[2]>0?' (컨디션 ↑)':' (컨디션 ↓)')),e[2]>0?'good':'bad');if(e[3])e[3](c)}
+const CAR_SIG_HI=['{n}이 유리 앞에 붙어 꼼짝 않자 주인이 한참 들여다보았다. "너 어디 아파?" 전달 성공.','{n}이 평소 자리 대신 유리 앞에 납작 붙었다. 주인이 바로 알아챘다. "오늘 이상한데?" 이 집 주인, 눈치가 늘었다.',
+ '{n}이 먹이를 보고도 안 움직였다. 주인의 얼굴이 굳었다. "병원… 물고기 병원 있나?" 있다. 검색하면 나온다.','{n}이 주인 얼굴 높이에 맞춰 유리 앞에 떠 있었다. 말은 못 해도 표정은 있다. 주인이 그 표정을 읽었다.',
+ '주인이 퇴근하자마자 수조로 왔다. {n}의 상태를 보고 가방도 안 내려놓고 검색을 시작했다. SOS 수신 완료.'];
+const CAR_SIG_LO=['{n}이 유리 앞에 붙어 있었다. 주인은 "밥 달라고?" 하며 지나갔다가, 조금 뒤 다시 돌아와 들여다보았다. 반쯤 전달됐다.',
+ '{n}이 유리 앞에서 버텼다. 주인은 사료를 한 꼬집 넣었다. 그게 아니다. 그래도 사흘째엔 주인이 고개를 갸웃했다.','{n}이 SOS를 쳤다. 주인은 "귀엽다"며 사진을 찍었다. 사진을 보다가 그제야 뭔가 이상하다는 걸 봤다. 늦었지만 봤다.'];
 function carSignal(){const c=car();c.vit=clamp(c.vit+8,0,100);S.interest=clamp(S.interest+.15+(c.bond.owner/400),0,1);
-  addLog(T(c.bond.owner>=40?'{n}이 유리 앞에 붙어 꼼짝 않자 주인이 한참 들여다보았다. "너 어디 아파?" 전달 성공.':'{n}이 유리 앞에 붙어 있었다. 주인은 "밥 달라고?" 하며 지나갔다가, 조금 뒤 다시 돌아와 들여다보았다. 반쯤 전달됐다.'),'sub')}
+  addLog(T(c.bond.owner>=40?fixDeck('sigH',CAR_SIG_HI):fixDeck('sigL',CAR_SIG_LO)),'sub')}
 /* what threatens this fish right now: those skills are recommended first */
 function carThreats(){const f=S.f,t={};
   if(f.ill)t.immune='지금 아픔';
@@ -484,7 +503,7 @@ const CAR_CONTEST=[
 ];
 function carContestDue(){const c=car();return c.turn>=6&&(c.cAt||0)<=c.turn-7&&R()<.5}
 function carContestOpt(){
-  const c=car(),ct=pick(CAR_CONTEST),need=Math.max(8,Math.round(statCap(ct.k)*ct.r)),ch=carChance(ct.k,need);
+  const c=car(),ct=fixDeck('cup',CAR_CONTEST),need=Math.max(8,Math.round(statCap(ct.k)*ct.r)),ch=carChance(ct.k,need);
   return {l:'출전 — '+ct.n,d:CAR_STATS[ct.k]+' '+carD(fst()[ct.k])+' / 필요 '+carD(need)+' · '+carChanceL(ch)+' · 기력 -25 · 이기면 SP +20',c:'neutral',r:'',fx:()=>{
     c.cAt=c.turn;c.vit=clamp(c.vit-25,0,100);c.contests=(c.contests||0)+1;
     if(R()<ch){c.wins=(c.wins||0)+1;c.sp+=20;c.mood=Math.min(4,c.mood+1);c.bond.owner=clamp(c.bond.owner+6,0,100);S.interest=clamp(S.interest+.08,0,1);fStat(ct.k,1);

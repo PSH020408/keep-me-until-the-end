@@ -13,7 +13,7 @@
 const FA_BASE='img/fish/';
 /* corrections to the assembled picture: s scales a part around its joint, dx/dy move it (px of the 560-wide fish) */
 const FA_ADJ={
- betta:{tail:{s:1.45,dx:-18,dy:-4},dorsal:{s:1.2,dx:22,dy:34},pelvic:{s:1.3,dx:10,dy:-16},pect:{s:.9}},
+ betta:{tail:{s:1.45,dx:-18,dy:-4},dorsal:{s:1.15,dx:70,dy:58},pelvic:{s:1.3,dx:10,dy:-16},pect:{s:.9}},
  wildbetta:{tail:{s:1.12,dx:-6},pelvic:{dy:-6},dorsal:{dy:6}},
  guppy:{tail:{s:1.08,dx:-6},dorsal:{dy:6},pelvic:{dy:-6}},
  platy:{dorsal:{dy:6},pelvic:{dy:-6},tail:{dx:-6}},

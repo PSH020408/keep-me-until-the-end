@@ -255,7 +255,7 @@ function fLearn(m){
     [x.social==='school'&&fSameCount()<4&&L>=27,()=>{const n=5-fSameCount();say('"무리 지어 사는 물고기구나." 주인은 같은 종 '+n+'마리를 따로 2주 검역한 뒤 넣어 주었다. 친구 배송 완료. 검역까지 마친 친구다.','good');const mm=f.mates.find(m=>m.id===S.sp.id);if(mm)mm.n+=n;else f.mates.push({id:S.sp.id,n,cm:x.cm*.5});remember('같은 무늬의 물고기들이 왔다. 무리가 생겼다.',1.4)}],
     [!!fPredMate(),()=>{const p=fPredMate();say('"'+mateName(p)+'는 작은 물고기를 먹는구나." 주인은 '+josa(mateName(p),'을')+' 다른 수조로 옮겼다. 포식자, 별거 조치.','good');p.n=0}],
     [!f.lid&&f.tank!=='pond'&&((x.jump||0)>=.3||x.escape||f.cat),()=>{say(f.lidShift?'주인이 한쪽으로 밀려난 뚜껑을 발견하고 제자리에 닫았다. 그 뒤로 뚜껑 위에는 아무것도 올리지 않았다. 뚜껑은 선반이 아니다. 드디어 알았다.':'"물고기가 뛰쳐나와 죽는 일이 흔하대." 주인은 수조 크기에 맞춰 뚜껑을 맞췄다. 탈옥 루트 봉쇄.','good');f.lid=1;f.lidShift=0}],
-    [FI.flow>.45&&(x.longfin||x.cm<5),()=>{say('주인은 출수구에 스펀지를 씌워 물살을 죽였다. "지느러미가 긴 애들은 센 물살이 힘들대." 유수풀 영업 종료.','good');f.stress-=.06}],
+    [FI.flow>.45&&(x.longfin||x.cm<5)&&!f.baffle,()=>{f.baffle=1;say('주인은 출수구에 스펀지를 씌워 물살을 죽였다. "지느러미가 긴 애들은 센 물살이 힘들대." 유수풀 영업 종료.','good');f.stress-=.06}],
     [!f.hides,()=>{say(f.tank==='pond'?'"왜가리를 피할 곳이 있어야 한대." 주인은 연못 바닥에 굵은 토관과 수련을 넣어 주었다. 방공호 완공.':'"숨을 곳이 있어야 스트레스를 덜 받는대." 주인은 유목과 수초를 넣어 주었다. 인테리어 공사 끝. 은신처 분양 완료.','good');f.hides=1;f.stress-=.05}],
     [f.tank==='pond'&&!f.net,()=>{say('"왜가리가 연못 물고기를 다 잡아간대." 주인은 연못 위에 그물을 쳤다. 하늘길 봉쇄.','good');f.net=1}],
     [!!f.pumpOff,()=>{say('주인은 에어펌프를 끄면 안 된다는 걸 알고, 조용한 펌프로 바꿔 다시 켜 두었다. 소음과 산소, 동시 해결.','good');f.pumpOff=0}],
@@ -447,7 +447,7 @@ function fishTick(){
   const nohide=!f.hides?(x.shy||tm('shy')?.18:.05):0;
   const dirty=f.wq<55?(55-f.wq)/90:0;
   /* strong current: long fins and tiny fish in a small tank fight it all day */
-  const flow=FI.flow>.45&&tankL()<170&&(x.longfin||x.cm<5||fishIs('puff'))&&!(own==='expert'&&R()<.8)?(FI.flow-.4)*.5:0;
+  const flow=FI.flow>.45&&!f.baffle&&tankL()<170&&(x.longfin||x.cm<5||fishIs('puff'))&&!(own==='expert'&&R()<.8)?(FI.flow-.4)*.5:0;
   const tgt=clamp(flow+cramped*.55+crowd*.45+fMatePressure()*.6+alone+waterBad+nohide+dirty+tempHit*.3+(f.stunt||0)*.3,0,1.2);
   f.stress=clamp(f.stress*.55+tgt*.45,0,1.2);f.bully=Math.max(0,(f.bully||0)-.05);
   /* fins */

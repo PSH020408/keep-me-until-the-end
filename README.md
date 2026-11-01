@@ -16,7 +16,7 @@ Formerly 키워주세요 — 끝까지 (*Keep Me — Until the End*); renamed in
 > From then on you raise it in the manner of Uma Musume and Princess Maker — train, rest, learn
 > skills, pass goals — so that it can outlast whatever the owner gets wrong.
 
-**Status:** public beta (v0.26.0, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
+**Status:** public beta (v0.26.1, *관상어 데이* — "ornamental fish day": fish only) · **Live:** [keep-me-until-the-end.onrender.com](https://keep-me-until-the-end.onrender.com) · **Stack:** plain HTML / CSS / JavaScript, no build step · **Hosting:** Render static site + Supabase (shared memorial) · **Language:** the game is in Korean; all documentation is in English
 
 > **Content warning.** Neglect, breeding mills, smuggling, fish eaten by tankmates or flushed
 > alive are told plainly. Since v0.10 bad endings describe, from outside and in plain veterinary
@@ -202,6 +202,7 @@ decisions, in short:
 | v0.24.4 | 2026-11-01 | title screen restored (its painting had lost its layout in v0.24.2); figure-8 puffer has an eye again |
 | v0.25.0 | 2026-11-01 | 인자 (inheritance factors): a raised fish leaves stat, skill and title factors; up to two 선배 are picked and their factors may light up twice in the next career; 물고기 도감 (best grade per species, a start bonus); training gains slow near the ceiling (no more maxed stats by mid-life), 고비 requirements follow; a grade that adds up a whole life; 22 new chaos events in short arcs; black ghost drawn with its real rat-tail and no dorsal fin |
 | v0.26.0 | 2026-11-01 | every line rewritten in a gag-manga voice (해라체, 츳코미; docs/VOICE.md); fish drawn as one living painting (fins stay attached, each species keeps its shape and motion; the betta has its big tail back); training acted out by the fish with floating gains; mid-career happy endings become 해피 이벤트 instead of ending the life; 벼랑 끝 승부 before sudden deaths; stat numbers on phones |
+| v0.26.1 | 2026-11-01 | fish stay under the water line in pond and farm paintings; indoor scenes (shop, wholesale, office…) show the fish in a tank window, parcels keep it small and still in the bag; smaller, species-relative sizes; the betta's dorsal sits on its back; a filter current no longer shows the flood; owner age fits the portrait; owner skill rank shown in the owner card; fewer repeated lines (shuffled decks, new contests and friendship lines, the sponge on the outlet is fitted once) |
 
 Every row is expanded in [LOG.md](LOG.md).
 
